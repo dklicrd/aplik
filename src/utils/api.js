@@ -3,6 +3,25 @@
 
 const API_BASE = import.meta.env.DEV ? '/api' : '/api';
 
+export function getToken() {
+  return localStorage.getItem('token');
+}
+
+export function getPermissions() {
+  try {
+    const token = getToken();
+    if (!token) return null;
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.permissions || null;
+  } catch { return null; }
+}
+
+export function hasPermission(module) {
+  const perms = getPermissions();
+  if (!perms) return false;
+  return perms[module] === true;
+}
+
 async function request(path, options = {}) {
   const res = await fetch(`${API_BASE}${path}`, {
     headers: { 'Content-Type': 'application/json', ...options.headers },

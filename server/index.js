@@ -61,13 +61,82 @@ async function start() {
     console.log('✅ Seed complete');
   }
 
+  // === Seed default users ===
+  try {
+    const userTable = await db.query("SELECT name FROM sqlite_master WHERE type='table' AND name='users'");
+    const hasUsersTable = isPostgres ? true : userTable.rows.length > 0;
+    if (hasUsersTable) {
+      const userCount = await db.query('SELECT COUNT(*) as c FROM users');
+      if (parseInt(userCount.rows[0].c) === 0) {
+        const adminHash = await bcrypt.hash('admin123', 10);
+        const userHash = await bcrypt.hash('user123', 10);
+        const adminPerms = JSON.stringify({ dashboard: true, inventario: true, asistencia: true, nomina: true, presupuestos: true, usuarios: true });
+        await db.query(
+          'INSERT INTO users (username, password, role, permissions) VALUES (?,?,?,?)',
+          ['admin', adminHash, 'admin', adminPerms]
+        );
+        console.log('✅ Admin user seeded');
+      }
+    }
+  } catch (e) {
+    // Table may not exist yet — create it
+    try {
+      if (isPostgres) {
+        await db.query(`CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          username TEXT UNIQUE NOT NULL,
+          password TEXT NOT NULL,
+          role TEXT DEFAULT 'admin',
+          permissions TEXT DEFAULT '{}',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
+      } else {
+        await db.query(`CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT UNIQUE NOT NULL,
+          password TEXT NOT NULL,
+          role TEXT DEFAULT 'admin',
+          permissions TEXT DEFAULT '{}',
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )`);
+      }
+      const adminHash = await bcrypt.hash('admin123', 10);
+      const adminPerms = JSON.stringify({ dashboard: true, inventario: true, asistencia: true, nomina: true, presupuestos: true, usuarios: true });
+      await db.query(
+        'INSERT OR IGNORE INTO users (username, password, role, permissions) VALUES (?,?,?,?)',
+        ['admin', adminHash, 'admin', adminPerms]
+      );
+      console.log('✅ Users table created and admin seeded');
+    } catch (e2) {
+      console.log('⚠️ Could not create users table:', e2.message);
+    }
+  }
+
   // === AUTH ===
   app.post('/api/login', async (req, res) => {
     try {
       const { username, password } = req.body;
+      // Query users table first
+      const userResult = await db.query('SELECT * FROM users WHERE username = ?', [username]);
+      if (userResult.rows.length > 0) {
+        const user = userResult.rows[0];
+        const match = await bcrypt.compare(password, user.password);
+        if (match) {
+          const permissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions;
+          const token = jwt.sign({
+            id: user.id,
+            username: user.username,
+            role: user.role,
+            permissions
+          }, JWT_SECRET, { expiresIn: '24h' });
+          return res.json({ token, user: { id: user.id, username: user.username, role: user.role, permissions } });
+        }
+      }
+      // Fallback admin hardcoded
       if (username === 'admin' && password === 'admin123') {
-        const token = jwt.sign({ username, role: 'admin' }, JWT_SECRET, { expiresIn: '24h' });
-        return res.json({ token, user: { username, role: 'admin' } });
+        const defaultPerms = { dashboard: true, inventario: true, asistencia: true, nomina: true, presupuestos: true, usuarios: true };
+        const token = jwt.sign({ username, role: 'admin', permissions: defaultPerms }, JWT_SECRET, { expiresIn: '24h' });
+        return res.json({ token, user: { username, role: 'admin', permissions: defaultPerms } });
       }
       res.status(401).json({ error: 'Credenciales inválidas' });
     } catch (err) {
@@ -77,6 +146,67 @@ async function start() {
 
   app.get('/api/me', authMiddleware, (req, res) => {
     res.json({ user: req.user });
+  });
+
+  // === USERS CRUD (admin only) ===
+  app.get('/api/users', authMiddleware, async (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Solo administradores' });
+    try {
+      const result = await db.query('SELECT id, username, role, permissions, created_at FROM users ORDER BY id');
+      res.json(result.rows.map(u => ({
+        ...u,
+        permissions: typeof u.permissions === 'string' ? JSON.parse(u.permissions) : u.permissions
+      })));
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
+  app.post('/api/users', authMiddleware, async (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Solo administradores' });
+    try {
+      const { username, password, role, permissions } = req.body;
+      if (!username || !password) return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
+      const hashed = await bcrypt.hash(password, 10);
+      const perms = permissions || '{"dashboard":true,"inventario":true,"asistencia":true,"nomina":true,"presupuestos":true,"usuarios":false}';
+      const result = await db.query(
+        'INSERT INTO users (username, password, role, permissions) VALUES (?,?,?,?)',
+        [username, hashed, role || 'user', typeof perms === 'string' ? perms : JSON.stringify(perms)]
+      );
+      const id = result.rowCount || result.changes;
+      res.status(201).json({ id, username, role: role || 'user' });
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
+  app.put('/api/users/:id', authMiddleware, async (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Solo administradores' });
+    try {
+      const { username, password, role, permissions } = req.body;
+      const perms = typeof permissions === 'string' ? permissions : JSON.stringify(permissions);
+      if (password) {
+        const hashed = await bcrypt.hash(password, 10);
+        await db.query('UPDATE users SET username=?, password=?, role=?, permissions=? WHERE id=?',
+          [username, hashed, role, perms, req.params.id]);
+      } else {
+        await db.query('UPDATE users SET username=?, role=?, permissions=? WHERE id=?',
+          [username, role, perms, req.params.id]);
+      }
+      res.json({ id: parseInt(req.params.id), username, role });
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
+  app.delete('/api/users/:id', authMiddleware, async (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Solo administradores' });
+    try {
+      await db.query('DELETE FROM users WHERE id = ?', [req.params.id]);
+      res.json({ deleted: true });
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
   });
 
   // === EMPLOYEES CRUD ===

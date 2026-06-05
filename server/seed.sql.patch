@@ -1,0 +1,13 @@
+-- Add users table migration
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  role TEXT DEFAULT 'admin',
+  permissions TEXT DEFAULT '{"dashboard":true,"inventario":true,"asistencia":true,"nomina":true,"presupuestos":true,"usuarios":true}',
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT OR IGNORE INTO users (id, username, password, role, permissions) VALUES
+  (1, 'admin', '$2a$10$xVv8bL5G1y8qF5z5z5z5z5z5z5z5z5z5z5z5z5z5z5z5z5z5z5z5', 'admin', '{"dashboard":true,"inventario":true,"asistencia":true,"nomina":true,"presupuestos":true,"usuarios":true}'),
+  (2, 'user', '$2a$10$xVv8bL5G1y8qF5z5z5z5z5z5z5z5z5z5z5z5z5z5z5z5z5z5z5z5', 'user', '{"dashboard":true,"inventario":false,"asistencia":true,"nomina":false,"presupuestos":true,"usuarios":false}');
