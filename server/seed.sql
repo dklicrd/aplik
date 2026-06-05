@@ -1,27 +1,25 @@
--- Aplik Dashboard — Database Migration Script
--- PostgreSQL
+-- Aplik Dashboard — Universal Seed (PostgreSQL + SQLite)
 
 -- Categories
 CREATE TABLE IF NOT EXISTS categories (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  color VARCHAR(20)
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  color TEXT
 );
 
 INSERT INTO categories (name, color) VALUES
   ('pintura', '#3498db'),
   ('herramienta', '#e67e22'),
-  ('producto', '#2ecc71')
-ON CONFLICT DO NOTHING;
+  ('producto', '#2ecc71');
 
 -- Products
 CREATE TABLE IF NOT EXISTS products (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  category VARCHAR(100),
-  stock DECIMAL(10,2) DEFAULT 0,
-  min_stock DECIMAL(10,2) DEFAULT 3,
-  unit VARCHAR(50) DEFAULT 'unidad'
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  category TEXT,
+  stock REAL DEFAULT 0,
+  min_stock REAL DEFAULT 3,
+  unit TEXT DEFAULT 'unidad'
 );
 
 INSERT INTO products (id, name, category, stock, min_stock, unit) VALUES
@@ -101,20 +99,17 @@ INSERT INTO products (id, name, category, stock, min_stock, unit) VALUES
   (74, 'Cinta Multi Seal', 'producto', 0, 5, 'unidad'),
   (75, 'Cinta Ever Seal', 'producto', 0, 5, 'unidad'),
   (76, 'Caja Masilla Joint Compound', 'producto', 0, 5, 'caja'),
-  (77, 'Rollo de Malla', 'herramienta', 0, 3, 'rollo')
-ON CONFLICT (id) DO UPDATE SET
-  stock = EXCLUDED.stock,
-  min_stock = EXCLUDED.min_stock;
+  (77, 'Rollo de Malla', 'herramienta', 0, 3, 'rollo');
 
 -- Employees
 CREATE TABLE IF NOT EXISTS employees (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  type VARCHAR(10),
-  type_label VARCHAR(50),
-  project VARCHAR(50),
-  salary DECIMAL(10,2),
-  discounts DECIMAL(10,2) DEFAULT 0
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  type TEXT,
+  type_label TEXT,
+  project TEXT,
+  salary REAL,
+  discounts REAL DEFAULT 0
 );
 
 INSERT INTO employees (id, name, type, type_label, project, salary, discounts) VALUES
@@ -145,33 +140,40 @@ INSERT INTO employees (id, name, type, type_label, project, salary, discounts) V
   (25, 'Dales', 'C', 'Aprendiz', 'PYG', 1100, 0),
   (26, 'Edelson', 'C', 'Aprendiz', 'PYG', 1100, 0),
   (27, 'Samuel', 'B', 'Pintor Intermedio', 'PYG', 1100, 600),
-  (28, 'Guimi', 'C', 'Aprendiz', 'PYG', 1100, 600)
-ON CONFLICT (id) DO NOTHING;
+  (28, 'Guimi', 'C', 'Aprendiz', 'PYG', 1100, 600);
 
--- Movements (inventory transactions)
+-- Movements
 CREATE TABLE IF NOT EXISTS movements (
-  id SERIAL PRIMARY KEY,
-  type VARCHAR(20) NOT NULL,
-  product_id INTEGER REFERENCES products(id),
-  product VARCHAR(255),
-  qty DECIMAL(10,2),
-  date DATE,
-  destination VARCHAR(255),
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT NOT NULL,
+  product_id INTEGER,
+  product TEXT,
+  qty REAL,
+  date TEXT,
+  destination TEXT,
   note TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at TEXT DEFAULT (datetime('now'))
 );
+
+INSERT INTO movements (id, type, product_id, product, qty, date, destination, note) VALUES
+  (1, 'entrada', 59, 'Cub Microtop', 12, '2026-03-10', NULL, 'Compra Lanco'),
+  (2, 'entrada', 63, 'Cub Express Arena del Sur', 18, '2026-03-10', NULL, 'Compra Lanco'),
+  (3, 'entrada', 65, 'Cub Duraflex', 3, '2026-03-11', NULL, 'Devolución de Sambil'),
+  (4, 'entrada', 63, 'Cub Express Arena del Sur', 20, '2026-03-11', NULL, 'Compra Lanco'),
+  (5, 'entrada', 28, 'Express Lino Natural', 4, '2026-03-11', NULL, 'Compra Lanco'),
+  (6, 'salida', 34, 'Cub Total Blanco', 4, '2026-03-07', 'Centro Olímpico', NULL),
+  (7, 'salida', 59, 'Cub Microtop', 2, '2026-03-09', 'Centro Olímpico', NULL),
+  (8, 'salida', 57, 'Cub Primer Sealer', 2, '2026-03-09', 'Centro Olímpico', NULL);
 
 -- Attendance
 CREATE TABLE IF NOT EXISTS attendance (
-  id SERIAL PRIMARY KEY,
-  employee_id INTEGER REFERENCES employees(id),
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  employee_id INTEGER,
   day INTEGER,
-  value DECIMAL(4,2) DEFAULT 0,
-  period VARCHAR(100),
-  UNIQUE(employee_id, day, period)
+  value REAL DEFAULT 0,
+  period TEXT
 );
 
--- Attendance records for 1st half June 2026
 INSERT INTO attendance (employee_id, day, value, period) VALUES
   (1, 1, 0, '2026-06-1ra'), (1, 2, 0, '2026-06-1ra'), (1, 3, 1, '2026-06-1ra'),
   (2, 1, 1, '2026-06-1ra'), (2, 2, 1, '2026-06-1ra'), (2, 3, 1, '2026-06-1ra'),
@@ -200,22 +202,4 @@ INSERT INTO attendance (employee_id, day, value, period) VALUES
   (25, 1, 1, '2026-06-1ra'), (25, 2, 1, '2026-06-1ra'), (25, 3, 1, '2026-06-1ra'),
   (26, 1, 1, '2026-06-1ra'), (26, 2, 0, '2026-06-1ra'), (26, 3, 1, '2026-06-1ra'),
   (27, 1, 0, '2026-06-1ra'), (27, 2, 1, '2026-06-1ra'), (27, 3, 1, '2026-06-1ra'),
-  (28, 1, 1, '2026-06-1ra'), (28, 2, 1, '2026-06-1ra'), (28, 3, 1, '2026-06-1ra')
-ON CONFLICT (employee_id, day, period) DO NOTHING;
-
--- Movements (first batch)
-INSERT INTO movements (id, type, product_id, product, qty, date, destination, note) VALUES
-  (1, 'entrada', 59, 'Cub Microtop', 12, '2026-03-10', NULL, 'Compra Lanco'),
-  (2, 'entrada', 63, 'Cub Express Arena del Sur', 18, '2026-03-10', NULL, 'Compra Lanco'),
-  (3, 'entrada', 65, 'Cub Duraflex', 3, '2026-03-11', NULL, 'Devolución de Sambil'),
-  (4, 'entrada', 63, 'Cub Express Arena del Sur', 20, '2026-03-11', NULL, 'Compra Lanco'),
-  (5, 'entrada', 28, 'Express Lino Natural', 4, '2026-03-11', NULL, 'Compra Lanco'),
-  (6, 'salida', 34, 'Cub Total Blanco', 4, '2026-03-07', 'Centro Olímpico', NULL),
-  (7, 'salida', 59, 'Cub Microtop', 2, '2026-03-09', 'Centro Olímpico', NULL),
-  (8, 'salida', 57, 'Cub Primer Sealer', 2, '2026-03-09', 'Centro Olímpico', NULL)
-ON CONFLICT (id) DO NOTHING;
-
--- Fix sequences
-SELECT setval('products_id_seq', (SELECT COALESCE(MAX(id), 0) FROM products));
-SELECT setval('employees_id_seq', (SELECT COALESCE(MAX(id), 0) FROM employees));
-SELECT setval('movements_id_seq', (SELECT COALESCE(MAX(id), 0) FROM movements));
+  (28, 1, 1, '2026-06-1ra'), (28, 2, 1, '2026-06-1ra'), (28, 3, 1, '2026-06-1ra');
