@@ -1,12 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { getEmployees, getAttendance } from '../utils/api';
-import { Download, RefreshCw } from 'lucide-react';
+import { getEmployees, getAttendance, updateEmployee } from '../utils/api';
+import { Download, RefreshCw, Plus, Edit2, Trash2, X, Save } from 'lucide-react';
+
+const TYPES = [
+  { value: 'A', label: 'Buen Pintor' },
+  { value: 'B', label: 'Pintor Intermedio' },
+  { value: 'C', label: 'Aprendiz' },
+  { value: 'M', label: 'Masillero' },
+];
 
 export default function Nomina() {
   const [employees, setEmployees] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterProj, setFilterProj] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [editEmp, setEditEmp] = useState(null);
+  const [form, setForm] = useState({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0 });
+  const [saving, setSaving] = useState(false);
+
+  const getToken = () => localStorage.getItem('token');
 
   const fetchData = async () => {
     setLoading(true);
@@ -35,6 +48,57 @@ export default function Nomina() {
     const gross = getGross(emp.id, emp.salary);
     return sum + (gross - Number(emp.discounts || 0));
   }, 0);
+
+  const openNew = () => {
+    setEditEmp(null);
+    setForm({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0 });
+    setShowModal(true);
+  };
+
+  const openEdit = (emp) => {
+    setEditEmp(emp);
+    setForm({ name: emp.name, type: emp.type, type_label: emp.type_label, project: emp.project, salary: emp.salary, discounts: emp.discounts });
+    setShowModal(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.name.trim()) return;
+    setSaving(true);
+    try {
+      if (editEmp) {
+        await updateEmployee(editEmp.id, form);
+      } else {
+        const token = getToken();
+        await fetch('/api/employees', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(form),
+        });
+      }
+      setShowModal(false);
+      await fetchData();
+    } catch (e) {
+      alert('Error: ' + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (emp) => {
+    if (!confirm(`¿Eliminar a ${emp.name} de la nómina? También se eliminará su asistencia.`)) return;
+    try {
+      const token = getToken();
+      await fetch(`/api/employees/${emp.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      await fetchData();
+    } catch (e) {
+      alert('Error: ' + e.message);
+    }
+  };
+
+  const handleTypeChange = (type) => {
+    const t = TYPES.find(t => t.value === type);
+    setForm({ ...form, type, type_label: t ? t.label : '' });
+  };
 
   const exportCSV = () => {
     let csv = 'Empleado,Proyecto,Tipo,Días,Bruto,Descuento,Neto\n';
@@ -81,12 +145,13 @@ export default function Nomina() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16, alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 16, alignItems: 'center', flexWrap: 'wrap' }}>
         <select value={filterProj} onChange={e => setFilterProj(e.target.value)}
           style={{ padding: '10px 12px', border: '1px solid #e0e0e0', borderRadius: 8, fontSize: 14 }}>
           <option value="">Todos los proyectos</option>
           {projects.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
+        <button className="btn btn-primary" onClick={openNew}><Plus size={16} /> Agregar Trabajador</button>
         <button className="btn btn-accent" onClick={exportCSV}><Download size={16} /> Exportar CSV</button>
       </div>
 
@@ -102,6 +167,7 @@ export default function Nomina() {
               <th>Bruto</th>
               <th>Descuento</th>
               <th>Neto a Pagar</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -121,6 +187,14 @@ export default function Nomina() {
                     ${Number(emp.discounts).toLocaleString('es-DO')}
                   </td>
                   <td style={{ fontWeight: 700, color: '#27ae60' }}>${net.toLocaleString('es-DO')}</td>
+                  <td>
+                    <button className="btn btn-sm" onClick={() => openEdit(emp)} style={{ marginRight: 4 }}>
+                      <Edit2 size={13} />
+                    </button>
+                    <button className="btn btn-sm" onClick={() => handleDelete(emp)} style={{ color: '#e74c3c' }}>
+                      <Trash2 size={13} />
+                    </button>
+                  </td>
                 </tr>
               );
             })}
@@ -131,6 +205,7 @@ export default function Nomina() {
               <td>${filtered.reduce((s, e) => s + getGross(e.id, e.salary), 0).toLocaleString('es-DO')}</td>
               <td style={{ color: '#e74c3c' }}>${filtered.reduce((s, e) => s + Number(e.discounts || 0), 0).toLocaleString('es-DO')}</td>
               <td style={{ color: '#27ae60' }}>${totalNomina.toLocaleString('es-DO')}</td>
+              <td></td>
             </tr>
           </tfoot>
         </table>
@@ -168,6 +243,52 @@ export default function Nomina() {
           <p>• <strong>Descontar $1,000 x quincena</strong> a Allan hasta completar $8,000 por teléfono</p>
         </div>
       </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editEmp ? 'Editar Trabajador' : 'Agregar Trabajador'}</h3>
+              <button className="btn btn-sm" onClick={() => setShowModal(false)}><X size={16} /></button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Nombre</label>
+                <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} required />
+              </div>
+              <div className="form-group">
+                <label>Tipo</label>
+                <select value={form.type} onChange={e => handleTypeChange(e.target.value)}>
+                  {TYPES.map(t => <option key={t.value} value={t.value}>{t.value} — {t.label}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Proyecto</label>
+                <select value={form.project} onChange={e => setForm({...form, project: e.target.value})}>
+                  {projects.map(p => <option key={p} value={p}>{p}</option>)}
+                  <option value="PYG">PYG</option>
+                  <option value="Luxury">Luxury</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Salario Diario (RD$)</label>
+                <input type="number" value={form.salary} onChange={e => setForm({...form, salary: Number(e.target.value)})} min={0} />
+              </div>
+              <div className="form-group">
+                <label>Descuento (RD$)</label>
+                <input type="number" value={form.discounts} onChange={e => setForm({...form, discounts: Number(e.target.value)})} min={0} />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn" onClick={() => setShowModal(false)}>Cancelar</button>
+              <button className="btn btn-primary" onClick={handleSave} disabled={saving || !form.name.trim()}>
+                <Save size={14} /> {saving ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

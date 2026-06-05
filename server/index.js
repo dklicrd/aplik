@@ -2,15 +2,33 @@ import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { fileURLToPath } from 'url';
 import { initDB, db as _db, isPostgres as _isP } from './db.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 10000;
+const JWT_SECRET = process.env.JWT_SECRET || 'aplik-secret-key-change-in-production';
 
 app.use(cors());
 app.use(express.json());
+
+// Auth middleware
+function authMiddleware(req, res, next) {
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token requerido' });
+  }
+  try {
+    const decoded = jwt.verify(auth.split(' ')[1], JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (e) {
+    res.status(401).json({ error: 'Token inválido o expirado' });
+  }
+}
 
 // Lazy init — wait for DB before starting routes
 let db, isPostgres;
@@ -42,6 +60,50 @@ async function start() {
     db.exec(sql);
     console.log('✅ Seed complete');
   }
+
+  // === AUTH ===
+  app.post('/api/login', async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      if (username === 'admin' && password === 'admin123') {
+        const token = jwt.sign({ username, role: 'admin' }, JWT_SECRET, { expiresIn: '24h' });
+        return res.json({ token, user: { username, role: 'admin' } });
+      }
+      res.status(401).json({ error: 'Credenciales inválidas' });
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
+  app.get('/api/me', authMiddleware, (req, res) => {
+    res.json({ user: req.user });
+  });
+
+  // === EMPLOYEES CRUD ===
+  app.post('/api/employees', authMiddleware, async (req, res) => {
+    try {
+      const { name, type, type_label, project, salary, discounts } = req.body;
+      if (!name) return res.status(400).json({ error: 'Nombre requerido' });
+      const result = await db.query(
+        'INSERT INTO employees (name, type, type_label, project, salary, discounts) VALUES (?,?,?,?,?,?)',
+        [name, type || 'C', type_label || 'Aprendiz', project || 'PYG', salary || 1100, discounts || 0]
+      );
+      const id = result.rowCount || result.changes;
+      res.status(201).json({ id, name, type, type_label, project, salary, discounts });
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
+  app.delete('/api/employees/:id', authMiddleware, async (req, res) => {
+    try {
+      await db.query('DELETE FROM attendance WHERE employee_id = ?', [req.params.id]);
+      await db.query('DELETE FROM employees WHERE id = ?', [req.params.id]);
+      res.json({ deleted: true });
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
 
   // === ROUTES ===
 
