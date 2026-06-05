@@ -1,0 +1,10 @@
+name: Deploy to Render
+on:
+  push:
+    branches: [main]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Deploy triggered by push to main"

@@ -1,7 +1,8 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { AlertTriangle, Package, Users, DollarSign, TrendingUp } from 'lucide-react';
+import { AlertTriangle, Package, Users, DollarSign, TrendingUp, FileText } from 'lucide-react';
 import { products, employees, movements, categories } from '../utils/data';
+import { allPresupuestos } from '../utils/presupuestos';
 
 export default function Dashboard() {
   const totalProducts = products.length;
@@ -9,6 +10,12 @@ export default function Dashboard() {
   const lowStock = products.filter(p => p.stock <= p.minStock && p.stock > 0).length;
   const outOfStock = products.filter(p => p.stock <= 0).length;
   const totalWarning = lowStock + outOfStock;
+
+  // Stats presupuestos
+  const totalPresup = allPresupuestos.length;
+  const terminadosPresup = allPresupuestos.filter(p => p.estatus === 'Terminado').length;
+  const activosPresup = allPresupuestos.filter(p => p.estatus === 'Ejecución').length;
+  const porAprobarPresup = allPresupuestos.filter(p => p.estatus === 'X Aprobar').length;
 
   // Movimientos por mes
   const movesByMonth = {};
@@ -63,6 +70,11 @@ export default function Dashboard() {
           <div className="stat-label"><DollarSign size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Nómina Quincenal</div>
           <div className="stat-value">${totalPayroll.toLocaleString('es-DO')}</div>
           <div className="stat-sub">1ra quincena junio 2026</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label"><FileText size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Presupuestos</div>
+          <div className="stat-value">{totalPresup}</div>
+          <div className="stat-sub">{terminadosPresup} terminados · {activosPresup} activos · {porAprobarPresup} por aprobar</div>
         </div>
       </div>
 

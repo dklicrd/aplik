@@ -1,10 +1,11 @@
 import React from 'react';
 import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
-import { Package, Users, ClipboardList, LayoutDashboard, AlertTriangle, Calculator } from 'lucide-react';
+import { Package, Users, ClipboardList, LayoutDashboard, AlertTriangle, Calculator, FileText } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Inventario from './pages/Inventario';
 import Asistencia from './pages/Asistencia';
 import Nomina from './pages/Nomina';
+import Presupuestos from './pages/Presupuestos';
 
 function App() {
   return (
@@ -27,6 +28,9 @@ function App() {
           <NavLink to="/nomina">
             <Calculator /> <span>Nómina</span>
           </NavLink>
+          <NavLink to="/presupuestos">
+            <FileText /> <span>Presupuestos</span>
+          </NavLink>
         </nav>
       </aside>
 
@@ -36,6 +40,7 @@ function App() {
           <Route path="/inventario" element={<Inventario />} />
           <Route path="/asistencia" element={<Asistencia />} />
           <Route path="/nomina" element={<Nomina />} />
+          <Route path="/presupuestos" element={<Presupuestos />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
