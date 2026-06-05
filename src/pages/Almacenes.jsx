@@ -13,20 +13,23 @@ export default function Almacenes() {
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
   const [transferModal, setTransferModal] = useState(false);
+  const [projects, setProjects] = useState([]);
   const [form, setForm] = useState({ name: '', type: 'secundario', location: '', project_id: '' });
   const [transferForm, setTransferForm] = useState({ product_id: '', product_name: '', qty: 1, from_location: '', to_location: '', note: '' });
 
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [almRes, traRes, prodRes] = await Promise.all([
+      const [almRes, traRes, prodRes, projRes] = await Promise.all([
         fetch(`${API}/api/warehouses`),
         fetch(`${API}/api/transfers`),
-        fetch(`${API}/api/products`)
+        fetch(`${API}/api/products`),
+        fetch(`${API}/api/projects`)
       ]);
       setAlmacenes(await almRes.json());
       setTransfers(await traRes.json());
       setProducts(await prodRes.json());
+      setProjects(await projRes.json());
     } catch (e) { console.error(e); }
     setLoading(false);
   };
@@ -223,7 +226,12 @@ export default function Almacenes() {
               </div>
               <div className="form-group">
                 <label>Proyecto (opcional)</label>
-                <input type="number" value={form.project_id} onChange={e => setForm({...form, project_id: e.target.value})} placeholder="ID del proyecto" />
+                <select value={form.project_id} onChange={e => setForm({...form, project_id: e.target.value})}>
+                  <option value="">Sin proyecto asignado</option>
+                  {projects.map(p => (
+                    <option key={p.id} value={p.id}>{p.name} {p.code ? `(${p.code})` : ''}</option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="modal-footer">

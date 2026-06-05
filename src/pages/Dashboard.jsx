@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { AlertTriangle, Package, Users, DollarSign, TrendingUp, RefreshCw } from 'lucide-react';
+import { AlertTriangle, Package, Users, DollarSign, TrendingUp, RefreshCw, FolderKanban, ClipboardList } from 'lucide-react';
 import { getProducts, getEmployees, getMovements, getCategories } from '../utils/api';
 
-const COLORS = ['#3498db', '#e67e22', '#2ecc71', '#e74c3c', '#9b59b6'];
+const API = 'https://aplik-dashboard.onrender.com';
+const COLORS = ['#3498db', '#e67e22', '#2ecc71', '#e74c3c', '#9b59b6', '#1abc9c', '#f39c12', '#2980b9'];
 
 export default function Dashboard() {
   const [products, setProducts] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [movements, setMovements] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
@@ -18,10 +21,21 @@ export default function Dashboard() {
       const [p, e, m, c] = await Promise.all([
         getProducts(), getEmployees(), getMovements(), getCategories()
       ]);
-      setProducts(p);
-      setEmployees(e);
-      setMovements(m);
-      setCategories(c);
+      let pr = [], bu = [];
+      try {
+        const prRes = await fetch(`${API}/api/projects`);
+        pr = await prRes.json();
+      } catch(_) {}
+      try {
+        const buRes = await fetch(`${API}/api/budgets`);
+        bu = await buRes.json();
+      } catch(_) {}
+      setProducts(Array.isArray(p) ? p : []);
+      setEmployees(Array.isArray(e) ? e : []);
+      setMovements(Array.isArray(m) ? m : []);
+      setCategories(Array.isArray(c) ? c : []);
+      setProjects(Array.isArray(pr) ? pr : []);
+      setBudgets(Array.isArray(bu) ? bu : []);
     } catch (err) {
       console.error('Error loading dashboard:', err);
     }
@@ -34,18 +48,24 @@ export default function Dashboard() {
     return (
       <div className="page-header">
         <h2>Dashboard</h2>
-        <p style={{ color: '#7f8c8d' }}><RefreshCw size={14} style={{ animation: 'spin 1s linear infinite', verticalAlign: 'middle', marginRight: 6 }} /> Cargando datos...</p>
+        <p style={{ color: '#7f8c8d' }}>
+          <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite', verticalAlign: 'middle', marginRight: 6 }} />
+          Cargando datos...
+        </p>
       </div>
     );
   }
 
   const totalProducts = products.length;
   const totalEmployees = employees.length;
-  const lowStock = products.filter(p => p.stock > 0 && p.stock <= p.min_stock).length;
-  const outOfStock = products.filter(p => p.stock <= 0).length;
+  const totalProjects = projects.length;
+  const lowStock = products.filter(p => Number(p.stock) > 0 && Number(p.stock) <= Number(p.min_stock)).length;
+  const outOfStock = products.filter(p => Number(p.stock) <= 0).length;
   const totalWarning = lowStock + outOfStock;
-
   const totalPayroll = employees.reduce((sum, e) => sum + (15 * Number(e.salary) - Number(e.discounts || 0)), 0);
+  const totalBudget = projects.reduce((s, p) => s + Number(p.budget || 0), 0);
+  const completedProjects = projects.filter(p => p.status === 'completado').length;
+  const activeBudget = projects.filter(p => p.status === 'activo').reduce((s, p) => s + Number(p.budget || 0), 0);
 
   // Movements by month
   const movesByMonth = {};
@@ -69,7 +89,7 @@ export default function Dashboard() {
     <div>
       <div className="page-header">
         <h2>Dashboard</h2>
-        <p>Resumen general de operaciones</p>
+        <p>Resumen general de operaciones — Aplik Ingeniería</p>
       </div>
 
       <div className="stats-grid">
@@ -81,7 +101,12 @@ export default function Dashboard() {
         <div className="stat-card">
           <div className="stat-label"><Users size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Empleados</div>
           <div className="stat-value">{totalEmployees}</div>
-          <div className="stat-sub">2 proyectos activos</div>
+          <div className="stat-sub">{projects.filter(p => p.status === 'activo').length} proyectos activos</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label"><FolderKanban size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Proyectos</div>
+          <div className="stat-value">{totalProjects}</div>
+          <div className="stat-sub">{completedProjects} completados · ${activeBudget.toLocaleString('es-DO')} activos</div>
         </div>
         <div className="stat-card" style={totalWarning > 0 ? { borderLeft: '4px solid #e74c3c' } : {}}>
           <div className="stat-label"><AlertTriangle size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Alertas de Stock</div>
@@ -92,6 +117,11 @@ export default function Dashboard() {
           <div className="stat-label"><DollarSign size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Nómina Quincenal (est.)</div>
           <div className="stat-value">${totalPayroll.toLocaleString('es-DO')}</div>
           <div className="stat-sub">15 días laborables</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label"><ClipboardList size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Presupuesto Total</div>
+          <div className="stat-value">${totalBudget.toLocaleString('es-DO')}</div>
+          <div className="stat-sub">{totalProjects} proyectos planificados</div>
         </div>
       </div>
 
@@ -149,6 +179,36 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {projects.length > 0 && (
+        <div className="card" style={{ marginTop: 20 }}>
+          <div className="card-header">
+            <h3><ClipboardList size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} /> Proyectos Activos</h3>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Proyecto</th>
+                <th>Código</th>
+                <th>Ubicación</th>
+                <th>Presupuesto</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projects.filter(p => p.status === 'activo').map(p => (
+                <tr key={p.id}>
+                  <td><strong>{p.name}</strong></td>
+                  <td><span className="badge badge-info">{p.code || '—'}</span></td>
+                  <td>{p.location || '—'}</td>
+                  <td>${Number(p.budget).toLocaleString('es-DO')}</td>
+                  <td><span className="badge badge-success">Activo</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <div className="card" style={{ marginTop: 20 }}>
         <div className="card-header">

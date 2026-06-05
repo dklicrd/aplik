@@ -242,6 +242,16 @@ async function start() {
     }
   });
 
+  // === BUDGETS ===
+  app.get('/api/budgets', async (req, res) => {
+    try {
+      const result = await db.query('SELECT * FROM budgets ORDER BY created_at DESC');
+      res.json(result.rows);
+    } catch (err) {
+      res.json([]);
+    }
+  });
+
   app.post('/api/warehouses', authMiddleware, async (req, res) => {
     try {
       const { name, type, location, project_id } = req.body;
