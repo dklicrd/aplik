@@ -15,10 +15,16 @@ app.use(cors());
 app.use(express.json());
 
 // PostgreSQL connection (from Render env vars)
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+let pool;
+try {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+  });
+  console.log('📦 PostgreSQL pool created, DATABASE_URL set:', !!process.env.DATABASE_URL);
+} catch(e) {
+  console.error('❌ Pool creation failed:', e.message);
+}
 
 // Auto-seed database on first run
 async function seedDatabase() {
@@ -66,6 +72,12 @@ app.get('/api/health', (req, res) => {
 // Reseed (for manual trigger)
 app.post('/api/reseed', async (req, res) => {
   try {
+    // Test connection first
+    const test = await pool.query('SELECT 1 as ok');
+    if (!test || !test.rows) {
+      return res.json({ error: 'No DB connection', detail: 'Pool query returned no rows' });
+    }
+    
     const sql = fs.readFileSync(path.join(__dirname, 'seed.sql'), 'utf8');
     const statements = sql.split(';').filter(s => s.trim());
     let count = 0, errors = 0;
@@ -74,19 +86,26 @@ app.post('/api/reseed', async (req, res) => {
         await pool.query(stmt + ';');
         count++;
       } catch (e) {
-        console.log('Seed error (skipping):', e.message.substring(0, 80));
+        console.log('Seed error (skipping):', e.message ? e.message.substring(0, 80) : String(e));
         errors++;
       }
     }
     res.json({ executed: count, errors });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    const msg = e && e.message ? e.message : (e ? String(e) : 'Unknown error');
+    res.status(500).json({ error: 'Se seed failed', detail: msg });
   }
 });
 
 // Force reseed — truncate and re-insert
 app.post('/api/reseed/force', async (req, res) => {
   try {
+    // Test connection first
+    const test = await pool.query('SELECT 1 as ok');
+    if (!test || !test.rows) {
+      return res.json({ error: 'No DB connection', detail: 'Pool query returned no rows' });
+    }
+    
     const tables = ['movements', 'attendance', 'products', 'employees', 'categories'];
     for (const t of tables) {
       try { await pool.query(`TRUNCATE TABLE ${t} CASCADE`); } catch (e) {}
@@ -105,17 +124,18 @@ app.post('/api/reseed/force', async (req, res) => {
         await pool.query(stmt + ';');
         count++;
       } catch (e) {
-        errorLog.push(e.message ? e.message.substring(0, 50) : String(e));
+        errorLog.push(e && e.message ? e.message.substring(0, 50) : String(e));
         errors++;
       }
     }
     // Verify
     let prodCount = 0, empCount = 0;
-    try { const r = await pool.query('SELECT COUNT(*) FROM products'); prodCount = r.rows[0].count; } catch(e){}
-    try { const r = await pool.query('SELECT COUNT(*) FROM employees'); empCount = r.rows[0].count; } catch(e){}
+    try { const r = await pool.query('SELECT COUNT(*) as c FROM products'); prodCount = r.rows[0].c; } catch(e){}
+    try { const r = await pool.query('SELECT COUNT(*) as c FROM employees'); empCount = r.rows[0].c; } catch(e){}
     res.json({ executed: count, errors, products: prodCount, employees: empCount, firstErrors: errorLog.slice(0,5) });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    const msg = e && e.message ? e.message : (e ? String(e) : 'Unknown error');
+    res.status(500).json({ error: 'Force reseed failed', detail: msg });
   }
 });
 
