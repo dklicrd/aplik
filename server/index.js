@@ -63,6 +63,44 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Reseed (for manual trigger)
+app.post('/api/reseed', async (req, res) => {
+  try {
+    const sql = fs.readFileSync(path.join(__dirname, 'seed.sql'), 'utf8');
+    const statements = sql.split(';').filter(s => s.trim());
+    let count = 0, errors = 0;
+    for (const stmt of statements) {
+      try {
+        await pool.query(stmt + ';');
+        count++;
+      } catch (e) {
+        errors++;
+      }
+    }
+    res.json({ executed: count, errors });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Get DB stats
+app.get('/api/dbstats', async (req, res) => {
+  try {
+    const products = await pool.query('SELECT COUNT(*) FROM products');
+    const employees = await pool.query('SELECT COUNT(*) FROM employees');
+    const movements = await pool.query('SELECT COUNT(*) FROM movements');
+    const attendance = await pool.query('SELECT COUNT(*) FROM attendance');
+    res.json({
+      products: products.rows[0].count,
+      employees: employees.rows[0].count,
+      movements: movements.rows[0].count,
+      attendance: attendance.rows[0].count
+    });
+  } catch (e) {
+    res.json({ error: e.message });
+  }
+});
+
 // === API Routes ===
 
 // Products
