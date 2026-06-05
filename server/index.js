@@ -92,26 +92,28 @@ app.post('/api/reseed/force', async (req, res) => {
       try { await pool.query(`TRUNCATE TABLE ${t} CASCADE`); } catch (e) {}
     }
     // Reset sequences
-    await pool.query("ALTER SEQUENCE products_id_seq RESTART WITH 1");
-    await pool.query("ALTER SEQUENCE employees_id_seq RESTART WITH 1");
-    await pool.query("ALTER SEQUENCE movements_id_seq RESTART WITH 1");
+    try { await pool.query("ALTER SEQUENCE products_id_seq RESTART WITH 1"); } catch(e){}
+    try { await pool.query("ALTER SEQUENCE employees_id_seq RESTART WITH 1"); } catch(e){}
+    try { await pool.query("ALTER SEQUENCE movements_id_seq RESTART WITH 1"); } catch(e){}
     
     const sql = fs.readFileSync(path.join(__dirname, 'seed.sql'), 'utf8');
     const statements = sql.split(';').filter(s => s.trim());
     let count = 0, errors = 0;
+    const errorLog = [];
     for (const stmt of statements) {
       try {
         await pool.query(stmt + ';');
         count++;
       } catch (e) {
-        console.log('Force seed error:', e.message.substring(0, 100));
+        errorLog.push(e.message ? e.message.substring(0, 50) : String(e));
         errors++;
       }
     }
     // Verify
-    const prod = await pool.query('SELECT COUNT(*) FROM products');
-    const emp = await pool.query('SELECT COUNT(*) FROM employees');
-    res.json({ executed: count, errors, products: prod.rows[0].count, employees: emp.rows[0].count });
+    let prodCount = 0, empCount = 0;
+    try { const r = await pool.query('SELECT COUNT(*) FROM products'); prodCount = r.rows[0].count; } catch(e){}
+    try { const r = await pool.query('SELECT COUNT(*) FROM employees'); empCount = r.rows[0].count; } catch(e){}
+    res.json({ executed: count, errors, products: prodCount, employees: empCount, firstErrors: errorLog.slice(0,5) });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
