@@ -295,7 +295,8 @@ async function start() {
         [product_id, product_name, qty, from_location, to_location, note || '']);
       const result = await db.query(q.text, q.params);
       // Update product stock
-      await db.query('UPDATE products SET stock = stock - ? WHERE id = ?', [qty, product_id]);
+      const upd = pgParams('UPDATE products SET stock = stock - ? WHERE id = ?', [qty, product_id]);
+      await db.query(upd.text, upd.params);
       const id = result.rowCount || result.changes;
       res.status(201).json({ id, product_name, qty, from_location, to_location });
     } catch (err) {
