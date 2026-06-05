@@ -10,6 +10,7 @@ import Nomina from './pages/Nomina';
 import Presupuestos from './pages/Presupuestos';
 import Usuarios from './pages/Usuarios';
 import Proyectos from './pages/Proyectos';
+import Almacenes from './pages/Almacenes';
 import Login from './pages/Login';
 
 const NAV_ITEMS = [
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { path: '/presupuestos', label: 'Presupuestos', icon: <FileText />, perm: 'presupuestos' },
   { path: '/usuarios', label: 'Usuarios', icon: <Shield />, perm: 'usuarios' },
   { path: '/proyectos', label: 'Proyectos', icon: <ClipboardList />, perm: 'proyectos' },
+  { path: '/almacenes', label: 'Almacenes', icon: <Package />, perm: 'almacenes' },
 ];
 
 function ProtectedRoute({ children }) {
@@ -79,6 +81,7 @@ function AppLayout() {
           <Route path="/presupuestos" element={<RequirePermission perm="presupuestos"><Presupuestos /></RequirePermission>} />
           <Route path="/usuarios" element={<RequirePermission perm="usuarios"><Usuarios /></RequirePermission>} />
           <Route path="/proyectos" element={<RequirePermission perm="proyectos"><Proyectos /></RequirePermission>} />
+          <Route path="/almacenes" element={<RequirePermission perm="almacenes"><Almacenes /></RequirePermission>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
