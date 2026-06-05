@@ -119,6 +119,7 @@ export default function Nomina() {
 
   const exportPDF = async () => {
     const { jsPDF } = await import('jspdf');
+    await import('jspdf-autotable');
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
