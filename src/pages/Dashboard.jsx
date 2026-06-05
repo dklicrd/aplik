@@ -1,47 +1,69 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { AlertTriangle, Package, Users, DollarSign, TrendingUp, FileText } from 'lucide-react';
-import { products, employees, movements, categories } from '../utils/data';
-import { allPresupuestos } from '../utils/presupuestos';
+import { AlertTriangle, Package, Users, DollarSign, TrendingUp, RefreshCw } from 'lucide-react';
+import { getProducts, getEmployees, getMovements, getCategories } from '../utils/api';
+
+const COLORS = ['#3498db', '#e67e22', '#2ecc71', '#e74c3c', '#9b59b6'];
 
 export default function Dashboard() {
+  const [products, setProducts] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [movements, setMovements] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [p, e, m, c] = await Promise.all([
+        getProducts(), getEmployees(), getMovements(), getCategories()
+      ]);
+      setProducts(p);
+      setEmployees(e);
+      setMovements(m);
+      setCategories(c);
+    } catch (err) {
+      console.error('Error loading dashboard:', err);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  if (loading) {
+    return (
+      <div className="page-header">
+        <h2>Dashboard</h2>
+        <p style={{ color: '#7f8c8d' }}><RefreshCw size={14} style={{ animation: 'spin 1s linear infinite', verticalAlign: 'middle', marginRight: 6 }} /> Cargando datos...</p>
+      </div>
+    );
+  }
+
   const totalProducts = products.length;
   const totalEmployees = employees.length;
-  const lowStock = products.filter(p => p.stock <= p.minStock && p.stock > 0).length;
+  const lowStock = products.filter(p => p.stock > 0 && p.stock <= p.min_stock).length;
   const outOfStock = products.filter(p => p.stock <= 0).length;
   const totalWarning = lowStock + outOfStock;
 
-  // Stats presupuestos
-  const totalPresup = allPresupuestos.length;
-  const terminadosPresup = allPresupuestos.filter(p => p.estatus === 'Terminado').length;
-  const activosPresup = allPresupuestos.filter(p => p.estatus === 'Ejecución').length;
-  const porAprobarPresup = allPresupuestos.filter(p => p.estatus === 'X Aprobar').length;
+  const totalPayroll = employees.reduce((sum, e) => sum + (15 * Number(e.salary) - Number(e.discounts || 0)), 0);
 
-  // Movimientos por mes
+  // Movements by month
   const movesByMonth = {};
   movements.forEach(m => {
-    const month = m.date.slice(0, 7);
+    const month = m.date ? m.date.slice(0, 7) : '2026-06';
     if (!movesByMonth[month]) movesByMonth[month] = { month, entradas: 0, salidas: 0 };
-    if (m.type === 'entrada') movesByMonth[month].entradas += m.qty;
-    else movesByMonth[month].salidas += m.qty;
+    if (m.type === 'entrada') movesByMonth[month].entradas += Number(m.qty);
+    else movesByMonth[month].salidas += Number(m.qty);
   });
   const chartData = Object.values(movesByMonth).sort((a, b) => a.month.localeCompare(b.month));
 
-  // Stock por categoría
+  // Stock by category
   const stockByCat = {};
+  categories.forEach(c => { stockByCat[c.name] = { name: c.name, value: 0, color: c.color }; });
   products.forEach(p => {
-    if (!stockByCat[p.category]) stockByCat[p.category] = { name: p.category, value: 0 };
-    stockByCat[p.category].value += Math.max(0, p.stock);
+    if (stockByCat[p.category]) stockByCat[p.category].value += Math.max(0, Number(p.stock));
   });
-  const pieData = Object.values(stockByCat);
-  const COLORS = ['#3498db', '#e67e22', '#2ecc71'];
-
-  // Nómina total quincena
-  const totalPayroll = employees.reduce((sum, e) => {
-    const att = employees.find(a => a.id === e.id);
-    const daysWorked = att ? att.days.reduce((a, b) => a + b, 0) : 0;
-    return sum + (daysWorked * e.salary - e.discounts);
-  }, 0);
+  const pieData = Object.values(stockByCat).filter(d => d.value > 0);
 
   return (
     <div>
@@ -67,14 +89,9 @@ export default function Dashboard() {
           <div className="stat-sub">{outOfStock} agotados · {lowStock} por agotar</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label"><DollarSign size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Nómina Quincenal</div>
+          <div className="stat-label"><DollarSign size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Nómina Quincenal (est.)</div>
           <div className="stat-value">${totalPayroll.toLocaleString('es-DO')}</div>
-          <div className="stat-sub">1ra quincena junio 2026</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label"><FileText size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Presupuestos</div>
-          <div className="stat-value">{totalPresup}</div>
-          <div className="stat-sub">{terminadosPresup} terminados · {activosPresup} activos · {porAprobarPresup} por aprobar</div>
+          <div className="stat-sub">15 días laborables</div>
         </div>
       </div>
 
@@ -83,43 +100,53 @@ export default function Dashboard() {
           <div className="card-header">
             <h3>Movimientos de Inventario</h3>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" tickFormatter={v => {
-                const d = new Date(v + '-01');
-                return d.toLocaleDateString('es', { month: 'short', year: '2-digit' });
-              }} />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="entradas" name="Entradas" fill="#27ae60" radius={[4,4,0,0]} />
-              <Bar dataKey="salidas" name="Salidas" fill="#e74c3c" radius={[4,4,0,0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          {chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" tickFormatter={v => {
+                  const d = new Date(v + '-01');
+                  return d.toLocaleDateString('es', { month: 'short', year: '2-digit' });
+                }} />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="entradas" name="Entradas" fill="#27ae60" radius={[4,4,0,0]} />
+                <Bar dataKey="salidas" name="Salidas" fill="#e74c3c" radius={[4,4,0,0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p style={{ color: '#7f8c8d', padding: 40, textAlign: 'center' }}>No hay movimientos registrados aún</p>
+          )}
         </div>
 
         <div className="card">
           <div className="card-header">
             <h3>Stock por Categoría</h3>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={90} paddingAngle={3} dataKey="value">
-                {pieData.map((entry, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
+          {pieData.length > 0 ? (
+            <>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={90} paddingAngle={3} dataKey="value">
+                    {pieData.map((entry, i) => (
+                      <Cell key={i} fill={entry.color || COLORS[i % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 8, flexWrap: 'wrap' }}>
+                {pieData.map((d, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: d.color || COLORS[i] }} />
+                    <span style={{ textTransform: 'capitalize' }}>{d.name}: {d.value}</span>
+                  </div>
                 ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 8 }}>
-            {pieData.map((d, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
-                <div style={{ width: 10, height: 10, borderRadius: '50%', background: COLORS[i] }} />
-                <span style={{ textTransform: 'capitalize' }}>{d.name}: {d.value}</span>
               </div>
-            ))}
-          </div>
+            </>
+          ) : (
+            <p style={{ color: '#7f8c8d', padding: 40, textAlign: 'center' }}>Sin datos de stock</p>
+          )}
         </div>
       </div>
 
@@ -138,21 +165,21 @@ export default function Dashboard() {
             </tr>
           </thead>
           <tbody>
-            {products.filter(p => p.stock <= p.minStock).sort((a, b) => a.stock - b.stock).slice(0, 10).map(p => (
+            {products.filter(p => Number(p.stock) <= Number(p.min_stock)).sort((a, b) => Number(a.stock) - Number(b.stock)).slice(0, 10).map(p => (
               <tr key={p.id}>
                 <td><strong>{p.name}</strong></td>
                 <td style={{ textTransform: 'capitalize' }}>{p.category}</td>
-                <td>{p.stock} {p.unit}</td>
-                <td>{p.minStock} {p.unit}</td>
+                <td>{Number(p.stock)} {p.unit}</td>
+                <td>{Number(p.min_stock)} {p.unit}</td>
                 <td>
-                  {p.stock <= 0
+                  {Number(p.stock) <= 0
                     ? <span className="badge badge-danger">Agotado</span>
                     : <span className="badge badge-warning">Bajo stock</span>
                   }
                 </td>
               </tr>
             ))}
-            {products.filter(p => p.stock <= p.minStock).length === 0 && (
+            {products.filter(p => Number(p.stock) <= Number(p.min_stock)).length === 0 && (
               <tr><td colSpan={5} style={{ textAlign: 'center', color: '#7f8c8d', padding: 20 }}>No hay alertas de stock bajo ✅</td></tr>
             )}
           </tbody>
