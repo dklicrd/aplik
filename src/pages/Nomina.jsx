@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getEmployees, getAttendance, updateEmployee } from '../utils/api';
 import { Download, RefreshCw, Plus, Edit2, Trash2, X, Save, FileText } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 const TYPES = [
   { value: 'A', label: 'Buen Pintor' },
@@ -118,8 +120,6 @@ export default function Nomina() {
   };
 
   const exportPDF = async () => {
-    const { jsPDF } = await import('jspdf');
-    await import('jspdf-autotable');
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
