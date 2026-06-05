@@ -191,6 +191,7 @@ export default function Nomina() {
         </select>
         <button className="btn btn-primary" onClick={openNew}><Plus size={16} /> Agregar Trabajador</button>
         <button className="btn btn-accent" onClick={exportCSV}><Download size={16} /> Exportar CSV</button>
+        <button className="btn btn-accent" onClick={exportPDF} style={{ marginLeft: 8 }}><FileText size={16} /> Exportar PDF</button>
       </div>
 
       <div className="card">
