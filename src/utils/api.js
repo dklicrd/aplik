@@ -34,3 +34,7 @@ export const createMovement = (data) => request('/movements', { method: 'POST', 
 
 // Attendance
 export const getAttendance = () => request('/attendance');
+export const updateAttendance = (data) => request('/attendance', { method: 'PUT', body: JSON.stringify(data) });
+
+// Employees
+export const updateEmployee = (id, data) => request(`/employees/${id}`, { method: 'PUT', body: JSON.stringify(data) });

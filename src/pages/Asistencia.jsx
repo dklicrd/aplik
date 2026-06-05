@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getEmployees, getAttendance } from '../utils/api';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Save } from 'lucide-react';
+
+const API_BASE = import.meta.env.DEV ? '/api' : '/api';
 
 const DAY_LABELS = ['Lun 1','Mar 2','Mié 3','Jue 4','Vie 5','Sáb 6','Dom 7','Lun 8','Mar 9','Mié 10','Jue 11','Vie 12','Sáb 13','Dom 14','Lun 15'];
 
@@ -8,7 +10,12 @@ export default function Asistencia() {
   const [employees, setEmployees] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [filterProj, setFilterProj] = useState('');
+  const [editMode, setEditMode] = useState(false);
+
+  // Local edits: { employee_id: { day: value } }
+  const [edits, setEdits] = useState({});
 
   const fetchData = async () => {
     setLoading(true);
@@ -18,6 +25,7 @@ export default function Asistencia() {
     ]);
     setEmployees(e);
     setAttendance(a);
+    setEdits({});
     setLoading(false);
   };
 
@@ -26,14 +34,51 @@ export default function Asistencia() {
   const filtered = employees.filter(e => !filterProj || e.project === filterProj);
   const projects = [...new Set(employees.map(e => e.project))];
 
-  // Build day matrix: [employeeId][day-1] => value
+  // Build day matrix from server data + local edits
   const attMap = {};
   attendance.forEach(a => {
     if (!attMap[a.employee_id]) attMap[a.employee_id] = {};
     attMap[a.employee_id][a.day] = Number(a.value);
   });
 
-  const getDayValue = (empId, day) => attMap[empId]?.[day] || 0;
+  const getDayValue = (empId, day) => {
+    if (edits[empId]?.[day] !== undefined) return edits[empId][day];
+    return attMap[empId]?.[day] || 0;
+  };
+
+  const cycleDay = (empId, day) => {
+    const current = getDayValue(empId, day);
+    const next = current >= 1 ? 0 : current >= 0.5 ? 1 : 0.5;
+    setEdits(prev => ({
+      ...prev,
+      [empId]: { ...prev[empId], [day]: next }
+    }));
+  };
+
+  const saveAll = async () => {
+    setSaving(true);
+    try {
+      const updates = [];
+      Object.entries(edits).forEach(([empId, days]) => {
+        Object.entries(days).forEach(([day, value]) => {
+          updates.push(
+            fetch(`${API_BASE}/attendance`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ employee_id: parseInt(empId), day: parseInt(day), value, period: '2026-06-1ra' })
+            }).then(r => r.json())
+          );
+        });
+      });
+      await Promise.all(updates);
+      setEdits({});
+      setEditMode(false);
+      fetchData();
+    } catch (err) {
+      alert('Error al guardar: ' + err.message);
+    }
+    setSaving(false);
+  };
 
   if (loading) return <div className="page-header"><h2>Asistencia</h2><p><RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> Cargando...</p></div>;
 
@@ -44,7 +89,7 @@ export default function Asistencia() {
         <p>15 días — período activo</p>
       </div>
 
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16, alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 16, alignItems: 'center', flexWrap: 'wrap' }}>
         <select value={filterProj} onChange={e => setFilterProj(e.target.value)}
           style={{ padding: '10px 12px', border: '1px solid #e0e0e0', borderRadius: 8, fontSize: 14 }}>
           <option value="">Todos los proyectos</option>
@@ -56,6 +101,22 @@ export default function Asistencia() {
           <span className="badge badge-info">C: Aprendiz</span>
           <span className="badge badge-info">M: Masillero</span>
         </div>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+          {editMode ? (
+            <>
+              <button className="btn btn-primary" onClick={saveAll} disabled={saving}>
+                <Save size={16} /> {saving ? 'Guardando...' : 'Guardar Cambios'}
+              </button>
+              <button className="btn" style={{ background: '#eee' }} onClick={() => { setEditMode(false); setEdits({}); }}>
+                Cancelar
+              </button>
+            </>
+          ) : (
+            <button className="btn btn-accent" onClick={() => setEditMode(true)}>
+              ✏️ Editar
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="card" style={{ overflowX: 'auto' }}>
@@ -66,7 +127,7 @@ export default function Asistencia() {
               <th>Proy.</th>
               <th>Tipo</th>
               {DAY_LABELS.map((d, i) => (
-                <th key={i} style={{ textAlign: 'center', minWidth: 32, fontSize: 10 }}>{d.split(' ')[0]}</th>
+                <th key={i} style={{ textAlign: 'center', minWidth: editMode ? 36 : 32, fontSize: 10 }}>{d.split(' ')[0]}</th>
               ))}
               <th style={{ background: '#f0f2f5' }}>Días</th>
             </tr>
@@ -80,15 +141,28 @@ export default function Asistencia() {
                   <td style={{ fontWeight: 600, position: 'sticky', left: 0, background: 'white' }}>{emp.name}</td>
                   <td style={{ fontSize: 11 }}>{emp.project}</td>
                   <td><span className="badge badge-info">{emp.type}</span></td>
-                  {days.map((d, i) => (
-                    <td key={i} style={{
-                      textAlign: 'center',
-                      background: d >= 1 ? '#d4edda' : d > 0 ? '#fff3cd' : '#f8f9fa',
-                      color: d >= 1 ? '#155724' : d > 0 ? '#856404' : '#adb5bd'
-                    }}>
-                      {d >= 1 ? '✓' : d > 0 ? '½' : ''}
-                    </td>
-                  ))}
+                  {days.map((d, i) => {
+                    const dayNum = i + 1;
+                    const isEdited = edits[emp.id]?.[dayNum] !== undefined;
+                    return (
+                      <td
+                        key={i}
+                        onClick={() => editMode && cycleDay(emp.id, dayNum)}
+                        style={{
+                          textAlign: 'center',
+                          cursor: editMode ? 'pointer' : 'default',
+                          background: d >= 1 ? '#d4edda' : d > 0 ? '#fff3cd' : '#f8f9fa',
+                          color: d >= 1 ? '#155724' : d > 0 ? '#856404' : '#adb5bd',
+                          fontWeight: isEdited ? 700 : 400,
+                          border: isEdited ? '2px solid #3498db' : 'none',
+                          transition: 'all 0.15s'
+                        }}
+                        title={editMode ? 'Click: ½ → 0 → 1 → ½' : ''}
+                      >
+                        {d >= 1 ? '✓' : d > 0 ? '½' : editMode ? '○' : ''}
+                      </td>
+                    );
+                  })}
                   <td style={{ fontWeight: 700, textAlign: 'center', background: '#f0f2f5' }}>{worked}</td>
                 </tr>
               );

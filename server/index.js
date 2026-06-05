@@ -174,6 +174,34 @@ app.get('/api/attendance', async (req, res) => {
   }
 });
 
+app.put('/api/attendance', async (req, res) => {
+  try {
+    const { employee_id, day, value, period } = req.body;
+    const result = await pool.query(`
+      INSERT INTO attendance (employee_id, day, value, period) VALUES ($1,$2,$3,$4)
+      ON CONFLICT (employee_id, day, period) DO UPDATE SET value = $3
+      RETURNING *
+    `, [employee_id, day, value, period || '2026-06-1ra']);
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/employees/:id', async (req, res) => {
+  try {
+    const { name, type, type_label, project, salary, discounts } = req.body;
+    const result = await pool.query(
+      'UPDATE employees SET name=$1, type=$2, type_label=$3, project=$4, salary=$5, discounts=$6 WHERE id=$7 RETURNING *',
+      [name, type, type_label, project, salary, discounts, req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Serve React frontend in production
 app.use(express.static(path.join(__dirname, '../dist')));
 
