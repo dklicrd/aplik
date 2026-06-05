@@ -9,6 +9,6 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: DATABASE_URL
-        sync: false
+        value: postgresql://aplik_db_user:V0gJmG40vvCza763gjcbd5kDjSH7BIad@dpg-d8hgc3s2m8qs73b47hb0-a/aplik_db
       - key: NODE_VERSION
         value: "22"
