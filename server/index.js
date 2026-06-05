@@ -74,10 +74,44 @@ app.post('/api/reseed', async (req, res) => {
         await pool.query(stmt + ';');
         count++;
       } catch (e) {
+        console.log('Seed error (skipping):', e.message.substring(0, 80));
         errors++;
       }
     }
     res.json({ executed: count, errors });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Force reseed — truncate and re-insert
+app.post('/api/reseed/force', async (req, res) => {
+  try {
+    const tables = ['movements', 'attendance', 'products', 'employees', 'categories'];
+    for (const t of tables) {
+      try { await pool.query(`TRUNCATE TABLE ${t} CASCADE`); } catch (e) {}
+    }
+    // Reset sequences
+    await pool.query("ALTER SEQUENCE products_id_seq RESTART WITH 1");
+    await pool.query("ALTER SEQUENCE employees_id_seq RESTART WITH 1");
+    await pool.query("ALTER SEQUENCE movements_id_seq RESTART WITH 1");
+    
+    const sql = fs.readFileSync(path.join(__dirname, 'seed.sql'), 'utf8');
+    const statements = sql.split(';').filter(s => s.trim());
+    let count = 0, errors = 0;
+    for (const stmt of statements) {
+      try {
+        await pool.query(stmt + ';');
+        count++;
+      } catch (e) {
+        console.log('Force seed error:', e.message.substring(0, 100));
+        errors++;
+      }
+    }
+    // Verify
+    const prod = await pool.query('SELECT COUNT(*) FROM products');
+    const emp = await pool.query('SELECT COUNT(*) FROM employees');
+    res.json({ executed: count, errors, products: prod.rows[0].count, employees: emp.rows[0].count });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
