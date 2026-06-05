@@ -61,63 +61,38 @@ async function start() {
     console.log('✅ Seed complete');
   }
 
-  // === Seed default users ===
+  // === Seed default users (PostgreSQL-safe) ===
   try {
-    const userTable = await db.query("SELECT name FROM sqlite_master WHERE type='table' AND name='users'");
-    const hasUsersTable = isPostgres ? true : userTable.rows.length > 0;
-    if (hasUsersTable) {
-      const userCount = await db.query('SELECT COUNT(*) as c FROM users');
-      if (parseInt(userCount.rows[0].c) === 0) {
-        const adminHash = await bcrypt.hash('admin123', 10);
-        const userHash = await bcrypt.hash('user123', 10);
-        const adminPerms = JSON.stringify({ dashboard: true, inventario: true, asistencia: true, nomina: true, presupuestos: true, usuarios: true });
-        await db.query(
-          'INSERT INTO users (username, password, role, permissions) VALUES (?,?,?,?)',
-          ['admin', adminHash, 'admin', adminPerms]
-        );
-        console.log('✅ Admin user seeded');
-      }
-    }
-  } catch (e) {
-    // Table may not exist yet — create it
-    try {
-      if (isPostgres) {
-        await db.query(`CREATE TABLE IF NOT EXISTS users (
-          id SERIAL PRIMARY KEY,
-          username TEXT UNIQUE NOT NULL,
-          password TEXT NOT NULL,
-          role TEXT DEFAULT 'admin',
-          permissions TEXT DEFAULT '{}',
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`);
-      } else {
-        await db.query(`CREATE TABLE IF NOT EXISTS users (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          username TEXT UNIQUE NOT NULL,
-          password TEXT NOT NULL,
-          role TEXT DEFAULT 'admin',
-          permissions TEXT DEFAULT '{}',
-          created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )`);
-      }
+    // Try to count users — if table doesn't exist, catch creates it
+    const userCount = await db.query('SELECT COUNT(*) as c FROM users');
+    if (parseInt(userCount.rows[0].c) === 0) {
       const adminHash = await bcrypt.hash('admin123', 10);
       const adminPerms = JSON.stringify({ dashboard: true, inventario: true, asistencia: true, nomina: true, presupuestos: true, usuarios: true });
-      await db.query(
-        'INSERT OR IGNORE INTO users (username, password, role, permissions) VALUES (?,?,?,?)',
-        ['admin', adminHash, 'admin', adminPerms]
-      );
-      console.log('✅ Users table created and admin seeded');
-    } catch (e2) {
-      console.log('⚠️ Could not create users table:', e2.message);
+      if (isPostgres) {
+        await db.query('INSERT INTO users (username, password, role, permissions) VALUES ($1,$2,$3,$4)',
+          ['admin', adminHash, 'admin', adminPerms]);
+      } else {
+        await db.query('INSERT OR IGNORE INTO users (username, password, role, permissions) VALUES (?,?,?,?)',
+          ['admin', adminHash, 'admin', adminPerms]);
+      }
+      console.log('✅ Admin user seeded');
     }
+  } catch (e) {
+    console.log('⚠️ Users seed failed (table may not exist yet):', e.message);
   }
 
   // === AUTH ===
+  function pgParams(sql, params) {
+    if (!isPostgres) return { text: sql, params };
+    let i = 0;
+    return { text: sql.replace(/\?/g, () => `$${++i}`), params };
+  }
+
   app.post('/api/login', async (req, res) => {
     try {
       const { username, password } = req.body;
-      // Query users table first
-      const userResult = await db.query('SELECT * FROM users WHERE username = ?', [username]);
+      const q = pgParams('SELECT * FROM users WHERE username = ?', [username]);
+      const userResult = await db.query(q.text, q.params);
       if (userResult.rows.length > 0) {
         const user = userResult.rows[0];
         const match = await bcrypt.compare(password, user.password);
@@ -169,10 +144,9 @@ async function start() {
       if (!username || !password) return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
       const hashed = await bcrypt.hash(password, 10);
       const perms = permissions || '{"dashboard":true,"inventario":true,"asistencia":true,"nomina":true,"presupuestos":true,"usuarios":false}';
-      const result = await db.query(
-        'INSERT INTO users (username, password, role, permissions) VALUES (?,?,?,?)',
-        [username, hashed, role || 'user', typeof perms === 'string' ? perms : JSON.stringify(perms)]
-      );
+      const q = pgParams('INSERT INTO users (username, password, role, permissions) VALUES (?,?,?,?)',
+        [username, hashed, role || 'user', typeof perms === 'string' ? perms : JSON.stringify(perms)]);
+      const result = await db.query(q.text, q.params);
       const id = result.rowCount || result.changes;
       res.status(201).json({ id, username, role: role || 'user' });
     } catch (err) {
@@ -187,11 +161,13 @@ async function start() {
       const perms = typeof permissions === 'string' ? permissions : JSON.stringify(permissions);
       if (password) {
         const hashed = await bcrypt.hash(password, 10);
-        await db.query('UPDATE users SET username=?, password=?, role=?, permissions=? WHERE id=?',
+        const q = pgParams('UPDATE users SET username=?, password=?, role=?, permissions=? WHERE id=?',
           [username, hashed, role, perms, req.params.id]);
+        await db.query(q.text, q.params);
       } else {
-        await db.query('UPDATE users SET username=?, role=?, permissions=? WHERE id=?',
+        const q = pgParams('UPDATE users SET username=?, role=?, permissions=? WHERE id=?',
           [username, role, perms, req.params.id]);
+        await db.query(q.text, q.params);
       }
       res.json({ id: parseInt(req.params.id), username, role });
     } catch (err) {
@@ -202,8 +178,153 @@ async function start() {
   app.delete('/api/users/:id', authMiddleware, async (req, res) => {
     if (req.user.role !== 'admin') return res.status(403).json({ error: 'Solo administradores' });
     try {
-      await db.query('DELETE FROM users WHERE id = ?', [req.params.id]);
+      const q = pgParams('DELETE FROM users WHERE id = ?', [req.params.id]);
+      await db.query(q.text, q.params);
       res.json({ deleted: true });
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
+  // === PROJECTS CRUD ===
+  app.get('/api/projects', async (req, res) => {
+    try {
+      const result = await db.query('SELECT * FROM projects ORDER BY name');
+      res.json(result.rows);
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
+  app.post('/api/projects', authMiddleware, async (req, res) => {
+    try {
+      const { name, code, location, status, budget, client, notes } = req.body;
+      if (!name) return res.status(400).json({ error: 'Nombre requerido' });
+      const q = pgParams('INSERT INTO projects (name, code, location, status, budget, client, notes) VALUES (?,?,?,?,?,?,?)',
+        [name, code || '', location || '', status || 'activo', budget || 0, client || '', notes || '']);
+      const result = await db.query(q.text, q.params);
+      const id = result.rowCount || result.changes;
+      res.status(201).json({ id, name, code });
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
+  app.put('/api/projects/:id', authMiddleware, async (req, res) => {
+    try {
+      const { name, code, location, status, budget, client, notes } = req.body;
+      const q = pgParams('UPDATE projects SET name=?, code=?, location=?, status=?, budget=?, client=?, notes=? WHERE id=?',
+        [name, code, location, status, budget, client, notes, req.params.id]);
+      await db.query(q.text, q.params);
+      res.json({ id: parseInt(req.params.id) });
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
+  app.delete('/api/projects/:id', authMiddleware, async (req, res) => {
+    try {
+      const q = pgParams('DELETE FROM projects WHERE id = ?', [req.params.id]);
+      await db.query(q.text, q.params);
+      res.json({ deleted: true });
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
+  // === WAREHOUSES CRUD ===
+  app.get('/api/warehouses', async (req, res) => {
+    try {
+      const result = await db.query('SELECT w.*, p.name as project_name FROM warehouses w LEFT JOIN projects p ON w.project_id = p.id ORDER BY w.name');
+      res.json(result.rows);
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
+  app.post('/api/warehouses', authMiddleware, async (req, res) => {
+    try {
+      const { name, type, location, project_id } = req.body;
+      if (!name) return res.status(400).json({ error: 'Nombre requerido' });
+      const q = pgParams('INSERT INTO warehouses (name, type, location, project_id) VALUES (?,?,?,?)',
+        [name, type || 'secundario', location || '', project_id || null]);
+      const result = await db.query(q.text, q.params);
+      const id = result.rowCount || result.changes;
+      res.status(201).json({ id, name, type });
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
+  app.put('/api/warehouses/:id', authMiddleware, async (req, res) => {
+    try {
+      const { name, type, location, project_id } = req.body;
+      const q = pgParams('UPDATE warehouses SET name=?, type=?, location=?, project_id=? WHERE id=?',
+        [name, type, location, project_id || null, req.params.id]);
+      await db.query(q.text, q.params);
+      res.json({ id: parseInt(req.params.id) });
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
+  app.delete('/api/warehouses/:id', authMiddleware, async (req, res) => {
+    try {
+      const q = pgParams('DELETE FROM warehouses WHERE id = ?', [req.params.id]);
+      await db.query(q.text, q.params);
+      res.json({ deleted: true });
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
+  // === TRANSFERS ===
+  app.get('/api/transfers', async (req, res) => {
+    try {
+      const result = await db.query('SELECT * FROM transfers ORDER BY date DESC');
+      res.json(result.rows);
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
+  app.post('/api/transfers', authMiddleware, async (req, res) => {
+    try {
+      const { product_id, product_name, qty, from_location, to_location, note } = req.body;
+      const q = pgParams('INSERT INTO transfers (product_id, product_name, qty, from_location, to_location, note) VALUES (?,?,?,?,?,?)',
+        [product_id, product_name, qty, from_location, to_location, note || '']);
+      const result = await db.query(q.text, q.params);
+      // Update product stock
+      await db.query('UPDATE products SET stock = stock - ? WHERE id = ?', [qty, product_id]);
+      const id = result.rowCount || result.changes;
+      res.status(201).json({ id, product_name, qty, from_location, to_location });
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
+  // === EXPORT PDF (simple JSON endpoint, frontend generates PDF) ===
+  app.get('/api/nomina/export', async (req, res) => {
+    try {
+      const employees = await db.query('SELECT * FROM employees ORDER BY name');
+      const attendance = await db.query('SELECT * FROM attendance ORDER BY employee_id, day');
+      const attMap = {};
+      for (const a of attendance.rows) {
+        attMap[a.employee_id] = (attMap[a.employee_id] || 0) + Number(a.value);
+      }
+      const rows = employees.rows.map(e => ({
+        name: e.name,
+        project: e.project,
+        type: e.type,
+        type_label: e.type_label,
+        salary: e.salary,
+        days: attMap[e.id] || 0,
+        gross: (attMap[e.id] || 0) * Number(e.salary),
+        discount: Number(e.discounts || 0),
+        net: ((attMap[e.id] || 0) * Number(e.salary)) - Number(e.discounts || 0)
+      }));
+      const total = rows.reduce((s, r) => s + r.net, 0);
+      res.json({ rows, total, date: new Date().toISOString().slice(0, 10) });
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }

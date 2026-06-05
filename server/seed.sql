@@ -210,3 +210,73 @@ INSERT INTO attendance (employee_id, day, value, period) VALUES
   (26, 1, 1, '2026-06-1ra'), (26, 2, 0, '2026-06-1ra'), (26, 3, 1, '2026-06-1ra'),
   (27, 1, 0, '2026-06-1ra'), (27, 2, 1, '2026-06-1ra'), (27, 3, 1, '2026-06-1ra'),
   (28, 1, 1, '2026-06-1ra'), (28, 2, 1, '2026-06-1ra'), (28, 3, 1, '2026-06-1ra');
+
+-- Users table
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  role TEXT DEFAULT 'admin',
+  permissions TEXT DEFAULT '{}',
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Projects table
+CREATE TABLE IF NOT EXISTS projects (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT UNIQUE NOT NULL,
+  code TEXT,
+  location TEXT,
+  status TEXT DEFAULT 'activo',
+  budget REAL DEFAULT 0,
+  start_date TEXT,
+  end_date TEXT,
+  client TEXT,
+  notes TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT OR IGNORE INTO projects (id, name, code, location, status, budget, client, notes) VALUES
+  (1, 'Proyecto PYG', 'PYG', 'Santo Domingo', 'activo', 500000, 'PYG Construcciones', 'Proyecto principal'),
+  (2, 'Proyecto Luxury', 'LUX', 'Santo Domingo', 'activo', 750000, 'Luxury Homes', 'Acabados de lujo');
+
+-- Warehouses table
+CREATE TABLE IF NOT EXISTS warehouses (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT UNIQUE NOT NULL,
+  type TEXT DEFAULT 'almacen',
+  location TEXT,
+  project_id INTEGER,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT OR IGNORE INTO warehouses (id, name, type, location) VALUES
+  (1, 'Almacén Central', 'central', 'Santo Domingo'),
+  (2, 'Almacén Secundario', 'secundario', 'Zona Industrial');
+
+-- Inventory transfers
+CREATE TABLE IF NOT EXISTS transfers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  product_id INTEGER,
+  product_name TEXT,
+  qty REAL NOT NULL,
+  from_location TEXT,
+  to_location TEXT,
+  from_type TEXT,
+  to_type TEXT,
+  date TEXT DEFAULT CURRENT_TIMESTAMP,
+  note TEXT
+);
+
+-- Budgets table
+CREATE TABLE IF NOT EXISTS budgets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER,
+  project_name TEXT,
+  client_name TEXT,
+  total REAL DEFAULT 0,
+  status TEXT DEFAULT 'borrador',
+  items TEXT DEFAULT '[]',
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);

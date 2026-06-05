@@ -28,81 +28,81 @@ INSERT INTO products (id, name, category, stock, min_stock, unit) VALUES
   (1, 'Vara de 8 a 16', 'herramienta', 3, 5, 'unidad'),
   (2, 'Tubos Sellador Polyflex', 'producto', 91, 20, 'tubo'),
   (3, 'Silicone Natural Ultra Clear', 'producto', 0, 5, 'unidad'),
-  (4, 'Rollo Lona 4mm', 'herramienta', 32, 5, 'rollo'),
-  (5, 'Porta Rolos Extrafuerte', 'herramienta', 3, 3, 'unidad'),
-  (6, 'Piedra de Pulir', 'herramienta', 0, 5, 'unidad'),
-  (7, 'Motas Rugosas', 'herramienta', 6, 5, 'unidad'),
-  (8, 'Motas Pequeñas Finas', 'herramienta', 0, 5, 'unidad'),
-  (9, 'Motas Extra Rugosa', 'herramienta', 0, 5, 'unidad'),
-  (10, 'Motas Anti Gota Lanco', 'herramienta', 0, 5, 'unidad'),
-  (11, 'Malla de Refuerzo', 'producto', 1, 5, 'unidad'),
-  (12, 'Gal Varsol', 'producto', 5.5, 3, 'galón'),
-  (13, 'Gal Semigloss Zero 6I3-8', 'pintura', 0, 3, 'galón'),
-  (14, 'Gal Seal Coat SW-6080', 'pintura', 0, 3, 'galón'),
-  (15, 'Gal Seal Coat Lino', 'pintura', 0, 3, 'galón'),
-  (16, 'Gal Seal Coat Arena del Sur', 'pintura', 0, 3, 'galón'),
-  (17, 'Gal Masilla Crack Filler', 'producto', 1, 3, 'galón'),
-  (18, 'Gal Lucidux Limpia Parabrisas', 'producto', 1, 2, 'galón'),
-  (19, 'Gal Galvacon', 'producto', 0, 3, 'galón'),
-  (20, 'Gal Durex 6L2-4 Gris', 'pintura', 0, 2, 'galón'),
-  (21, 'Gal Durex 1P3-7 Azul Claro', 'pintura', 0, 2, 'galón'),
-  (22, 'Gal Durex 1F3-8 Naranja Oscuro', 'pintura', 0, 2, 'galón'),
-  (23, 'Gal Durex 1C2-8 Rosado', 'pintura', 0, 2, 'galón'),
-  (24, 'Gal Durex 1A1-8 Morado', 'pintura', 0, 2, 'galón'),
-  (25, 'Gal Dry Coat', 'producto', 0, 2, 'galón'),
-  (26, 'Gal Citrus Cleaner', 'producto', 0, 2, 'galón'),
-  (27, 'Gal CB-Crete', 'producto', 4, 3, 'galón'),
-  (28, 'Express Lino Natural', 'pintura', 0, 3, 'cubeta'),
-  (29, 'Espátula Plástica', 'herramienta', 0, 5, 'unidad'),
-  (30, 'Espátula de Rosca', 'herramienta', 0, 5, 'unidad'),
-  (31, 'Cub Urethanizer', 'producto', 0, 3, 'cubeta'),
-  (32, 'Cub Ultra Siliconizer', 'producto', 0, 3, 'cubeta'),
-  (33, 'Cub Total Duna', 'pintura', 6, 3, 'cubeta'),
-  (34, 'Cub Total Blanco', 'pintura', 18, 10, 'cubeta'),
-  (35, 'Cub Texturizada Naranja', 'pintura', 0, 3, 'cubeta'),
-  (36, 'Cub Texturizada Blanco (Cano)', 'pintura', 0, 3, 'cubeta'),
-  (37, 'Cub Texturizada Blanco', 'pintura', 0, 3, 'cubeta'),
-  (38, 'Cub Texturizada Arena del Sur', 'pintura', 8, 5, 'cubeta'),
-  (39, 'Cub Super Track', 'producto', 3, 3, 'cubeta'),
-  (40, 'Cub Siliconizer Rojo Teja', 'producto', 0, 3, 'cubeta'),
-  (41, 'Cub Siliconizer 1000', 'producto', 1, 3, 'cubeta'),
-  (42, 'Cub Siliconizer', 'producto', 0, 5, 'cubeta'),
-  (43, 'Cub Semigloss Zero 6I3-3', 'pintura', 0, 2, 'cubeta'),
-  (44, 'Cub Seal Coat Verde Softball', 'pintura', 0, 2, 'cubeta'),
-  (45, 'Cub Seal Coat SM2-8 Verde Modif.', 'pintura', 2, 3, 'cubeta'),
-  (46, 'Cub Seal Coat N9-4', 'pintura', 0, 2, 'cubeta'),
-  (47, 'Cub Seal Coat Castaño', 'pintura', 6, 5, 'cubeta'),
-  (48, 'Cub Seal Coat Blanco', 'pintura', 0, 3, 'cubeta'),
-  (49, 'Cub Seal Coat 6L2-7', 'pintura', 2, 3, 'cubeta'),
-  (50, 'Cub Seal Coat 6L2-6', 'pintura', 1, 3, 'cubeta'),
-  (51, 'Cub Protecto Coat N8-4 Mindful', 'pintura', 0, 2, 'cubeta'),
-  (52, 'Cub Protecto Coat Blanco Mate', 'pintura', 2, 3, 'cubeta'),
-  (53, 'Cub Protecto Coat Arena del Sur', 'pintura', 0, 3, 'cubeta'),
-  (54, 'Cub Protecto Coat 6L2-4', 'pintura', 0.75, 3, 'cubeta'),
-  (55, 'Cub Protecto Coat 6J2-4', 'pintura', 1, 3, 'cubeta'),
-  (56, 'Cub Primer Super', 'producto', 0, 5, 'cubeta'),
-  (57, 'Cub Primer Sealer', 'producto', 5, 5, 'cubeta'),
-  (58, 'Cub Preseal', 'producto', 0, 3, 'cubeta'),
-  (59, 'Cub Microtop', 'producto', 0, 10, 'cubeta'),
-  (60, 'Cub Maxima Armor 6L2-7', 'pintura', 0, 2, 'cubeta'),
-  (61, 'Cub Maxima Armor 3R1-8', 'pintura', 0, 2, 'cubeta'),
-  (62, 'Cub Level Tech', 'producto', 0, 3, 'cubeta'),
-  (63, 'Cub Express Arena del Sur', 'pintura', 0, 5, 'cubeta'),
-  (64, 'Cub Express 6L2-4 Gris Sambil', 'pintura', 0, 2, 'cubeta'),
-  (65, 'Cub Duraflex', 'producto', 0, 5, 'cubeta'),
-  (66, 'Cub Cover Up Arena del Sur', 'pintura', 0, 3, 'cubeta'),
-  (67, 'Cub Cemento Plástico', 'producto', 0, 5, 'cubeta'),
-  (68, 'Cub CB-Crete', 'producto', 0, 3, 'cubeta'),
-  (69, 'Cub CB 1000', 'producto', 0, 3, 'cubeta'),
-  (70, 'Cub Aquaproof Wall', 'producto', 0, 3, 'cubeta'),
-  (71, 'Cub Aquaproof Primer', 'producto', 0, 3, 'cubeta'),
-  (72, 'Cub Aluminio', 'pintura', 0, 5, 'cubeta'),
-  (73, 'Cub Acrylflex', 'producto', 0, 3, 'cubeta'),
-  (74, 'Cinta Multi Seal', 'producto', 0, 5, 'unidad'),
-  (75, 'Cinta Ever Seal', 'producto', 0, 5, 'unidad'),
-  (76, 'Caja Masilla Joint Compound', 'producto', 0, 5, 'caja'),
-  (77, 'Rollo de Malla', 'herramienta', 0, 3, 'rollo')
-ON CONFLICT (id) DO NOTHING;
+  (4, 'Sellador Polyflex', 'producto', 59, 20, 'unidad'),
+  (5, 'Pegamento Tapiz', 'producto', 6, 10, 'unidad'),
+  (6, 'Pegamento Pega fácil', 'producto', 11, 10, 'unidad'),
+  (7, 'Masilla para Pared', 'producto', 30, 10, 'unidad'),
+  (8, 'Masilla Lista', 'producto', 20, 10, 'unidad'),
+  (9, 'Masilla Caja Joint Compound', 'producto', 0, 5, 'caja'),
+  (10, 'Malla para Drywall', 'producto', 3, 10, 'unidad'),
+  (11, 'Llana para Masilla', 'herramienta', 6, 3, 'unidad'),
+  (12, 'Lija de Drywall #60', 'producto', 50, 30, 'unidad'),
+  (13, 'Lija para Metal #80', 'producto', 0, 30, 'unidad'),
+  (14, 'Lija de Drywall #100', 'producto', 20, 30, 'unidad'),
+  (15, 'Lija para Metal #120', 'producto', 18, 30, 'unidad'),
+  (16, 'Lija Fandeli #100', 'producto', 0, 30, 'unidad'),
+  (17, 'Canal de Drywall Liso', 'producto', 2, 10, 'unidad'),
+  (18, 'Canal de Drywall Cepillado', 'producto', 45, 10, 'unidad'),
+  (19, 'Tornillos Drywall 1 1/2', 'producto', 0, 3, 'caja'),
+  (20, 'Tornillos Drywall 1 3/4', 'producto', 11, 3, 'caja'),
+  (21, 'Tornillos Drywall 2 1/2', 'producto', 10, 3, 'caja'),
+  (22, 'Tornillos Metal 3/4', 'producto', 9, 5, 'caja'),
+  (23, 'Tornillos Metal 1', 'producto', 9, 3, 'caja'),
+  (24, 'Tornillos Metal 1 1/2', 'producto', 3, 3, 'caja'),
+  (25, 'Tornillos Metal 2', 'producto', 1, 5, 'caja'),
+  (26, 'Tornillos Metal 2 1/2', 'producto', 9, 3, 'caja'),
+  (27, 'Tornillos Metal 3', 'producto', 6, 3, 'caja'),
+  (28, 'Tornillos Metal 4', 'producto', 11, 3, 'caja'),
+  (29, 'Tornillos Techo 2 1/2', 'producto', 0, 3, 'caja'),
+  (30, 'Rondana de Plomo', 'producto', 35, 5, 'unidad'),
+  (31, 'Disco Flap 4 1/2', 'producto', 5, 10, 'unidad'),
+  (32, 'Disco Corte Metal 7', 'producto', 3, 10, 'unidad'),
+  (33, 'Disco Corte Metal 4 1/2', 'producto', 28, 10, 'unidad'),
+  (34, 'Disco Desbaste 4 1/2', 'producto', 6, 10, 'unidad'),
+  (35, 'Disco Copa Alambre 4 1/2', 'producto', 0, 5, 'unidad'),
+  (36, 'Disco Lija 4 1/2 #40', 'producto', 7, 10, 'unidad'),
+  (37, 'Disco Lija 4 1/2 #60', 'producto', 5, 10, 'unidad'),
+  (38, 'Disco Lija 4 1/2 #80', 'producto', 6, 10, 'unidad'),
+  (39, 'Disco Lija 4 1/2 #100', 'producto', 20, 10, 'unidad'),
+  (40, 'Disco Lija 4 1/2 #120', 'producto', 5, 10, 'unidad'),
+  (41, 'Guantes de Punto', 'producto', 300, 50, 'unidad'),
+  (42, 'Guantes Carnaza', 'producto', 48, 10, 'unidad'),
+  (43, 'Mascarilla Desechable', 'producto', 69, 30, 'unidad'),
+  (44, 'Tapón Auditivo', 'producto', 100, 30, 'unidad'),
+  (45, 'Tape Azul', 'producto', 59, 10, 'unidad'),
+  (46, 'Lonchera', 'producto', 0, 5, 'unidad'),
+  (47, 'Tirro', 'producto', 59, 5, 'unidad'),
+  (48, 'Tape de Empaque', 'producto', 14, 10, 'unidad'),
+  (49, 'Pintura PVA Blanca 5G', 'pintura', 39, 5, 'galon'),
+  (50, 'Pintura PVA Blanca 1G', 'pintura', 7, 5, 'galon'),
+  (51, 'Pintura Vinílica Blanca Mate 5G', 'pintura', 9, 5, 'galon'),
+  (52, 'Pintura Vinílica Blanca Mate 1G', 'pintura', 10, 5, 'galon'),
+  (53, 'Pintura Vinílica Blanco Hueso Mate 5G', 'pintura', 0, 5, 'galon'),
+  (54, 'Pintura Vinílica Blanco Hueso Mate 1G', 'pintura', 0, 5, 'galon'),
+  (55, 'Pintura Impermeabilizante 5G', 'pintura', 37, 5, 'galon'),
+  (56, 'Pintura Impermeabilizante 1G', 'pintura', 0, 5, 'galon'),
+  (57, 'Pintura Esmalte Sintético 1G', 'pintura', 27, 5, 'galon'),
+  (58, 'Pintura Esmalte Sintético 1/4G', 'pintura', 10, 5, 'galon'),
+  (59, 'Pintura Epóxica 1G', 'pintura', 8, 5, 'galon'),
+  (60, 'Thinner', 'pintura', 21, 10, 'galon'),
+  (61, 'Pintura Spray', 'pintura', 35, 20, 'unidad'),
+  (62, 'Rodillo 1/2 para Pared', 'herramienta', 5, 10, 'unidad'),
+  (63, 'Rodillo 3/4 para Pared', 'herramienta', 27, 10, 'unidad'),
+  (64, 'Rodillo 1/2 para Piso', 'herramienta', 1, 5, 'unidad'),
+  (65, 'Cepillo 2 Pulg', 'herramienta', 28, 5, 'unidad'),
+  (66, 'Cepillo 3 Pulg', 'herramienta', 16, 5, 'unidad'),
+  (67, 'Cepillo 4 Pulg', 'herramienta', 14, 5, 'unidad'),
+  (68, 'Extensión de Rodillo', 'herramienta', 7, 5, 'unidad'),
+  (69, 'Cubeta Plástica', 'herramienta', 8, 10, 'unidad'),
+  (70, 'Espátula', 'herramienta', 8, 5, 'unidad'),
+  (71, 'Brocha 2 Pulg', 'herramienta', 5, 5, 'unidad'),
+  (72, 'Brocha 3 Pulg', 'herramienta', 7, 5, 'unidad'),
+  (73, 'Brocha 4 Pulg', 'herramienta', 5, 5, 'unidad'),
+  (74, 'Cuchilla', 'herramienta', 27, 5, 'unidad'),
+  (75, 'Flota', 'herramienta', 13, 5, 'unidad'),
+  (76, 'Lámpara', 'herramienta', 7, 5, 'unidad'),
+  (77, 'Caballete', 'herramienta', 4, 5, 'unidad')
+ON CONFLICT DO NOTHING;
 
 -- Employees
 CREATE TABLE IF NOT EXISTS employees (
@@ -116,67 +116,66 @@ CREATE TABLE IF NOT EXISTS employees (
 );
 
 INSERT INTO employees (id, name, type, type_label, project, salary, discounts) VALUES
-  (1, 'Mars', 'A', 'Buen Pintor', 'PYG', 1350, 500),
-  (2, 'Alann', 'A', 'Buen Pintor', 'Luxury', 1350, 1500),
-  (3, 'Luxama', 'A', 'Buen Pintor', 'PYG', 1400, 500),
-  (4, 'Casimir', 'A', 'Buen Pintor', 'PYG', 1300, 1100),
-  (5, 'Jonas', 'A', 'Buen Pintor', 'Luxury', 1300, 500),
-  (6, 'Remy', 'A', 'Buen Pintor', 'PYG', 1200, 500),
-  (7, 'Stanly', 'A', 'Buen Pintor', 'PYG', 1100, 1100),
-  (8, 'Louis', 'B', 'Pintor Intermedio', 'PYG', 1100, 600),
-  (9, 'Edwen', 'A', 'Buen Pintor', 'PYG', 1100, 500),
-  (10, 'Brebison', 'A', 'Buen Pintor', 'PYG', 1100, 500),
-  (11, 'Wender', 'B', 'Pintor Intermedio', 'PYG', 1200, 0),
-  (12, 'Daniel', 'B', 'Pintor Intermedio', 'Luxury', 1100, 1100),
-  (13, 'Ronaldino', 'B', 'Pintor Intermedio', 'PYG', 1100, 500),
-  (14, 'Vilasson', 'B', 'Pintor Intermedio', 'PYG', 1100, 500),
-  (15, 'Tito', 'C', 'Aprendiz', 'Luxury', 1100, 600),
-  (16, 'Fenel', 'M', 'Masillero', 'Luxury', 1100, 500),
-  (17, 'Florvil', 'M', 'Masillero', 'Luxury', 1800, 600),
-  (18, 'Wilken', 'C', 'Aprendiz', 'PYG', 1800, 600),
-  (19, 'Junior', 'C', 'Aprendiz', 'PYG', 1100, 0),
-  (20, 'Michelet', 'M', 'Masillero', 'Luxury', 1100, 0),
-  (21, 'Pierre', 'M', 'Masillero', 'Luxury', 1800, 0),
-  (22, 'Joseph Osse', 'M', 'Masillero', 'Luxury', 1800, 0),
-  (23, 'Widmacky', 'C', 'Aprendiz', 'PYG', 1800, 0),
-  (24, 'Luvin', 'C', 'Aprendiz', 'Luxury', 1800, 600),
-  (25, 'Dales', 'C', 'Aprendiz', 'PYG', 1100, 0),
-  (26, 'Edelson', 'C', 'Aprendiz', 'PYG', 1100, 0),
-  (27, 'Samuel', 'B', 'Pintor Intermedio', 'PYG', 1100, 600),
-  (28, 'Guimi', 'C', 'Aprendiz', 'PYG', 1100, 600)
-ON CONFLICT (id) DO NOTHING;
+  (1, 'Alann', 'A', 'Buen Pintor', 'Luxury', 1350, 1500),
+  (2, 'Brebison', 'A', 'Buen Pintor', 'PYG', 1100, 500),
+  (3, 'Casimir', 'A', 'Buen Pintor', 'PYG', 1300, 1100),
+  (4, 'Dales', 'C', 'Aprendiz', 'PYG', 1100, 0),
+  (5, 'Daniel', 'B', 'Pintor Intermedio', 'Luxury', 1100, 1100),
+  (6, 'Edelson', 'C', 'Aprendiz', 'PYG', 1100, 0),
+  (7, 'Edwen', 'A', 'Buen Pintor', 'PYG', 1100, 500),
+  (8, 'Fenel', 'M', 'Masillero', 'Luxury', 1100, 500),
+  (9, 'Florvil', 'M', 'Masillero', 'Luxury', 1800, 600),
+  (10, 'Guimi', 'C', 'Aprendiz', 'PYG', 1100, 600),
+  (11, 'Jonas', 'A', 'Buen Pintor', 'Luxury', 1300, 500),
+  (12, 'Joseph Osse', 'M', 'Masillero', 'Luxury', 1800, 0),
+  (13, 'Junior', 'C', 'Aprendiz', 'PYG', 1100, 0),
+  (14, 'Louis', 'B', 'Pintor Intermedio', 'PYG', 1100, 600),
+  (15, 'Luvin', 'C', 'Aprendiz', 'Luxury', 1800, 600),
+  (16, 'Luxama', 'A', 'Buen Pintor', 'PYG', 1400, 500),
+  (17, 'Mars', 'A', 'Buen Pintor', 'PYG', 1350, 500),
+  (18, 'Michelet', 'M', 'Masillero', 'Luxury', 1100, 0),
+  (19, 'Pierre', 'M', 'Masillero', 'Luxury', 1800, 0),
+  (20, 'Remy', 'A', 'Buen Pintor', 'PYG', 1200, 500),
+  (21, 'Ronaldino', 'B', 'Pintor Intermedio', 'PYG', 1100, 500),
+  (22, 'Samuel', 'B', 'Pintor Intermedio', 'PYG', 1100, 600),
+  (23, 'Stanly', 'A', 'Buen Pintor', 'PYG', 1100, 1100),
+  (24, 'Tito', 'C', 'Aprendiz', 'Luxury', 1100, 600),
+  (25, 'Vilasson', 'B', 'Pintor Intermedio', 'PYG', 1100, 500),
+  (26, 'Wender', 'B', 'Pintor Intermedio', 'PYG', 1200, 0),
+  (27, 'Widmacky', 'C', 'Aprendiz', 'PYG', 1800, 0),
+  (28, 'Wilken', 'C', 'Aprendiz', 'PYG', 1800, 600)
+ON CONFLICT DO NOTHING;
 
 -- Movements
 CREATE TABLE IF NOT EXISTS movements (
   id SERIAL PRIMARY KEY,
-  type TEXT NOT NULL,
-  product_id INTEGER REFERENCES products(id),
+  type TEXT,
+  product_id INTEGER,
   product TEXT,
   qty REAL,
   date TEXT,
   destination TEXT,
-  note TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
+  note TEXT
 );
 
 INSERT INTO movements (id, type, product_id, product, qty, date, destination, note) VALUES
-  (1, 'entrada', 59, 'Cub Microtop', 12, '2026-03-10', NULL, 'Compra Lanco'),
-  (2, 'entrada', 63, 'Cub Express Arena del Sur', 18, '2026-03-10', NULL, 'Compra Lanco'),
-  (3, 'entrada', 65, 'Cub Duraflex', 3, '2026-03-11', NULL, 'Devolución de Sambil'),
-  (4, 'entrada', 63, 'Cub Express Arena del Sur', 20, '2026-03-11', NULL, 'Compra Lanco'),
-  (5, 'entrada', 28, 'Express Lino Natural', 4, '2026-03-11', NULL, 'Compra Lanco'),
-  (6, 'salida', 34, 'Cub Total Blanco', 4, '2026-03-07', 'Centro Olímpico', NULL),
-  (7, 'salida', 59, 'Cub Microtop', 2, '2026-03-09', 'Centro Olímpico', NULL),
-  (8, 'salida', 57, 'Cub Primer Sealer', 2, '2026-03-09', 'Centro Olímpico', NULL)
-ON CONFLICT (id) DO NOTHING;
+  (1, 'entrada', 49, 'Pintura PVA Blanca 5G', 20, '2026-05-26', 'Almacén Central', 'Compra semanal'),
+  (2, 'salida', 50, 'Pintura PVA Blanca 1G', 5, '2026-05-26', 'Proyecto Luxury', 'Inicio pintura'),
+  (3, 'salida', 62, 'Rodillo 1/2 para Pared', 10, '2026-05-27', 'Proyecto PYG', 'Pedido capataz'),
+  (4, 'entrada', 55, 'Pintura Impermeabilizante 5G', 15, '2026-05-28', 'Almacén Central', 'Compra mayorista'),
+  (5, 'transferencia', 49, 'Pintura PVA Blanca 5G', 5, '2026-05-29', 'Almacén Secundario', 'Reabastecer'),
+  (6, 'salida', 51, 'Pintura Vinílica Blanca Mate 5G', 8, '2026-05-30', 'Proyecto Luxury', 'Paredes interiores'),
+  (7, 'salida', 19, 'Tornillos Drywall 1 1/2', 2, '2026-05-31', 'Proyecto PYG', 'Drywall techo'),
+  (8, 'salida', 55, 'Pintura Impermeabilizante 5G', 10, '2026-06-01', 'Proyecto Luxury', 'Impermeabilizar terraza')
+ON CONFLICT DO NOTHING;
 
 -- Attendance
 CREATE TABLE IF NOT EXISTS attendance (
   id SERIAL PRIMARY KEY,
-  employee_id INTEGER REFERENCES employees(id),
+  employee_id INTEGER,
   day INTEGER,
   value REAL DEFAULT 0,
-  period TEXT
+  period TEXT DEFAULT '2026-06-1ra'
 );
 
 INSERT INTO attendance (employee_id, day, value, period) VALUES
@@ -210,9 +209,83 @@ INSERT INTO attendance (employee_id, day, value, period) VALUES
   (28, 1, 1, '2026-06-1ra'), (28, 2, 1, '2026-06-1ra'), (28, 3, 1, '2026-06-1ra')
 ON CONFLICT DO NOTHING;
 
+-- Users table
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  username TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  role TEXT DEFAULT 'admin',
+  permissions TEXT DEFAULT '{}',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Projects table
+CREATE TABLE IF NOT EXISTS projects (
+  id SERIAL PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  code TEXT,
+  location TEXT,
+  status TEXT DEFAULT 'activo',
+  budget REAL DEFAULT 0,
+  start_date TEXT,
+  end_date TEXT,
+  client TEXT,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO projects (name, code, location, status, budget, client, notes) VALUES
+  ('Proyecto PYG', 'PYG', 'Santo Domingo', 'activo', 500000, 'PYG Construcciones', 'Proyecto principal'),
+  ('Proyecto Luxury', 'LUX', 'Santo Domingo', 'activo', 750000, 'Luxury Homes', 'Acabados de lujo')
+ON CONFLICT DO NOTHING;
+
+-- Warehouses table
+CREATE TABLE IF NOT EXISTS warehouses (
+  id SERIAL PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  type TEXT DEFAULT 'almacen',
+  location TEXT,
+  project_id INTEGER REFERENCES projects(id),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO warehouses (name, type, location) VALUES
+  ('Almacén Central', 'central', 'Santo Domingo'),
+  ('Almacén Secundario', 'secundario', 'Zona Industrial')
+ON CONFLICT DO NOTHING;
+
+-- Inventory transfers
+CREATE TABLE IF NOT EXISTS transfers (
+  id SERIAL PRIMARY KEY,
+  product_id INTEGER REFERENCES products(id),
+  product_name TEXT,
+  qty REAL NOT NULL,
+  from_location TEXT,
+  to_location TEXT,
+  from_type TEXT,
+  to_type TEXT,
+  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  note TEXT
+);
+
+-- Budgets table (presupuestos mejorados)
+CREATE TABLE IF NOT EXISTS budgets (
+  id SERIAL PRIMARY KEY,
+  project_id INTEGER REFERENCES projects(id),
+  project_name TEXT,
+  client_name TEXT,
+  total REAL DEFAULT 0,
+  status TEXT DEFAULT 'borrador',
+  items TEXT DEFAULT '[]',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Reset sequences
 SELECT setval('categories_id_seq', (SELECT MAX(id) FROM categories));
 SELECT setval('products_id_seq', (SELECT MAX(id) FROM products));
 SELECT setval('employees_id_seq', (SELECT MAX(id) FROM employees));
 SELECT setval('movements_id_seq', (SELECT MAX(id) FROM movements));
 SELECT setval('attendance_id_seq', (SELECT MAX(id) FROM attendance));
+SELECT setval('projects_id_seq', (SELECT MAX(id) FROM projects));
+SELECT setval('warehouses_id_seq', (SELECT MAX(id) FROM warehouses));

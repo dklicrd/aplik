@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getEmployees, getAttendance, updateEmployee } from '../utils/api';
-import { Download, RefreshCw, Plus, Edit2, Trash2, X, Save } from 'lucide-react';
+import { Download, RefreshCw, Plus, Edit2, Trash2, X, Save, FileText } from 'lucide-react';
 
 const TYPES = [
   { value: 'A', label: 'Buen Pintor' },
@@ -115,6 +115,43 @@ export default function Nomina() {
     a.download = `nomina_${new Date().toISOString().slice(0,10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const exportPDF = async () => {
+    const { jsPDF } = await import('jspdf');
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('APLIK Ingeniería - Reporte de Nómina', 14, 15);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Fecha: ${new Date().toLocaleDateString('es-DO')}`, 14, 22);
+    doc.text(`Período: Activo`, 140, 22);
+
+    const headers = ['Empleado', 'Proyecto', 'Tipo', 'Salario', 'Días', 'Bruto', 'Desc.', 'Neto'];
+    const rows = filtered.map(emp => {
+      const days = getDaysWorked(emp.id);
+      const gross = getGross(emp.id, emp.salary);
+      const net = gross - Number(emp.discounts || 0);
+      return [`${emp.name}`, `${emp.project}`, `${emp.type}`, `${Number(emp.salary).toLocaleString('es-DO')}`, `${days}`, `${gross.toLocaleString('es-DO')}`, `${Number(emp.discounts).toLocaleString('es-DO')}`, `${net.toLocaleString('es-DO')}`];
+    });
+
+    doc.autoTable({
+      head: [headers],
+      body: rows,
+      startY: 28,
+      styles: { fontSize: 7, cellPadding: 2 },
+      headStyles: { fillColor: [26, 45, 69], textColor: 255, fontStyle: 'bold' },
+      foot: [[{ content: 'TOTAL', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } },
+        '',
+        filtered.reduce((s, e) => s + getGross(e.id, e.salary), 0).toLocaleString('es-DO'),
+        filtered.reduce((s, e) => s + Number(e.discounts || 0), 0).toLocaleString('es-DO'),
+        { content: filtered.reduce((s, e) => s + (getGross(e.id, e.salary) - Number(e.discounts || 0)), 0).toLocaleString('es-DO'), styles: { fontStyle: 'bold' } }
+      ]],
+      footStyles: { fillColor: [240, 242, 245], textColor: [44, 62, 80], fontStyle: 'bold' },
+    });
+
+    doc.save(`nomina_${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   if (loading) return <div className="page-header"><h2>Nómina</h2><p><RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> Cargando...</p></div>;
