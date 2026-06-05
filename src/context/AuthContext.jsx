@@ -20,19 +20,25 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (username, password) => {
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Error al iniciar sesión');
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      if (!res.ok) {
+        let errMsg = 'Error al iniciar sesión';
+        try { const err = await res.json(); errMsg = err.error || errMsg; } catch(_) {}
+        throw new Error(errMsg);
+      }
+      const data = await res.json();
+      if (!data.token) throw new Error('No se recibió token');
+      localStorage.setItem('token', data.token);
+      setUser(data.user);
+      return data;
+    } catch (err) {
+      throw err;
     }
-    const data = await res.json();
-    localStorage.setItem('token', data.token);
-    setUser(data.user);
-    return data;
   };
 
   const logout = () => {
