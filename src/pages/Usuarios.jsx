@@ -8,6 +8,7 @@ const PAGE_LABELS = {
   asistencia: 'Asistencia',
   nomina: 'Nómina',
   presupuestos: 'Presupuestos',
+  proyectos: 'Proyectos',
   usuarios: 'Usuarios',
 };
 
@@ -17,6 +18,7 @@ const PAGE_ICONS = {
   asistencia: '👥',
   nomina: '💰',
   presupuestos: '📋',
+  proyectos: '📋',
   usuarios: '🔐',
 };
 
@@ -27,7 +29,7 @@ export default function Usuarios() {
   const [editUser, setEditUser] = useState(null);
   const [form, setForm] = useState({
     username: '', password: '', role: 'user',
-    permissions: { dashboard: true, inventario: true, asistencia: true, nomina: true, presupuestos: true, usuarios: false }
+    permissions: { dashboard: true, inventario: true, asistencia: true, nomina: true, presupuestos: true, proyectos: true, usuarios: false }
   });
   const [showPw, setShowPw] = useState(false);
 
@@ -65,7 +67,7 @@ export default function Usuarios() {
 
   const openNew = () => {
     setEditUser(null);
-    setForm({ username: '', password: '', role: 'user', permissions: { dashboard: true, inventario: true, asistencia: true, nomina: true, presupuestos: true, usuarios: false } });
+    setForm({ username: '', password: '', role: 'user', permissions: { dashboard: true, inventario: true, asistencia: true, nomina: true, presupuestos: true, proyectos: true, usuarios: false } });
     setShowModal(true);
   };
 
