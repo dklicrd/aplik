@@ -1,11 +1,9 @@
--- Aplik Dashboard — Universal Seed (PostgreSQL + SQLite)
--- Note: SQLite uses INTEGER PRIMARY KEY AUTOINCREMENT
--- PostgreSQL uses SERIAL PRIMARY KEY (which is handled in seed.js)
+-- Aplik Dashboard — PostgreSQL Seed
+-- Uses SERIAL PRIMARY KEY and PostgreSQL-compatible syntax
 
 -- Categories
-DROP TABLE IF EXISTS categories;
 CREATE TABLE IF NOT EXISTS categories (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   color TEXT
 );
@@ -13,12 +11,12 @@ CREATE TABLE IF NOT EXISTS categories (
 INSERT INTO categories (name, color) VALUES
   ('pintura', '#3498db'),
   ('herramienta', '#e67e22'),
-  ('producto', '#2ecc71');
+  ('producto', '#2ecc71')
+ON CONFLICT DO NOTHING;
 
 -- Products
-DROP TABLE IF EXISTS products;
 CREATE TABLE IF NOT EXISTS products (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   category TEXT,
   stock REAL DEFAULT 0,
@@ -103,12 +101,12 @@ INSERT INTO products (id, name, category, stock, min_stock, unit) VALUES
   (74, 'Cinta Multi Seal', 'producto', 0, 5, 'unidad'),
   (75, 'Cinta Ever Seal', 'producto', 0, 5, 'unidad'),
   (76, 'Caja Masilla Joint Compound', 'producto', 0, 5, 'caja'),
-  (77, 'Rollo de Malla', 'herramienta', 0, 3, 'rollo');
+  (77, 'Rollo de Malla', 'herramienta', 0, 3, 'rollo')
+ON CONFLICT (id) DO NOTHING;
 
 -- Employees
-DROP TABLE IF EXISTS employees;
 CREATE TABLE IF NOT EXISTS employees (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   type TEXT,
   type_label TEXT,
@@ -145,20 +143,20 @@ INSERT INTO employees (id, name, type, type_label, project, salary, discounts) V
   (25, 'Dales', 'C', 'Aprendiz', 'PYG', 1100, 0),
   (26, 'Edelson', 'C', 'Aprendiz', 'PYG', 1100, 0),
   (27, 'Samuel', 'B', 'Pintor Intermedio', 'PYG', 1100, 600),
-  (28, 'Guimi', 'C', 'Aprendiz', 'PYG', 1100, 600);
+  (28, 'Guimi', 'C', 'Aprendiz', 'PYG', 1100, 600)
+ON CONFLICT (id) DO NOTHING;
 
 -- Movements
-DROP TABLE IF EXISTS movements;
 CREATE TABLE IF NOT EXISTS movements (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   type TEXT NOT NULL,
-  product_id INTEGER,
+  product_id INTEGER REFERENCES products(id),
   product TEXT,
   qty REAL,
   date TEXT,
   destination TEXT,
   note TEXT,
-  created_at TEXT DEFAULT (datetime('now'))
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
 INSERT INTO movements (id, type, product_id, product, qty, date, destination, note) VALUES
@@ -169,13 +167,13 @@ INSERT INTO movements (id, type, product_id, product, qty, date, destination, no
   (5, 'entrada', 28, 'Express Lino Natural', 4, '2026-03-11', NULL, 'Compra Lanco'),
   (6, 'salida', 34, 'Cub Total Blanco', 4, '2026-03-07', 'Centro Olímpico', NULL),
   (7, 'salida', 59, 'Cub Microtop', 2, '2026-03-09', 'Centro Olímpico', NULL),
-  (8, 'salida', 57, 'Cub Primer Sealer', 2, '2026-03-09', 'Centro Olímpico', NULL);
+  (8, 'salida', 57, 'Cub Primer Sealer', 2, '2026-03-09', 'Centro Olímpico', NULL)
+ON CONFLICT (id) DO NOTHING;
 
 -- Attendance
-DROP TABLE IF EXISTS attendance;
 CREATE TABLE IF NOT EXISTS attendance (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  employee_id INTEGER,
+  id SERIAL PRIMARY KEY,
+  employee_id INTEGER REFERENCES employees(id),
   day INTEGER,
   value REAL DEFAULT 0,
   period TEXT
@@ -209,4 +207,12 @@ INSERT INTO attendance (employee_id, day, value, period) VALUES
   (25, 1, 1, '2026-06-1ra'), (25, 2, 1, '2026-06-1ra'), (25, 3, 1, '2026-06-1ra'),
   (26, 1, 1, '2026-06-1ra'), (26, 2, 0, '2026-06-1ra'), (26, 3, 1, '2026-06-1ra'),
   (27, 1, 0, '2026-06-1ra'), (27, 2, 1, '2026-06-1ra'), (27, 3, 1, '2026-06-1ra'),
-  (28, 1, 1, '2026-06-1ra'), (28, 2, 1, '2026-06-1ra'), (28, 3, 1, '2026-06-1ra');
+  (28, 1, 1, '2026-06-1ra'), (28, 2, 1, '2026-06-1ra'), (28, 3, 1, '2026-06-1ra')
+ON CONFLICT DO NOTHING;
+
+-- Reset sequences
+SELECT setval('categories_id_seq', (SELECT MAX(id) FROM categories));
+SELECT setval('products_id_seq', (SELECT MAX(id) FROM products));
+SELECT setval('employees_id_seq', (SELECT MAX(id) FROM employees));
+SELECT setval('movements_id_seq', (SELECT MAX(id) FROM movements));
+SELECT setval('attendance_id_seq', (SELECT MAX(id) FROM attendance));

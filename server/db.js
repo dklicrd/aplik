@@ -11,7 +11,37 @@ let db;
 let isPostgres = false;
 let dbReady = false;
 
-const DATABASE_URL = process.env.DATABASE_URL;
+function getDatabaseUrl() {
+  // 1. Try environment variable (Render injects this)
+  let url = process.env.DATABASE_URL;
+  if (url && url.startsWith('postgres')) {
+    console.log('📄 DATABASE_URL from environment variable');
+    return url;
+  }
+
+  // 2. Try reading from render.yaml
+  try {
+    const yamlPath = path.join(__dirname, '..', 'render.yaml');
+    if (fs.existsSync(yamlPath)) {
+      const content = fs.readFileSync(yamlPath, 'utf8');
+      const match = content.match(/^\s*- key:\s*DATABASE_URL\s*\n\s*value:\s*(postgresql:\/\/\S+)/m);
+      if (match) {
+        url = match[1].trim();
+        console.log('📄 DATABASE_URL from render.yaml');
+        return url;
+      }
+    }
+  } catch(e) {
+    // Could not read render.yaml
+  }
+
+  // 3. Hardcoded fallback (validated connection string)
+  url = 'postgresql://aplik_db_user:V0gJmG40vvCza763gjcbd5kDjSH7BIad@dpg-d8hgc3s2m8qs73b47hb0-a.ohio-postgres.render.com:5432/aplik_db';
+  console.log('📄 Using hardcoded DATABASE_URL');
+  return url;
+}
+
+const DATABASE_URL = getDatabaseUrl();
 
 async function initDB() {
   if (DATABASE_URL && DATABASE_URL.startsWith('postgres')) {
@@ -20,7 +50,7 @@ async function initDB() {
       const pool = new Pool({
         connectionString: DATABASE_URL,
         ssl: { rejectUnauthorized: false },
-        connectionTimeoutMillis: 3000,
+        connectionTimeoutMillis: 5000,
       });
       // Test connection
       await pool.query('SELECT 1');

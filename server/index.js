@@ -23,12 +23,13 @@ async function start() {
   db = fresh.db;
   isPostgres = fresh.isPostgres;
 
-  // Auto-seed
+  // Auto-seed — choose seed file based on engine
   try {
     const result = await db.query('SELECT COUNT(*) as c FROM products');
     if (parseInt(result.rows[0].c) === 0) {
       console.log('🌱 Seeding database...');
-      const sql = fs.readFileSync(path.join(__dirname, 'seed.sql'), 'utf8');
+      const seedFile = isPostgres ? 'seed.pg.sql' : 'seed.sql';
+      const sql = fs.readFileSync(path.join(__dirname, seedFile), 'utf8');
       db.exec(sql);
       console.log('✅ Seed complete');
     } else {
@@ -36,7 +37,8 @@ async function start() {
     }
   } catch (e) {
     console.log('🌱 First run: seeding database...');
-    const sql = fs.readFileSync(path.join(__dirname, 'seed.sql'), 'utf8');
+    const seedFile = isPostgres ? 'seed.pg.sql' : 'seed.sql';
+    const sql = fs.readFileSync(path.join(__dirname, seedFile), 'utf8');
     db.exec(sql);
     console.log('✅ Seed complete');
   }
@@ -196,7 +198,8 @@ async function start() {
         try { await db.query(`DELETE FROM ${t}`); } catch (e) {}
       }
 
-      const sqlFile = fs.readFileSync(path.join(__dirname, 'seed.sql'), 'utf8');
+      const seedFile = isPostgres ? 'seed.pg.sql' : 'seed.sql';
+      const sqlFile = fs.readFileSync(path.join(__dirname, seedFile), 'utf8');
       const statements = sqlFile.split(';').filter(s => s.trim());
       let count = 0, errors = 0;
       const errorLog = [];
