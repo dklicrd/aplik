@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getEmployees, getAttendance, updateEmployee } from '../utils/api';
 import { Download, RefreshCw, Plus, Edit2, Trash2, X, Save, FileText } from 'lucide-react';
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
 const TYPES = [
@@ -121,38 +121,75 @@ export default function Nomina() {
 
   const exportPDF = async () => {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const pageW = 297;
+    let y = 20;
+    
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
-    doc.text('APLIK Ingeniería - Reporte de Nómina', 14, 15);
+    doc.text('APLIK Ingeniería - Reporte de Nómina', 14, y);
+    y += 8;
+    
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Fecha: ${new Date().toLocaleDateString('es-DO')}`, 14, 22);
-    doc.text(`Período: Activo`, 140, 22);
+    doc.text('Fecha: ' + new Date().toLocaleDateString('es-DO'), 14, y);
+    y += 10;
 
+    const cols = [60, 30, 25, 25, 25, 30, 25, 30];
     const headers = ['Empleado', 'Proyecto', 'Tipo', 'Salario', 'Días', 'Bruto', 'Desc.', 'Neto'];
-    const rows = filtered.map(emp => {
+    
+    doc.setFillColor(26, 45, 69);
+    doc.setTextColor(255);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    let x = 14;
+    headers.forEach((h, i) => {
+      doc.rect(x, y - 3, cols[i], 8, 'F');
+      doc.text(h, x + 2, y + 2);
+      x += cols[i];
+    });
+    y += 8;
+
+    doc.setTextColor(44, 62, 80);
+    doc.setFont('helvetica', 'normal');
+    let totalNeto = 0, totalBruto = 0, totalDesc = 0;
+
+    filtered.forEach((emp, idx) => {
+      if (y > 180) { doc.addPage(); y = 20; }
       const days = getDaysWorked(emp.id);
       const gross = getGross(emp.id, emp.salary);
       const net = gross - Number(emp.discounts || 0);
-      return [`${emp.name}`, `${emp.project}`, `${emp.type}`, `${Number(emp.salary).toLocaleString('es-DO')}`, `${days}`, `${gross.toLocaleString('es-DO')}`, `${Number(emp.discounts).toLocaleString('es-DO')}`, `${net.toLocaleString('es-DO')}`];
+      totalBruto += gross;
+      totalDesc += Number(emp.discounts || 0);
+      totalNeto += net;
+
+      if (idx % 2 === 0) {
+        doc.setFillColor(240, 242, 245);
+        doc.rect(14, y - 3, pageW - 28, 6, 'F');
+      }
+      
+      const rowData = [
+        emp.name.substring(0, 20), emp.project || '', emp.type || '',
+        '$' + Number(emp.salary).toLocaleString('es-DO'), String(days),
+        '$' + gross.toLocaleString('es-DO'),
+        '$' + Number(emp.discounts || 0).toLocaleString('es-DO'),
+        '$' + net.toLocaleString('es-DO')
+      ];
+      x = 14;
+      rowData.forEach((val, i) => { doc.text(val, x + 1, y + 1); x += cols[i]; });
+      y += 6;
     });
 
-    doc.autoTable({
-      head: [headers],
-      body: rows,
-      startY: 28,
-      styles: { fontSize: 7, cellPadding: 2 },
-      headStyles: { fillColor: [26, 45, 69], textColor: 255, fontStyle: 'bold' },
-      foot: [[{ content: 'TOTAL', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } },
-        '',
-        filtered.reduce((s, e) => s + getGross(e.id, e.salary), 0).toLocaleString('es-DO'),
-        filtered.reduce((s, e) => s + Number(e.discounts || 0), 0).toLocaleString('es-DO'),
-        { content: filtered.reduce((s, e) => s + (getGross(e.id, e.salary) - Number(e.discounts || 0)), 0).toLocaleString('es-DO'), styles: { fontStyle: 'bold' } }
-      ]],
-      footStyles: { fillColor: [240, 242, 245], textColor: [44, 62, 80], fontStyle: 'bold' },
-    });
+    y += 4;
+    doc.setFillColor(26, 45, 69);
+    doc.setTextColor(255);
+    doc.setFont('helvetica', 'bold');
+    doc.rect(14, y - 3, pageW - 28, 7, 'F');
+    doc.text('TOTAL', 44, y + 1);
+    doc.text('$' + totalBruto.toLocaleString('es-DO'), 199, y + 1);
+    doc.text('$' + totalDesc.toLocaleString('es-DO'), 224, y + 1);
+    doc.text('$' + totalNeto.toLocaleString('es-DO'), 254, y + 1);
 
-    doc.save(`nomina_${new Date().toISOString().slice(0, 10)}.pdf`);
+    doc.save('nomina_' + new Date().toISOString().slice(0, 10) + '.pdf');
   };
 
   if (loading) return <div className="page-header"><h2>Nómina</h2><p><RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> Cargando...</p></div>;
