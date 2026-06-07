@@ -81,6 +81,27 @@ async function start() {
     console.log('✅ Seed complete');
   }
 
+  // === Auto-migrate: add missing columns ===
+  try {
+    // Check if price column exists
+    const colCheck = await db.query('SELECT price FROM products LIMIT 1');
+    console.log('✅ Column price exists');
+  } catch (e) {
+    console.log('🔧 Migrating: adding price and image_url columns...');
+    try {
+      if (isPostgres) {
+        await db.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS price REAL DEFAULT 0');
+        await db.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT \'\'');
+      } else {
+        await db.query('ALTER TABLE products ADD COLUMN price REAL DEFAULT 0');
+        await db.query('ALTER TABLE products ADD COLUMN image_url TEXT DEFAULT \'\'');
+      }
+      console.log('✅ Migration complete');
+    } catch (migErr) {
+      console.log('⚠️ Migration note:', migErr.message);
+    }
+  }
+
   // === Seed default users (PostgreSQL-safe) ===
   try {
     // Try to count users — if table doesn't exist, catch creates it

@@ -20,6 +20,7 @@ export default function Inventario() {
   const [sortDir, setSortDir] = useState('asc');
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
   const fileInputRef = useRef(null);
 
   const fetchData = async () => {
@@ -62,6 +63,17 @@ export default function Inventario() {
   };
 
   const handleSave = async () => {
+    // Validaciones
+    const errors = {};
+    if (!form.name.trim()) errors.name = 'El nombre es obligatorio';
+    if (!form.category.trim()) errors.category = 'La categoría es obligatoria';
+    if (Number(form.price) < 0) errors.price = 'El precio no puede ser negativo';
+    if (Number(form.stock) < 0) errors.stock = 'El stock no puede ser negativo';
+    if (Number(form.min_stock) < 0) errors.min_stock = 'El stock mínimo no puede ser negativo';
+
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
     try {
       const payload = {
         ...form,
@@ -76,6 +88,7 @@ export default function Inventario() {
       }
       setShowForm(false);
       setEditing(null);
+      setFormErrors({});
       setForm({ name: '', category: 'pintura', stock: 0, min_stock: 3, unit: 'unidad', price: 0, image_url: '' });
       fetchData();
     } catch (err) {
@@ -316,14 +329,17 @@ export default function Inventario() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12 }}>
                 <div className="form-group">
-                  <label>Nombre</label>
-                  <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Ej: Cub Total Blanco" />
+                  <label>Nombre <span style={{color:'#e74c3c'}}>*</span></label>
+                  <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Ej: Cub Total Blanco"
+                    style={formErrors.name ? {borderColor: '#e74c3c'} : {}} />
+                  {formErrors.name && <span style={{color:'#e74c3c', fontSize: 11}}>{formErrors.name}</span>}
                 </div>
                 <div className="form-group">
-                  <label>Categoría</label>
-                  <select value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
+                  <label>Categoría <span style={{color:'#e74c3c'}}>*</span></label>
+                  <select value={form.category} onChange={e => { setForm({...form, category: e.target.value}); setFormErrors(prev => ({...prev, category: undefined})); }}>
                     {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                   </select>
+                  {formErrors.category && <span style={{color:'#e74c3c', fontSize: 11}}>{formErrors.category}</span>}
                 </div>
                 <div className="form-group">
                   <label>Unidad</label>
@@ -337,16 +353,22 @@ export default function Inventario() {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Precio Unit. (RD$)</label>
-                  <input type="number" step="0.01" min="0" value={form.price} onChange={e => setForm({...form, price: e.target.value})} placeholder="0.00" />
+                  <label>Precio Unit. (RD$) <span style={{color:'#e74c3c'}}>*</span></label>
+                  <input type="number" step="0.01" min="0" value={form.price} onChange={e => setForm({...form, price: e.target.value})} placeholder="0.00"
+                    style={formErrors.price ? {borderColor: '#e74c3c'} : {}} />
+                  {formErrors.price && <span style={{color:'#e74c3c', fontSize: 11}}>{formErrors.price}</span>}
                 </div>
                 <div className="form-group">
                   <label>Stock</label>
-                  <input type="number" step="0.01" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} />
+                  <input type="number" step="0.01" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})}
+                    style={formErrors.stock ? {borderColor: '#e74c3c'} : {}} />
+                  {formErrors.stock && <span style={{color:'#e74c3c', fontSize: 11}}>{formErrors.stock}</span>}
                 </div>
                 <div className="form-group">
                   <label>Stock Mínimo</label>
-                  <input type="number" step="0.01" value={form.min_stock} onChange={e => setForm({...form, min_stock: e.target.value})} />
+                  <input type="number" step="0.01" value={form.min_stock} onChange={e => setForm({...form, min_stock: e.target.value})}
+                    style={formErrors.min_stock ? {borderColor: '#e74c3c'} : {}} />
+                  {formErrors.min_stock && <span style={{color:'#e74c3c', fontSize: 11}}>{formErrors.min_stock}</span>}
                 </div>
                 <div className="form-group" style={{ gridColumn: 'span 2' }}>
                   <label>Imagen del Producto</label>
