@@ -422,7 +422,8 @@ async function start() {
 
   app.get('/api/products/:id', async (req, res) => {
     try {
-      const result = await db.query('SELECT * FROM products WHERE id = ?', [req.params.id]);
+      const q = pgParams('SELECT * FROM products WHERE id = ?', [req.params.id]);
+      const result = await db.query(q.text, q.params);
       if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
       res.json(result.rows[0]);
     } catch (err) {
@@ -433,10 +434,9 @@ async function start() {
   app.post('/api/products', async (req, res) => {
     try {
       const { name, category, stock, min_stock, unit, price, image_url } = req.body;
-      const result = await db.query(
-        'INSERT INTO products (name, category, stock, min_stock, unit, price, image_url) VALUES (?,?,?,?,?,?,?)',
-        [name, category, stock, min_stock, unit, price || 0, image_url || '']
-      );
+      const q = pgParams('INSERT INTO products (name, category, stock, min_stock, unit, price, image_url) VALUES (?,?,?,?,?,?,?)',
+        [name, category, stock, min_stock, unit, price || 0, image_url || '']);
+      const result = await db.query(q.text, q.params);
       res.status(201).json({ id: result.rowCount || result.changes, name, category, stock, min_stock, unit, price: price || 0, image_url: image_url || '' });
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
@@ -446,8 +446,9 @@ async function start() {
   app.put('/api/products/:id', async (req, res) => {
     try {
       const { name, category, stock, min_stock, unit, price, image_url } = req.body;
-      await db.query('UPDATE products SET name=?, category=?, stock=?, min_stock=?, unit=?, price=?, image_url=? WHERE id=?',
+      const q = pgParams('UPDATE products SET name=?, category=?, stock=?, min_stock=?, unit=?, price=?, image_url=? WHERE id=?',
         [name, category, stock, min_stock, unit, price || 0, image_url || '', req.params.id]);
+      await db.query(q.text, q.params);
       res.json({ id: parseInt(req.params.id), name, category, stock, min_stock, unit, price: price || 0, image_url: image_url || '' });
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
