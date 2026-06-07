@@ -46,8 +46,13 @@ function AppLayout() {
     <div className="app-layout">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h1>APLIK</h1>
-          <p>Dashboard de Gestión</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <img src="/logo.webp" alt="APLIK" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
+            <div>
+              <h1 style={{ margin: 0, lineHeight: 1.2 }}>APLIK</h1>
+              <p style={{ margin: 0, fontSize: 11, opacity: 0.7 }}>Dashboard de Gestión</p>
+            </div>
+          </div>
         </div>
         <nav className="sidebar-nav">
           {NAV_ITEMS.map(item => {

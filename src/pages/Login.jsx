@@ -50,6 +50,7 @@ export default function Login() {
         boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
       }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <img src="/logo.webp" alt="APLIK" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', marginBottom: 12 }} />
           <h1 style={{ fontSize: 28, fontWeight: 800, color: '#1a2d45', marginBottom: 4 }}>APLIK</h1>
           <p style={{ color: '#7f8c8d', fontSize: 14 }}>Dashboard de Gestión</p>
         </div>
