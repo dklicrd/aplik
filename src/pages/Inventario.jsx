@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, AlertTriangle, X, Save, Edit2, Trash2 } from 'lucide-react';
+import { Search, Plus, AlertTriangle, X, Save, Edit2, Trash2, Image, DollarSign, Package, Eye, ChevronDown, ChevronUp } from 'lucide-react';
 import { getProducts, getMovements, getCategories, createProduct, updateProduct, deleteProduct } from '../utils/api';
+
+const currency = (n) => `RD$${Number(n).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export default function Inventario() {
   const [tab, setTab] = useState('productos');
@@ -12,7 +14,10 @@ export default function Inventario() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ name: '', category: 'pintura', stock: 0, min_stock: 3, unit: 'unidad' });
+  const [form, setForm] = useState({ name: '', category: 'pintura', stock: 0, min_stock: 3, unit: 'unidad', price: 0, image_url: '' });
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [sortField, setSortField] = useState('name');
+  const [sortDir, setSortDir] = useState('asc');
 
   const fetchData = async () => {
     setLoading(true);
@@ -31,14 +36,20 @@ export default function Inventario() {
 
   const handleSave = async () => {
     try {
+      const payload = {
+        ...form,
+        price: Number(form.price) || 0,
+        stock: Number(form.stock) || 0,
+        min_stock: Number(form.min_stock) || 0,
+      };
       if (editing) {
-        await updateProduct(editing, form);
+        await updateProduct(editing, payload);
       } else {
-        await createProduct(form);
+        await createProduct(payload);
       }
       setShowForm(false);
       setEditing(null);
-      setForm({ name: '', category: 'pintura', stock: 0, min_stock: 3, unit: 'unidad' });
+      setForm({ name: '', category: 'pintura', stock: 0, min_stock: 3, unit: 'unidad', price: 0, image_url: '' });
       fetchData();
     } catch (err) {
       alert('Error: ' + err.message);
@@ -47,7 +58,15 @@ export default function Inventario() {
 
   const handleEdit = (p) => {
     setEditing(p.id);
-    setForm({ name: p.name, category: p.category, stock: Number(p.stock), min_stock: Number(p.min_stock), unit: p.unit });
+    setForm({
+      name: p.name,
+      category: p.category,
+      stock: Number(p.stock),
+      min_stock: Number(p.min_stock),
+      unit: p.unit,
+      price: Number(p.price || 0),
+      image_url: p.image_url || '',
+    });
     setShowForm(true);
   };
 
@@ -61,21 +80,174 @@ export default function Inventario() {
     }
   };
 
-  const filteredProducts = products.filter(p => {
-    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
-    const matchCat = !catFilter || p.category === catFilter;
-    return matchSearch && matchCat;
-  });
+  const toggleSort = (field) => {
+    if (sortField === field) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDir('asc');
+    }
+  };
+
+  const SortIcon = ({ field }) => {
+    if (sortField !== field) return null;
+    return sortDir === 'asc' ? <ChevronUp size={12} style={{ verticalAlign: 'middle' }} /> : <ChevronDown size={12} style={{ verticalAlign: 'middle' }} />;
+  };
+
+  const filteredProducts = products
+    .filter(p => {
+      const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
+      const matchCat = !catFilter || p.category === catFilter;
+      return matchSearch && matchCat;
+    })
+    .sort((a, b) => {
+      let valA, valB;
+      switch (sortField) {
+        case 'name': valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); break;
+        case 'category': valA = a.category; valB = b.category; break;
+        case 'stock': valA = Number(a.stock); valB = Number(b.stock); break;
+        case 'price': valA = Number(a.price || 0); valB = Number(b.price || 0); break;
+        case 'subtotal': valA = Number(a.stock) * Number(a.price || 0); valB = Number(b.stock) * Number(b.price || 0); break;
+        default: valA = a.name.toLowerCase(); valB = b.name.toLowerCase();
+      }
+      if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+      if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+  const totalGeneral = products.reduce((sum, p) => sum + Number(p.stock) * Number(p.price || 0), 0);
+  const lowStockCount = products.filter(p => Number(p.stock) > 0 && Number(p.stock) <= Number(p.min_stock)).length;
+  const outOfStockCount = products.filter(p => Number(p.stock) <= 0).length;
 
   const sortedMovements = [...movements].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  // Modal de detalle de producto
+  const ProductModal = ({ product, onClose }) => {
+    if (!product) return null;
+    const subtotal = Number(product.stock) * Number(product.price || 0);
+    const price = Number(product.price || 0);
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal" onClick={e => e.stopPropagation()} style={{ width: 520 }}>
+          <div className="modal-header">
+            <h3>{product.name}</h3>
+            <button className="btn btn-sm" style={{ background: '#eee' }} onClick={onClose}><X size={14} /></button>
+          </div>
+          <div className="modal-body">
+            <div style={{ display: 'flex', gap: 20 }}>
+              {/* Imagen */}
+              <div style={{
+                width: 180, height: 180, borderRadius: 12,
+                background: product.image_url ? `url(${product.image_url}) center/cover no-repeat` : '#f0f2f5',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, border: '1px solid #e0e0e0', overflow: 'hidden'
+              }}>
+                {!product.image_url && <Image size={40} color="#ccc" />}
+              </div>
+              {/* Info */}
+              <div style={{ flex: 1 }}>
+                <table style={{ width: '100%', fontSize: 13 }}>
+                  <tbody>
+                    <tr>
+                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600, whiteSpace: 'nowrap' }}>Categoría</td>
+                      <td style={{ padding: '4px 8px' }}>
+                        <span className="badge badge-info" style={{ textTransform: 'capitalize' }}>{product.category}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600 }}>Unidad</td>
+                      <td style={{ padding: '4px 8px', textTransform: 'capitalize' }}>{product.unit}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600 }}>Stock</td>
+                      <td style={{ padding: '4px 8px' }}>
+                        <span style={{
+                          fontWeight: 700, fontSize: 18,
+                          color: Number(product.stock) <= 0 ? '#e74c3c' : Number(product.stock) <= Number(product.min_stock) ? '#e67e22' : '#27ae60'
+                        }}>
+                          {Number(product.stock)}
+                        </span>
+                        <span style={{ color: '#7f8c8d', fontSize: 12, marginLeft: 4 }}>{product.unit}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600 }}>Stock Mín.</td>
+                      <td style={{ padding: '4px 8px' }}>{Number(product.min_stock)} {product.unit}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600 }}>Precio Unit.</td>
+                      <td style={{ padding: '4px 8px' }}>
+                        <span style={{ fontWeight: 600, fontSize: 16 }}>{price > 0 ? currency(price) : '—'}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600, borderTop: '2px solid #3498db' }}>Subtotal</td>
+                      <td style={{ padding: '4px 8px', borderTop: '2px solid #3498db' }}>
+                        <span style={{ fontWeight: 700, fontSize: 20, color: '#1e3a5f' }}>
+                          {price > 0 ? currency(subtotal) : '—'}
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                {/* Estado */}
+                <div style={{ marginTop: 12, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {Number(product.stock) <= 0
+                    ? <span className="badge badge-danger">Agotado</span>
+                    : Number(product.stock) <= Number(product.min_stock)
+                      ? <span className="badge badge-warning">Stock bajo</span>
+                      : <span className="badge badge-success">Stock OK</span>
+                  }
+                  {product.category && <span className="badge badge-info" style={{ textTransform: 'capitalize' }}>{product.category}</span>}
+                  {product.unit && <span className="badge" style={{ background: '#e8e8e8', color: '#555' }}>{product.unit}</span>}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-sm btn-primary" onClick={() => { handleEdit(product); onClose(); }}>
+              <Edit2 size={12} /> Editar
+            </button>
+            <button className="btn btn-sm" style={{ background: '#eee' }} onClick={onClose}>Cerrar</button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   if (loading) return <div className="page-header"><h2>Inventario</h2><p style={{ color: '#7f8c8d' }}>Cargando...</p></div>;
 
   return (
     <div>
+      {/* MODAL DE PRODUCTO */}
+      <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
+
       <div className="page-header">
         <h2>Inventario</h2>
-        <p>Control de productos, entradas y salidas</p>
+        <p>Control de productos con precios, stock y valor total del inventario</p>
+      </div>
+
+      {/* Resumen financiero */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-label"><Package size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Productos</div>
+          <div className="stat-value">{products.length}</div>
+          <div className="stat-sub">{categories.length} categorías</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label"><AlertTriangle size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Alertas</div>
+          <div className="stat-value" style={{ color: (outOfStockCount + lowStockCount) > 0 ? '#e74c3c' : '#27ae60' }}>
+            {outOfStockCount + lowStockCount}
+          </div>
+          <div className="stat-sub">{outOfStockCount} agotados · {lowStockCount} por agotar</div>
+        </div>
+        <div className="stat-card" style={{ borderLeft: '4px solid #27ae60' }}>
+          <div className="stat-label"><DollarSign size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Valor Total</div>
+          <div className="stat-value" style={{ fontSize: 22 }}>{currency(totalGeneral)}</div>
+          <div className="stat-sub">
+            {products.filter(p => Number(p.price || 0) > 0).length} productos con precio asignado
+          </div>
+        </div>
       </div>
 
       <div className="tabs">
@@ -86,7 +258,7 @@ export default function Inventario() {
           Movimientos ({movements.length})
         </button>
         <button className={`tab ${tab === 'alertas' ? 'active' : ''}`} onClick={() => setTab('alertas')}>
-          Alertas
+          Alertas {outOfStockCount + lowStockCount > 0 && `(${outOfStockCount + lowStockCount})`}
         </button>
       </div>
 
@@ -100,10 +272,10 @@ export default function Inventario() {
             </div>
             <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
               style={{ padding: '10px 12px', border: '1px solid #e0e0e0', borderRadius: 8, fontSize: 14 }}>
-              <option value="">Todas</option>
+              <option value="">Todas las categorías</option>
               {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
             </select>
-            <button className="btn btn-primary" onClick={() => { setEditing(null); setForm({ name: '', category: 'pintura', stock: 0, min_stock: 3, unit: 'unidad' }); setShowForm(true); }}>
+            <button className="btn btn-primary" onClick={() => { setEditing(null); setForm({ name: '', category: 'pintura', stock: 0, min_stock: 3, unit: 'unidad', price: 0, image_url: '' }); setShowForm(true); }}>
               <Plus size={16} /> Nuevo
             </button>
           </div>
@@ -115,7 +287,7 @@ export default function Inventario() {
                 <h3>{editing ? 'Editar Producto' : 'Nuevo Producto'}</h3>
                 <button className="btn btn-sm" style={{ background: '#eee' }} onClick={() => { setShowForm(false); setEditing(null); }}><X size={14} /></button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12 }}>
                 <div className="form-group">
                   <label>Nombre</label>
                   <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Ej: Cub Total Blanco" />
@@ -125,14 +297,6 @@ export default function Inventario() {
                   <select value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
                     {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                   </select>
-                </div>
-                <div className="form-group">
-                  <label>Stock</label>
-                  <input type="number" step="0.01" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} />
-                </div>
-                <div className="form-group">
-                  <label>Stock Mínimo</label>
-                  <input type="number" step="0.01" value={form.min_stock} onChange={e => setForm({...form, min_stock: e.target.value})} />
                 </div>
                 <div className="form-group">
                   <label>Unidad</label>
@@ -145,56 +309,135 @@ export default function Inventario() {
                     <option value="caja">Caja</option>
                   </select>
                 </div>
+                <div className="form-group">
+                  <label>Precio Unit. (RD$)</label>
+                  <input type="number" step="0.01" min="0" value={form.price} onChange={e => setForm({...form, price: e.target.value})} placeholder="0.00" />
+                </div>
+                <div className="form-group">
+                  <label>Stock</label>
+                  <input type="number" step="0.01" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Stock Mínimo</label>
+                  <input type="number" step="0.01" value={form.min_stock} onChange={e => setForm({...form, min_stock: e.target.value})} />
+                </div>
+                <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                  <label>URL de Imagen</label>
+                  <input value={form.image_url} onChange={e => setForm({...form, image_url: e.target.value})} placeholder="https://ejemplo.com/imagen.jpg" />
+                </div>
               </div>
+              {form.price > 0 && form.stock > 0 && (
+                <div style={{ marginTop: 8, fontSize: 13, color: '#7f8c8d', display: 'flex', gap: 16 }}>
+                  <span>Precio: <strong style={{ color: '#2c3e50' }}>{currency(form.price)}</strong></span>
+                  <span>Stock × Precio = <strong style={{ color: '#1e3a5f' }}>{currency(Number(form.stock) * Number(form.price))}</strong></span>
+                </div>
+              )}
               <button className="btn btn-primary" style={{ marginTop: 12 }} onClick={handleSave}>
                 <Save size={16} /> {editing ? 'Actualizar' : 'Guardar'}
               </button>
             </div>
           )}
 
-          <div className="card">
-            <table>
-              <thead>
-                <tr>
-                  <th>Producto</th>
-                  <th>Categoría</th>
-                  <th>Stock</th>
-                  <th>Mínimo</th>
-                  <th>Unidad</th>
-                  <th>Estado</th>
-                  <th style={{ width: 80 }}>Acción</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProducts.map(p => {
-                  const isLow = Number(p.stock) <= Number(p.min_stock);
-                  return (
-                    <tr key={p.id} style={isLow ? { background: '#fff9f0' } : {}}>
-                      <td><strong>{p.name}</strong></td>
-                      <td><span className="badge badge-info" style={{ textTransform: 'capitalize' }}>{p.category}</span></td>
-                      <td style={{ fontWeight: 600, color: Number(p.stock) <= 0 ? '#e74c3c' : isLow ? '#e67e22' : '#27ae60' }}>
-                        {Number(p.stock)}
-                      </td>
-                      <td>{Number(p.min_stock)}</td>
-                      <td>{p.unit}</td>
-                      <td>
-                        {Number(p.stock) <= 0
-                          ? <span className="badge badge-danger">Agotado</span>
-                          : isLow ? <span className="badge badge-warning">Por agotar</span>
-                          : <span className="badge badge-success">OK</span>
-                        }
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: 4 }}>
-                          <button className="btn btn-sm btn-primary" onClick={() => handleEdit(p)}><Edit2 size={12} /></button>
-                          <button className="btn btn-sm" style={{ background: '#e74c3c', color: 'white' }} onClick={() => handleDelete(p.id)}><Trash2 size={12} /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          {/* Tabla de productos */}
+          <div className="card" style={{ padding: 0 }}>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ minWidth: 900 }}>
+                <thead>
+                  <tr>
+                    <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('name')}>
+                      Producto <SortIcon field="name" />
+                    </th>
+                    <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('category')}>
+                      Categoría <SortIcon field="category" />
+                    </th>
+                    <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('stock')}>
+                      Stock <SortIcon field="stock" />
+                    </th>
+                    <th>Unidad</th>
+                    <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('price')}>
+                      Precio <SortIcon field="price" />
+                    </th>
+                    <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('subtotal')}>
+                      Subtotal <SortIcon field="subtotal" />
+                    </th>
+                    <th>Estado</th>
+                    <th style={{ width: 100 }}>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredProducts.map(p => {
+                    const isLow = Number(p.stock) <= Number(p.min_stock);
+                    const subtotal = Number(p.stock) * Number(p.price || 0);
+                    return (
+                      <tr key={p.id} style={isLow ? { background: '#fff9f0' } : {}}>
+                        <td>
+                          <strong
+                            style={{ cursor: 'pointer', color: '#1e3a5f' }}
+                            onClick={() => setSelectedProduct(p)}
+                            title="Ver detalle"
+                          >
+                            {p.image_url ? (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                <img src={p.image_url} alt="" style={{ width: 24, height: 24, borderRadius: 4, objectFit: 'cover' }} />
+                                {p.name}
+                              </span>
+                            ) : p.name}
+                          </strong>
+                        </td>
+                        <td><span className="badge badge-info" style={{ textTransform: 'capitalize' }}>{p.category}</span></td>
+                        <td style={{ fontWeight: 600, color: Number(p.stock) <= 0 ? '#e74c3c' : isLow ? '#e67e22' : '#27ae60' }}>
+                          {Number(p.stock)}
+                        </td>
+                        <td style={{ textTransform: 'capitalize' }}>{p.unit}</td>
+                        <td style={{ fontWeight: 500 }}>
+                          {Number(p.price || 0) > 0 ? currency(p.price) : <span style={{ color: '#ccc' }}>—</span>}
+                        </td>
+                        <td style={{ fontWeight: 700, color: subtotal > 0 ? '#1e3a5f' : '#ccc' }}>
+                          {subtotal > 0 ? currency(subtotal) : '—'}
+                        </td>
+                        <td>
+                          {Number(p.stock) <= 0
+                            ? <span className="badge badge-danger">Agotado</span>
+                            : isLow ? <span className="badge badge-warning">Por agotar</span>
+                            : <span className="badge badge-success">OK</span>
+                          }
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', gap: 4 }}>
+                            <button className="btn btn-sm" style={{ background: '#e8f4f8', color: '#2980b9' }} onClick={() => setSelectedProduct(p)} title="Ver detalle">
+                              <Eye size={12} />
+                            </button>
+                            <button className="btn btn-sm btn-primary" onClick={() => handleEdit(p)}><Edit2 size={12} /></button>
+                            <button className="btn btn-sm" style={{ background: '#e74c3c', color: 'white' }} onClick={() => handleDelete(p.id)}><Trash2 size={12} /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                {/* Total general */}
+                <tfoot>
+                  <tr style={{ background: '#e8f4f8' }}>
+                    <td colSpan={4} style={{ textAlign: 'right', fontWeight: 700, padding: '12px 12px', fontSize: 14 }}>
+                      TOTAL GENERAL:
+                    </td>
+                    <td style={{ fontWeight: 700, padding: '12px 12px', fontSize: 14 }}>—</td>
+                    <td style={{ fontWeight: 700, padding: '12px 12px', fontSize: 16, color: '#1e3a5f' }}>
+                      {currency(totalGeneral)}
+                    </td>
+                    <td colSpan={2} style={{ fontWeight: 600, padding: '12px 12px', fontSize: 13, color: '#7f8c8d' }}>
+                      {products.filter(p => Number(p.price || 0) > 0).length} productos con precio
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            {filteredProducts.length === 0 && (
+              <div style={{ textAlign: 'center', padding: 40, color: '#7f8c8d' }}>
+                <Package size={40} style={{ marginBottom: 12, opacity: 0.3 }} />
+                <p>No hay productos que coincidan con tu búsqueda</p>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -236,7 +479,7 @@ export default function Inventario() {
             <tbody>
               {products.filter(p => Number(p.stock) <= Number(p.min_stock)).sort((a, b) => Number(a.stock) - Number(b.stock)).map(p => (
                 <tr key={p.id}>
-                  <td><strong>{p.name}</strong></td>
+                  <td><strong style={{ cursor: 'pointer', color: '#1e3a5f' }} onClick={() => setSelectedProduct(p)}>{p.name}</strong></td>
                   <td style={{ textTransform: 'capitalize' }}>{p.category}</td>
                   <td>{Number(p.stock)} {p.unit}</td>
                   <td>{Number(p.min_stock)} {p.unit}</td>

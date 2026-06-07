@@ -376,3 +376,108 @@ table td {
 .btn-danger:hover {
   background: #c0392b;
 }
+
+/* Scrollbar para tablas */
+::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f0f2f5;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+/* Product image in modal */
+.product-img {
+  width: 180px;
+  height: 180px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+.product-img-placeholder {
+  width: 180px;
+  height: 180px;
+  border-radius: 12px;
+  background: #f0f2f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* Product mini thumbnail in table */
+.product-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  object-fit: cover;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+/* Stats card accent variants */
+.stat-card-accent-green {
+  border-left: 4px solid var(--success);
+}
+.stat-card-accent-red {
+  border-left: 4px solid var(--danger);
+}
+.stat-card-accent-blue {
+  border-left: 4px solid var(--primary);
+}
+
+/* Sortable column header */
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+th.sortable:hover {
+  color: var(--primary);
+}
+
+/* Total row */
+.total-row {
+  background: #e8f4f8;
+  font-weight: 700;
+}
+.total-row td {
+  border-top: 2px solid var(--primary);
+  font-size: 14px;
+}
+
+/* Price badge */
+.price-value {
+  font-weight: 600;
+  color: var(--text);
+}
+.price-empty {
+  color: #ccc;
+}
+.subtotal-value {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* Small inline icon button */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-icon:hover {
+  opacity: 0.8;
+}

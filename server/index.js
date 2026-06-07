@@ -412,12 +412,12 @@ async function start() {
 
   app.post('/api/products', async (req, res) => {
     try {
-      const { name, category, stock, min_stock, unit } = req.body;
+      const { name, category, stock, min_stock, unit, price, image_url } = req.body;
       const result = await db.query(
-        'INSERT INTO products (name, category, stock, min_stock, unit) VALUES (?,?,?,?,?)',
-        [name, category, stock, min_stock, unit]
+        'INSERT INTO products (name, category, stock, min_stock, unit, price, image_url) VALUES (?,?,?,?,?,?,?)',
+        [name, category, stock, min_stock, unit, price || 0, image_url || '']
       );
-      res.status(201).json({ id: result.rowCount || result.changes, name, category, stock, min_stock, unit });
+      res.status(201).json({ id: result.rowCount || result.changes, name, category, stock, min_stock, unit, price: price || 0, image_url: image_url || '' });
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -425,10 +425,10 @@ async function start() {
 
   app.put('/api/products/:id', async (req, res) => {
     try {
-      const { name, category, stock, min_stock, unit } = req.body;
-      await db.query('UPDATE products SET name=?, category=?, stock=?, min_stock=?, unit=? WHERE id=?',
-        [name, category, stock, min_stock, unit, req.params.id]);
-      res.json({ id: parseInt(req.params.id), name, category, stock, min_stock, unit });
+      const { name, category, stock, min_stock, unit, price, image_url } = req.body;
+      await db.query('UPDATE products SET name=?, category=?, stock=?, min_stock=?, unit=?, price=?, image_url=? WHERE id=?',
+        [name, category, stock, min_stock, unit, price || 0, image_url || '', req.params.id]);
+      res.json({ id: parseInt(req.params.id), name, category, stock, min_stock, unit, price: price || 0, image_url: image_url || '' });
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
