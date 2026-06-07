@@ -7,6 +7,26 @@ import jwt from 'jsonwebtoken';
 import { fileURLToPath } from 'url';
 import { initDB, db as _db, isPostgres as _isP } from './db.js';
 
+// File upload config
+const uploadDir = path.join(__dirname, '../uploads');
+try { fs.mkdirSync(uploadDir, { recursive: true }); } catch (e) {}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || '.jpg';
+    cb(null, `prod-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
+  }
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ok = ['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(path.extname(file.originalname).toLowerCase());
+    cb(null, ok);
+  }
+});
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -547,6 +567,16 @@ async function start() {
       res.status(500).json({ error: e.message || String(e) });
     }
   });
+
+  // Image upload endpoint
+  app.post('/api/upload', authMiddleware, upload.single('image'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No se subió ninguna imagen' });
+    const url = `/uploads/${req.file.filename}`;
+    res.json({ url, filename: req.file.filename });
+  });
+
+  // Serve uploads as static files
+  app.use('/uploads', express.static(uploadDir));
 
   // Serve frontend
   app.use(express.static(path.join(__dirname, '../dist')));

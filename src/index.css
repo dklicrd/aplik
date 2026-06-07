@@ -481,3 +481,8 @@ th.sortable:hover {
 .btn-icon:hover {
   opacity: 0.8;
 }
+
+/* Spinner animation */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

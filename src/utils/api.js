@@ -7,7 +7,12 @@ export function getToken() {
   return localStorage.getItem('token');
 }
 
-export function getPermissions() {
+function authHeaders() {
+  const token = getToken();
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
+function getPermissions() {
   try {
     const token = getToken();
     if (!token) return null;
@@ -23,8 +28,8 @@ export function hasPermission(module) {
 }
 
 async function request(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json', ...authHeaders(), ...options.headers };
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
     ...options,
   });
   if (!res.ok) {
@@ -40,6 +45,23 @@ export const getProduct = (id) => request(`/products/${id}`);
 export const createProduct = (data) => request('/products', { method: 'POST', body: JSON.stringify(data) });
 export const updateProduct = (id, data) => request(`/products/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 export const deleteProduct = (id) => request(`/products/${id}`, { method: 'DELETE' });
+
+// Image upload
+export async function uploadImage(file) {
+  const formData = new FormData();
+  formData.append('image', file);
+  const token = getToken();
+  const res = await fetch('/api/upload', {
+    method: 'POST',
+    headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || 'Error al subir imagen');
+  }
+  return res.json();
+}
 
 // Categories
 export const getCategories = () => request('/categories');

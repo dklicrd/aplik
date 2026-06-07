@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Plus, AlertTriangle, X, Save, Edit2, Trash2, Image, DollarSign, Package, Eye, ChevronDown, ChevronUp } from 'lucide-react';
-import { getProducts, getMovements, getCategories, createProduct, updateProduct, deleteProduct } from '../utils/api';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Plus, AlertTriangle, X, Save, Edit2, Trash2, Image, DollarSign, Package, Eye, ChevronDown, ChevronUp, Upload, Camera } from 'lucide-react';
+import { getProducts, getMovements, getCategories, createProduct, updateProduct, deleteProduct, uploadImage } from '../utils/api';
 
 const currency = (n) => `RD$${Number(n).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -18,6 +18,9 @@ export default function Inventario() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sortField, setSortField] = useState('name');
   const [sortDir, setSortDir] = useState('asc');
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -33,6 +36,30 @@ export default function Inventario() {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  const handleUpload = async (file) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const result = await uploadImage(file);
+      setForm(prev => ({ ...prev, image_url: result.url }));
+    } catch (err) {
+      alert('Error al subir imagen: ' + err.message);
+    }
+    setUploading(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) handleUpload(file);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) handleUpload(file);
+  };
 
   const handleSave = async () => {
     try {
@@ -322,8 +349,51 @@ export default function Inventario() {
                   <input type="number" step="0.01" value={form.min_stock} onChange={e => setForm({...form, min_stock: e.target.value})} />
                 </div>
                 <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                  <label>URL de Imagen</label>
-                  <input value={form.image_url} onChange={e => setForm({...form, image_url: e.target.value})} placeholder="https://ejemplo.com/imagen.jpg" />
+                  <label>Imagen del Producto</label>
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{
+                      border: `2px dashed ${dragOver ? '#3498db' : form.image_url ? '#27ae60' : '#ccc'}`,
+                      borderRadius: 8, padding: 16, cursor: 'pointer',
+                      background: dragOver ? '#ebf5fb' : '#fafafa',
+                      transition: 'all 0.2s',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                      minHeight: 100, justifyContent: 'center'
+                    }}
+                  >
+                    {form.image_url ? (
+                      <>
+                        <img src={form.image_url} alt="" style={{ maxHeight: 80, maxWidth: '100%', borderRadius: 6, objectFit: 'contain' }} />
+                        <div style={{ fontSize: 12, color: '#7f8c8d', display: 'flex', gap: 8 }}>
+                          <span>✓ Imagen subida</span>
+                          <button className="btn btn-sm" style={{ background: '#eee' }} onClick={(e) => { e.stopPropagation(); setForm(prev => ({ ...prev, image_url: '' })); }}>
+                            <X size={12} /> Quitar
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {uploading ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                            <div className="spinner" style={{ width: 24, height: 24, border: '3px solid #eee', borderTop: '3px solid #3498db', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                            <span style={{ fontSize: 13, color: '#7f8c8d' }}>Subiendo imagen...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <Upload size={28} color={dragOver ? '#3498db' : '#bbb'} />
+                            <span style={{ fontSize: 14, color: '#555' }}>
+                              {dragOver ? 'Suelta la imagen aquí' : 'Arrastra una imagen o haz clic para seleccionar'}
+                            </span>
+                            <span style={{ fontSize: 11, color: '#aaa' }}>JPG, PNG, GIF o WebP · Máx 5MB</span>
+                          </>
+                        )}
+                      </>
+                    )}
+                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+                  </div>
                 </div>
               </div>
               {form.price > 0 && form.stock > 0 && (
