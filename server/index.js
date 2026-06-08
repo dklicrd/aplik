@@ -571,7 +571,13 @@ async function start() {
     try {
       const tables = ['movements', 'attendance', 'products', 'employees', 'categories'];
       for (const t of tables) {
-        try { await db.query(`DELETE FROM ${t}`); } catch (e) {}
+        try {
+          if (isPostgres) {
+            await db.query(`TRUNCATE TABLE ${t} RESTART IDENTITY CASCADE`);
+          } else {
+            await db.query(`DELETE FROM ${t}`);
+          }
+        } catch (e) {}
       }
 
       const seedFile = isPostgres ? 'seed.pg.sql' : 'seed.sql';
