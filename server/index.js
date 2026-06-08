@@ -477,6 +477,7 @@ async function start() {
 
   app.put('/api/products/:id', async (req, res) => {
     try {
+      console.log('[PUT /api/products/:id] body:', JSON.stringify(req.body));
       const { name, category, stock, min_stock, unit, price_neto, image_url } = req.body;
       if (!name || !name.trim()) return res.status(400).json({ error: 'El nombre es obligatorio' });
       if (!category || !category.trim()) return res.status(400).json({ error: 'La categoría es obligatoria' });
