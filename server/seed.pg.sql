@@ -29,44 +29,44 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 INSERT INTO products (id, name, category, stock, min_stock, unit, price_neto, price_bruto, image_url) VALUES
-  (1, 'ACRYLFLEX', 'producto', 0, 3, 'cubeta', 0, 0, ''),
-  (2, 'AQUAPROOF PRIMER', 'producto', 6, 3, 'cubeta', 0, 0, ''),
-  (3, 'AQUAPROOF WALL', 'producto', 4, 3, 'cubeta', 0, 0, ''),
+  (1, 'ACRYLFLEX', 'producto', 0, 3, 'cubeta', 1500, 1770, ''),
+  (2, 'AQUAPROOF PRIMER', 'producto', 6, 3, 'cubeta', 7290, 8602.2, ''),
+  (3, 'AQUAPROOF WALL', 'producto', 4, 3, 'cubeta', 7107.3, 8386.61, ''),
   (4, 'CB-1000', 'producto', 0, 3, 'cubeta', 0, 0, ''),
-  (5, 'CB-CRETE', 'producto', 4, 3, 'galon', 0, 0, ''),
-  (6, 'CEMENTO PLASTICO', 'producto', 10, 3, 'cubeta', 0, 0, ''),
-  (7, 'CITRUS CLEANER', 'producto', 0, 3, 'galon', 0, 0, ''),
-  (8, 'DRY COAT CLEANER', 'producto', 0, 3, 'galon', 0, 0, ''),
-  (9, 'DURAFLEX', 'producto', 19, 3, 'cubeta', 0, 0, ''),
-  (10, 'DUREX 1A1-8 MORADO', 'pintura', 0, 3, 'galon', 0, 0, ''),
-  (11, 'DUREX 1C2-8 ROSADO', 'pintura', 0, 3, 'galon', 0, 0, ''),
-  (12, 'DUREX 1F3-8 NARANJA OSCURO', 'pintura', 0, 3, 'galon', 0, 0, ''),
-  (13, 'DUREX 1P3-7 AZUL CLARO', 'pintura', 0, 3, 'galon', 0, 0, ''),
-  (14, 'DUREX 6L2-4 GRIS', 'pintura', 0, 3, 'galon', 0, 0, ''),
+  (5, 'CB-CRETE', 'producto', 4, 3, 'galón', 0, 0, ''),
+  (6, 'CEMENTO PLASTICO', 'producto', 10, 3, 'cubeta', 2203.4, 2600.01, ''),
+  (7, 'CITRUS CLEANER', 'producto', 0, 3, 'galón', 0, 0, ''),
+  (8, 'DRY COAT CLEANER', 'producto', 0, 3, 'galón', 0, 0, ''),
+  (9, 'DURAFLEX', 'producto', 19, 3, 'cubeta', 5100.3, 6018.35, ''),
+  (10, 'DUREX 1A1-8 MORADO', 'pintura', 0, 3, 'galón', 0, 0, ''),
+  (11, 'DUREX 1C2-8 ROSADO', 'pintura', 0, 3, 'galón', 0, 0, ''),
+  (12, 'DUREX 1F3-8 NARANJA OSCURO', 'pintura', 0, 3, 'galón', 0, 0, ''),
+  (13, 'DUREX 1P3-7 AZUL CLARO', 'pintura', 0, 3, 'galón', 0, 0, ''),
+  (14, 'DUREX 6L2-4 GRIS', 'pintura', 0, 3, 'galón', 0, 0, ''),
   (15, 'ESPATULA DE ROSCA', 'herramienta', 0, 3, 'unidad', 0, 0, ''),
   (16, 'ESPATULA PLASTICA', 'herramienta', 0, 3, 'unidad', 0, 0, ''),
   (17, 'EXPRESS ARENA DEL SUR', 'pintura', 0, 3, 'cubeta', 0, 0, ''),
   (18, 'EXPRESS GRIS SAMBIL', 'pintura', 0, 3, 'cubeta', 0, 0, ''),
   (19, 'EXPRESS LINO NATURAL', 'pintura', 3, 3, 'cubeta', 0, 0, ''),
-  (20, 'GALVACON', 'producto', 0, 3, 'galon', 0, 0, ''),
+  (20, 'GALVACON', 'producto', 0, 3, 'galón', 0, 0, ''),
   (21, 'LEVEL TECH', 'producto', 1, 3, 'cubeta', 0, 0, ''),
-  (22, 'LONA 4MM', 'herramienta', 25, 3, 'rollo', 0, 0, ''),
-  (23, 'LUCIDUX', 'producto', 0, 3, 'galon', 0, 0, ''),
+  (22, 'LONA 4MM', 'herramienta', 25, 3, 'rollo', 2711.86, 3199.99, ''),
+  (23, 'LUCIDUX', 'producto', 0, 3, 'galón', 0, 0, ''),
   (24, 'MALLA DE REFUERZO', 'producto', 0, 3, 'rollo', 0, 0, ''),
-  (25, 'MASILLA CRACK FILLER', 'producto', 0, 3, 'galon', 0, 0, ''),
+  (25, 'MASILLA CRACK FILLER', 'producto', 0, 3, 'galón', 0, 0, ''),
   (26, 'MASILLA JOINT COMPOUND', 'producto', 1, 3, 'caja', 0, 0, ''),
   (27, 'MAXIMA ARMOR 3R1-8', 'pintura', 2.75, 3, 'cubeta', 0, 0, ''),
   (28, 'MAXIMA ARMOR 6L2-7', 'pintura', 0, 3, 'cubeta', 0, 0, ''),
-  (29, 'MICROTOP', 'producto', 12, 3, 'cubeta', 0, 0, ''),
+  (29, 'MICROTOP', 'producto', 12, 3, 'cubeta', 2151.9, 2539.24, ''),
   (30, 'MOTA ANTI GOTA', 'herramienta', 0, 3, 'unidad', 0, 0, ''),
   (31, 'MOTA EXTRA RUGOSA', 'herramienta', 0, 3, 'unidad', 0, 0, ''),
   (32, 'MOTA RUGOSA', 'herramienta', 0, 3, 'unidad', 0, 0, ''),
   (33, 'PIEDRA DE PULIR', 'herramienta', 3, 3, 'unidad', 0, 0, ''),
-  (34, 'PINTURA DE ALUMINIO', 'pintura', 10, 3, 'cubeta', 0, 0, ''),
+  (34, 'PINTURA DE ALUMINIO', 'pintura', 10, 3, 'cubeta', 2881.36, 3400, ''),
   (35, 'PORTA ROLOS', 'herramienta', 0, 3, 'unidad', 0, 0, ''),
   (36, 'PRESEAL', 'producto', 0, 3, 'cubeta', 0, 0, ''),
   (37, 'PRIMER SEALER', 'producto', 6, 3, 'cubeta', 0, 0, ''),
-  (38, 'PRIMER SUPER', 'producto', 10, 3, 'cubeta', 0, 0, ''),
+  (38, 'PRIMER SUPER', 'producto', 10, 3, 'cubeta', 1906.78, 2250, ''),
   (39, 'PROTECTO COAT 6J2-4', 'pintura', 1.5, 3, 'cubeta', 0, 0, ''),
   (40, 'PROTECTO COAT 6L2-4', 'pintura', 0.75, 3, 'cubeta', 0, 0, ''),
   (41, 'PROTECTO COAT ARENA DEL SUR', 'pintura', 0, 3, 'cubeta', 0, 0, ''),
@@ -74,15 +74,15 @@ INSERT INTO products (id, name, category, stock, min_stock, unit, price_neto, pr
   (43, 'PROTECTO COAT N8-4 MINDFUL', 'pintura', 0, 3, 'cubeta', 0, 0, ''),
   (44, 'SEAL COAT  6L2-6', 'pintura', 1, 3, 'cubeta', 0, 0, ''),
   (45, 'SEAL COAT 6L2-7', 'pintura', 2, 3, 'cubeta', 0, 0, ''),
-  (46, 'SEAL COAT ARENA DEL SUR', 'pintura', 0, 3, 'galon', 0, 0, ''),
+  (46, 'SEAL COAT ARENA DEL SUR', 'pintura', 0, 3, 'galón', 0, 0, ''),
   (47, 'SEAL COAT BLANCO', 'pintura', 0, 3, 'cubeta', 0, 0, ''),
   (48, 'SEAL COAT CASTAÑO', 'pintura', 16, 3, 'cubeta', 0, 0, ''),
-  (49, 'SEAL COAT LINO', 'pintura', 0, 3, 'galon', 0, 0, ''),
+  (49, 'SEAL COAT LINO', 'pintura', 0, 3, 'galón', 0, 0, ''),
   (50, 'SEAL COAT N9-4', 'pintura', 0, 3, 'cubeta', 0, 0, ''),
   (51, 'SEAL COAT SM2-8 VERDE MODIFICADO', 'pintura', 12, 3, 'cubeta', 0, 0, ''),
-  (52, 'SELLADOR POLYFLEX', 'producto', 82, 3, 'tubos', 0, 0, ''),
-  (53, 'SEMIGLOSS ZERO 6I3-8', 'pintura', 0, 3, 'galon', 0, 0, ''),
-  (54, 'SILICONIZER', 'producto', 2, 3, 'cubeta', 0, 0, ''),
+  (52, 'SELLADOR POLYFLEX', 'producto', 82, 3, 'tubo', 0, 0, ''),
+  (53, 'SEMIGLOSS ZERO 6I3-8', 'pintura', 0, 3, 'galón', 0, 0, ''),
+  (54, 'SILICONIZER', 'producto', 2, 3, 'cubeta', 6241.5, 7364.97, ''),
   (55, 'SILICONIZER 1000', 'producto', 0, 3, 'cubeta', 0, 0, ''),
   (56, 'SILICONIZER ROJO TEJA', 'producto', 0, 3, 'cubeta', 0, 0, ''),
   (57, 'SUPER TRACK', 'producto', 0, 3, 'cubeta', 0, 0, ''),
@@ -90,10 +90,10 @@ INSERT INTO products (id, name, category, stock, min_stock, unit, price_neto, pr
   (59, 'TEXTURIZADA BLANCO', 'pintura', 0, 3, 'cubeta', 0, 0, ''),
   (60, 'TOTAL BLANCO', 'pintura', 14, 3, 'cubeta', 0, 0, ''),
   (61, 'TOTAL DUNA', 'pintura', 0, 3, 'cubeta', 0, 0, ''),
-  (62, 'ULTRA SILICONIZER', 'producto', 0, 3, 'cubeta', 0, 0, ''),
-  (63, 'URETHANIZER', 'producto', 0, 3, 'cubeta', 0, 0, ''),
+  (62, 'ULTRA SILICONIZER', 'producto', 0, 3, 'cubeta', 8088.3, 9544.19, ''),
+  (63, 'URETHANIZER', 'producto', 0, 3, 'cubeta', 8706.6, 10273.79, ''),
   (64, 'VARA DE PINTAR DE 6 A 12', 'herramienta', 2, 3, 'unidad', 0, 0, ''),
-  (65, 'VARSOL', 'producto', 5, 3, 'galon', 0, 0, '')
+  (65, 'VARSOL', 'producto', 5, 3, 'galón', 0, 0, '')
 ON CONFLICT DO NOTHING;
 
 -- Employees
@@ -135,7 +135,16 @@ INSERT INTO employees (id, name, type, type_label, project, salary, discounts) V
   (25, 'Vilasson', 'B', 'Pintor Intermedio', 'PYG', 1100, 500),
   (26, 'Wender', 'B', 'Pintor Intermedio', 'PYG', 1200, 0),
   (27, 'Widmacky', 'C', 'Aprendiz', 'PYG', 1800, 0),
-  (28, 'Wilken', 'C', 'Aprendiz', 'PYG', 1800, 600)
+  (28, 'Wilken', 'C', 'Aprendiz', 'PYG', 1800, 600),
+  (29, 'Nairoby Amabel Frias', 'SD', 'Gerente de operaciones', 'Santo Domingo', 50000, 0),
+  (30, 'Jose Manuel Claudio De La Cruz', 'SD', 'Obrero', 'Santo Domingo', 20000, 0),
+  (31, 'Jacinto Sanchez Cruz', 'SD', 'Supervisor', 'Santo Domingo', 30000, 0),
+  (32, 'Gilbert Jose De La Cruz Polanco', 'SD', 'Obrero', 'Santo Domingo', 20000, 0),
+  (33, 'Adrian Hernandez Mora', 'SD', 'Encargado de cubicaciones', 'Santo Domingo', 25000, 0),
+  (34, 'Myrtyl Chery', 'SD', 'Obrero', 'Santo Domingo', 20000, 0),
+  (35, 'Carlos Alberto Parra Reynoso', 'SD', 'Supervisor', 'Santo Domingo', 30000, 0),
+  (36, 'Vaguens Saint Preux', 'SD', 'Obrero', 'Santo Domingo', 20000, 0),
+  (37, 'Jean Gabriel Castro Medrano', 'SD', 'Chofer', 'Santo Domingo', 20000, 0)
 ON CONFLICT DO NOTHING;
 
 -- Product Stock (stock por almacén)
@@ -371,7 +380,7 @@ CREATE TABLE IF NOT EXISTS budgets (
 -- Reset sequences
 SELECT setval('categories_id_seq', (SELECT COALESCE(MAX(id), 0) FROM categories));
 SELECT setval('products_id_seq', (SELECT COALESCE(MAX(id), 0) FROM products));
-SELECT setval('employees_id_seq', (SELECT COALESCE(MAX(id), 0) FROM employees));
+SELECT setval('employees_id_seq', (SELECT COALESCE(MAX(id), 37) FROM employees));
 SELECT setval('movements_id_seq', (SELECT COALESCE(MAX(id), 0) FROM movements));
 SELECT setval('attendance_id_seq', (SELECT COALESCE(MAX(id), 0) FROM attendance));
 SELECT setval('projects_id_seq', (SELECT COALESCE(MAX(id), 0) FROM projects));
