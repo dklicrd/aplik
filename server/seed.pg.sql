@@ -212,7 +212,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 
 INSERT INTO users (username, password, role) VALUES
-  ('admin', '$2b$10$0HqQjbrZ3IH6E6.HIL2QHOCgTRcsJ9LnXY7zebqq/luqu8ln.yD3C', 'admin')
+  ('admin', '$2b$10$h0we6vjPHJ25S69LQqPVdu6iYFcCrMtJdMs1kbexcvbhyTjxQCEX.', 'admin')
 ON CONFLICT DO NOTHING;
 
 -- Projects table
