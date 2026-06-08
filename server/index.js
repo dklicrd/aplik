@@ -83,22 +83,7 @@ async function start() {
     const sql = fs.readFileSync(path.join(__dirname, seedFile), 'utf8');
     db.exec(sql);
     console.log('✅ Seed complete');
-  }
-
-  // Ensure admin user exists (in case seed was skipped)
-  try {
-    const adminCheck = await db.query("SELECT COUNT(*) as c FROM users WHERE username = 'admin'");
-    if (parseInt(adminCheck.rows[0].c) === 0) {
-      const bcrypt = require('bcryptjs');
-      const hash = bcrypt.hashSync('admin123', 10);
-      await db.query("INSERT INTO users (username, password, role) VALUES ($1, $2, 'admin')", ['admin', hash]);
-      console.log('✅ Admin user created');
-    }
-  } catch (e) {
-    console.error('Admin check error:', e.message);
-  }
-
-  // === Auto-migrate: add missing columns ===
+  }  // === Auto-migrate: add missing columns ===
   try {
     // Check if price_neto column exists
     const colCheck = await db.query('SELECT price_neto FROM products LIMIT 1');
@@ -121,24 +106,28 @@ async function start() {
     }
   }
 
-  // === Seed default users (PostgreSQL-safe) ===
+  // === Seed / ensure default admin user (PostgreSQL-safe) ===
   try {
-    // Try to count users — if table doesn't exist, catch creates it
-    const userCount = await db.query('SELECT COUNT(*) as c FROM users');
-    if (parseInt(userCount.rows[0].c) === 0) {
-      const adminHash = await bcrypt.hash('admin123', 10);
-      const adminPerms = JSON.stringify({ dashboard: true, inventario: true, asistencia: true, nomina: true, presupuestos: true, usuarios: true });
-      if (isPostgres) {
-        await db.query('INSERT INTO users (username, password, role, permissions) VALUES ($1,$2,$3,$4)',
-          ['admin', adminHash, 'admin', adminPerms]);
+    const adminHash = await bcrypt.hash('admin123', 10);
+    const adminPerms = JSON.stringify({ dashboard: true, inventario: true, asistencia: true, nomina: true, presupuestos: true, proyectos: true, almacenes: true, usuarios: true });
+    if (isPostgres) {
+      await db.query(`
+        INSERT INTO users (username, password, role, permissions)
+        VALUES ($1, $2, 'admin', $3)
+        ON CONFLICT (username) DO UPDATE SET password = $2
+      `, ['admin', adminHash, adminPerms]);
       } else {
         await db.query('INSERT OR IGNORE INTO users (username, password, role, permissions) VALUES (?,?,?,?)',
           ['admin', adminHash, 'admin', adminPerms]);
       }
-      console.log('✅ Admin user seeded');
+      console.log('✅ Admin user ensured');
     }
   } catch (e) {
-    console.log('⚠️ Users seed failed (table may not exist yet):', e.message);
+    if (e.message && e.message.includes('relation "users" does not exist')) {
+      console.log('⚠️ Users table not ready yet (will be created by seed)');
+    } else {
+      console.error('⚠️ Admin ensure error:', e.message);
+    }
   }
 
   // === AUTH ===
