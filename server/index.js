@@ -116,12 +116,11 @@ async function start() {
         VALUES ($1, $2, 'admin', $3)
         ON CONFLICT (username) DO UPDATE SET password = $2
       `, ['admin', adminHash, adminPerms]);
-      } else {
-        await db.query('INSERT OR IGNORE INTO users (username, password, role, permissions) VALUES (?,?,?,?)',
-          ['admin', adminHash, 'admin', adminPerms]);
-      }
-      console.log('✅ Admin user ensured');
+    } else {
+      await db.query('INSERT OR IGNORE INTO users (username, password, role, permissions) VALUES (?,?,?,?)',
+        ['admin', adminHash, 'admin', adminPerms]);
     }
+    console.log('✅ Admin user ensured');
   } catch (e) {
     if (e.message && e.message.includes('relation "users" does not exist')) {
       console.log('⚠️ Users table not ready yet (will be created by seed)');
@@ -442,35 +441,8 @@ async function start() {
 
   app.get('/api/products', async (req, res) => {
     try {
-      const warehouseId = req.query.warehouse_id;
-      let query;
-      if (warehouseId) {
-        // Productos con stock filtrado por almacén específico
-        query = `
-          SELECT p.*, COALESCE(ps.quantity, 0) as stock
-          FROM products p
-          LEFT JOIN product_stock ps ON ps.product_id = p.id AND ps.warehouse_id = $1
-          ORDER BY p.name
-        `;
-        const result = await db.query(query, [warehouseId]);
-        res.json(result.rows);
-      } else {
-        // Productos con stock total (suma de todos los almacenes) + desglose
-        query = `
-          SELECT p.*,
-            COALESCE((SELECT SUM(quantity) FROM product_stock WHERE product_id = p.id), 0) as stock_total,
-            COALESCE((SELECT quantity FROM product_stock WHERE product_id = p.id AND warehouse_id = 1), 0) as stock_central,
-            COALESCE((SELECT quantity FROM product_stock WHERE product_id = p.id AND warehouse_id = 2), 0) as stock_sambil,
-            COALESCE((SELECT quantity FROM product_stock WHERE product_id = p.id AND warehouse_id = 3), 0) as stock_panorama,
-            COALESCE((SELECT quantity FROM product_stock WHERE product_id = p.id AND warehouse_id = 4), 0) as stock_luxury
-          FROM products p
-          ORDER BY p.name
-        `;
-        const result = await db.query(query);
-        // Rename stock_total to stock for compatibility
-        const rows = result.rows.map(r => ({ ...r, stock: r.stock_total, stock_total: undefined }));
-        res.json(rows);
-      }
+      const result = await db.query('SELECT * FROM products ORDER BY name');
+      res.json(result.rows);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
