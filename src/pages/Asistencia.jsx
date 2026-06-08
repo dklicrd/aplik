@@ -36,7 +36,7 @@ export default function Asistencia() {
   const bavaroEmployees = employees.filter(e => e.project !== 'Santo Domingo');
 
   // Filtro por proyecto para Bávaro
-  const filteredBavaro = bavaroEmployees.filter(e => !filterProj || e.project === filterProj);
+  const filteredBavaro = filtroProjFilter(bavaroEmployees, filterProj);
 
   // Agrupar por proyecto en el orden definido
   const projGroups = PROJECT_ORDER.map(p => ({
@@ -105,15 +105,35 @@ export default function Asistencia() {
         <p>Período activo: 1ra quincena Junio 2026</p>
       </div>
 
+      {/* ========== BOTONES DE EDICIÓN GLOBAL ========== */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 16 }}>
+        {editMode ? (
+          <>
+            <button className="btn btn-primary" onClick={saveAll} disabled={saving}>
+              <Save size={16} /> {saving ? 'Guardando...' : 'Guardar Cambios'}
+            </button>
+            <button className="btn" style={{ background: '#eee' }} onClick={() => { setEditMode(false); setEdits({}); }}>
+              Cancelar
+            </button>
+          </>
+        ) : (
+          <button className="btn btn-accent" onClick={() => setEditMode(true)}>
+            ✏️ Editar Asistencia
+          </button>
+        )}
+      </div>
+
       {/* ========== SECCIÓN SANTO DOMINGO ========== */}
       <div className="card" style={{ marginBottom: 24, borderLeft: '4px solid #3498db' }}>
         <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-          <h3><MapPin size={16} style={{ marginRight: 6 }} />Santo Domingo — Nómina Fija</h3>
+          <h3><MapPin size={16} style={{ marginRight: 6 }} />Santo Domingo</h3>
           <span style={{ fontSize: 13, color: '#7f8c8d' }}>
-            {sdEmployees.length} empleados · Contrato indefinido · RD${totalSD.toLocaleString()}/mes
+            {sdEmployees.length} empleados · Salario fijo mensual · RD${totalSD.toLocaleString()}/mes
           </span>
         </div>
-        <div style={{ overflowX: 'auto' }}>
+
+        {/* Tabla nómina SD */}
+        <div style={{ overflowX: 'auto', marginBottom: 12 }}>
           <table style={{ fontSize: 12 }}>
             <thead>
               <tr>
@@ -140,6 +160,68 @@ export default function Asistencia() {
             </tbody>
           </table>
         </div>
+
+        {/* Tabla asistencia SD (solo registro, no afecta salario) */}
+        {sdEmployees.length > 0 && (
+          <>
+            <div style={{ fontSize: 11, color: '#3498db', marginBottom: 6, fontStyle: 'italic' }}>
+              ⓘ Registro de asistencia — salario fijo, no afecta el pago
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ fontSize: 12 }}>
+                <thead>
+                  <tr>
+                    <th style={{ position: 'sticky', left: 0, background: 'white', zIndex: 2 }}>Empleado</th>
+                    <th>Cargo</th>
+                    <th>Tipo</th>
+                    {DAY_LABELS.map((d, i) => (
+                      <th key={i} style={{ textAlign: 'center', minWidth: editMode ? 36 : 32, fontSize: 10, lineHeight: 1.3 }}>
+                        {d.split(' ')[0]}<br/><span style={{ fontSize: 9, color: '#999' }}>{DAY_DATES[i]}</span>
+                      </th>
+                    ))}
+                    <th style={{ background: '#eaf2f8' }}>Días</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sdEmployees.map(emp => {
+                    const days = Array.from({ length: 15 }, (_, i) => getDayValue(emp.id, i + 1));
+                    const worked = days.reduce((a, b) => a + b, 0);
+                    return (
+                      <tr key={emp.id} style={{ borderBottom: '1px solid #eee' }}>
+                        <td style={{ fontWeight: 600, position: 'sticky', left: 0, background: 'white' }}>{emp.name}</td>
+                        <td>{emp.type_label || emp.type}</td>
+                        <td><span className="badge badge-info">SD</span></td>
+                        {days.map((d, i) => {
+                          const dayNum = i + 1;
+                          const isEdited = edits[emp.id]?.[dayNum] !== undefined;
+                          return (
+                            <td
+                              key={i}
+                              onClick={() => cycleDay(emp.id, dayNum)}
+                              style={{
+                                textAlign: 'center',
+                                cursor: editMode ? 'pointer' : 'default',
+                                background: d >= 1 ? '#d4edda' : d > 0 ? '#fff3cd' : '#f8f9fa',
+                                color: d >= 1 ? '#155724' : d > 0 ? '#856404' : '#adb5bd',
+                                fontWeight: isEdited ? 700 : 400,
+                                border: isEdited ? '2px solid #3498db' : 'none',
+                                transition: 'all 0.15s'
+                              }}
+                              title={editMode ? 'Click: ½ → 0 → 1 → ½' : ''}
+                            >
+                              {d >= 1 ? '✓' : d > 0 ? '½' : editMode ? '○' : ''}
+                            </td>
+                          );
+                        })}
+                        <td style={{ fontWeight: 700, textAlign: 'center', background: '#eaf2f8' }}>{worked}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
 
       {/* ========== SECCIÓN BÁVARO ========== */}
@@ -158,26 +240,9 @@ export default function Asistencia() {
               <span className="badge badge-info">C: Aprendiz</span>
               <span className="badge badge-info">M: Masillero</span>
             </div>
-            <div>
-              {editMode ? (
-                <span style={{ display: 'flex', gap: 6 }}>
-                  <button className="btn btn-primary" onClick={saveAll} disabled={saving} style={{ padding: '6px 14px', fontSize: 13 }}>
-                    <Save size={14} /> {saving ? 'Guardando...' : 'Guardar'}
-                  </button>
-                  <button className="btn" style={{ background: '#eee', padding: '6px 14px', fontSize: 13 }} onClick={() => { setEditMode(false); setEdits({}); }}>
-                    Cancelar
-                  </button>
-                </span>
-              ) : (
-                <button className="btn btn-accent" onClick={() => setEditMode(true)} style={{ padding: '6px 14px', fontSize: 13 }}>
-                  ✏️ Editar
-                </button>
-              )}
-            </div>
           </div>
         </div>
 
-        {/* Tabla de asistencia */}
         <div style={{ overflowX: 'auto' }}>
           <table style={{ fontSize: 12 }}>
             <thead>
@@ -196,14 +261,12 @@ export default function Asistencia() {
             <tbody>
               {projGroups.map(group => (
                 <React.Fragment key={group.project}>
-                  {/* Fila separadora del proyecto */}
                   <tr style={{ background: group.project === 'Luxury' ? '#e8f5e9' : '#fff8e1' }}>
                     <td colSpan={3} style={{ fontWeight: 700, padding: '10px 8px', fontSize: 13 }}>
                       <Users size={14} style={{ marginRight: 4 }} /> {group.label}
                       <span style={{ fontWeight: 400, marginLeft: 8, color: '#666' }}>
                         {group.employees.length} empleados · 
-                        Salario prom. RD${Math.round(group.employees.reduce((s,e) => s + (e.salary||0),0)/group.employees.length)}
-                        /día
+                        Salario prom. RD${Math.round(group.employees.reduce((s,e) => s + (e.salary||0),0)/group.employees.length)}/día
                       </span>
                     </td>
                     <td colSpan={DAY_LABELS.length}></td>
@@ -212,7 +275,6 @@ export default function Asistencia() {
                   {group.employees.map(emp => {
                     const days = Array.from({ length: 15 }, (_, i) => getDayValue(emp.id, i + 1));
                     const worked = days.reduce((a, b) => a + b, 0);
-                    const totalPay = worked * (emp.salary || 0);
                     return (
                       <tr key={emp.id} style={{ borderBottom: '1px solid #eee' }}>
                         <td style={{ fontWeight: 600, position: 'sticky', left: 0, background: 'white' }}>{emp.name}</td>
@@ -280,4 +342,9 @@ export default function Asistencia() {
       </div>
     </div>
   );
+}
+
+// Helper fuera del componente para evitar recrearse
+function filtroProjFilter(employees, filter) {
+  return !filter ? employees : employees.filter(e => e.project === filter);
 }
