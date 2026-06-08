@@ -453,8 +453,35 @@ async function start() {
 
   app.get('/api/products', async (req, res) => {
     try {
-      const result = await db.query('SELECT * FROM products ORDER BY name');
-      res.json(result.rows);
+      const warehouseId = req.query.warehouse_id;
+      let query;
+      if (warehouseId) {
+        // Productos con stock filtrado por almacén específico
+        query = `
+          SELECT p.*, COALESCE(ps.quantity, 0) as stock
+          FROM products p
+          LEFT JOIN product_stock ps ON ps.product_id = p.id AND ps.warehouse_id = $1
+          ORDER BY p.name
+        `;
+        const result = await db.query(query, [warehouseId]);
+        res.json(result.rows);
+      } else {
+        // Productos con stock total (suma de todos los almacenes) + desglose
+        query = `
+          SELECT p.*,
+            COALESCE((SELECT SUM(quantity) FROM product_stock WHERE product_id = p.id), 0) as stock_total,
+            COALESCE((SELECT quantity FROM product_stock WHERE product_id = p.id AND warehouse_id = 1), 0) as stock_central,
+            COALESCE((SELECT quantity FROM product_stock WHERE product_id = p.id AND warehouse_id = 2), 0) as stock_sambil,
+            COALESCE((SELECT quantity FROM product_stock WHERE product_id = p.id AND warehouse_id = 3), 0) as stock_panorama,
+            COALESCE((SELECT quantity FROM product_stock WHERE product_id = p.id AND warehouse_id = 4), 0) as stock_luxury
+          FROM products p
+          ORDER BY p.name
+        `;
+        const result = await db.query(query);
+        // Rename stock_total to stock for compatibility
+        const rows = result.rows.map(r => ({ ...r, stock: r.stock_total, stock_total: undefined }));
+        res.json(rows);
+      }
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -552,12 +579,119 @@ async function start() {
 
   app.post('/api/movements', async (req, res) => {
     try {
-      const { type, product_id, product, qty, date, destination, note } = req.body;
-      const result = await db.query(
-        'INSERT INTO movements (type, product_id, product, qty, date, destination, note) VALUES (?,?,?,?,?,?,?)',
-        [type, product_id, product, qty, date, destination, note]
-      );
-      res.status(201).json({ id: result.changes, type, product_id, product, qty, date, destination, note });
+      const { type, product_id, product_name, qty, from_warehouse_id, to_warehouse_id, project_id, project_name, note } = req.body;
+      
+      if (!type || !product_id || !qty) {
+        return res.status(400).json({ error: 'type, product_id y qty son obligatorios' });
+      }
+      
+      const qtyNum = Number(qty);
+      if (qtyNum <= 0) return res.status(400).json({ error: 'La cantidad debe ser positiva' });
+      
+      if (type === 'entrada') {
+        // Entrada de material a un almacén
+        const wh = to_warehouse_id || from_warehouse_id;
+        if (!wh) return res.status(400).json({ error: 'Se requiere warehouse_id para entrada' });
+        
+        // Insertar o actualizar product_stock
+        if (isPostgres) {
+          await db.query(
+            `INSERT INTO product_stock (product_id, warehouse_id, quantity) VALUES ($1, $2, $3)
+             ON CONFLICT (product_id, warehouse_id) DO UPDATE SET quantity = product_stock.quantity + $3`,
+            [product_id, wh, qtyNum]
+          );
+        } else {
+          // SQLite path
+          const existing = await db.query(`SELECT id FROM product_stock WHERE product_id = ? AND warehouse_id = ?`, [product_id, wh]);
+          if (existing.rows.length > 0) {
+            await db.query(`UPDATE product_stock SET quantity = quantity + ? WHERE product_id = ? AND warehouse_id = ?`, [qtyNum, product_id, wh]);
+          } else {
+            await db.query(`INSERT INTO product_stock (product_id, warehouse_id, quantity) VALUES (?,?,?)`, [product_id, wh, qtyNum]);
+          }
+        }
+        
+        // Registrar movimiento
+        const mv = await db.query(
+          'INSERT INTO movements (type, product_id, product_name, qty, to_warehouse_id, note, date) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+          ['entrada', product_id, product_name || '', qtyNum, wh, note || '', new Date().toISOString().split('T')[0]]
+        );
+        res.status(201).json({ success: true, type: 'entrada', product_id, qty: qtyNum, warehouse_id: wh });
+        
+      } else if (type === 'salida') {
+        // Salida a proyecto o consumo
+        const wh = from_warehouse_id;
+        if (!wh) return res.status(400).json({ error: 'Se requiere warehouse_id (origen) para salida' });
+        
+        // Verificar stock suficiente
+        const check = await db.query(
+          'SELECT quantity FROM product_stock WHERE product_id = $1 AND warehouse_id = $2',
+          [product_id, wh]
+        );
+        const currentStock = check.rows.length > 0 ? Number(check.rows[0].quantity) : 0;
+        if (currentStock < qtyNum) {
+          return res.status(400).json({ error: `Stock insuficiente en el almacén. Disponible: ${currentStock}` });
+        }
+        
+        await db.query(
+          'UPDATE product_stock SET quantity = quantity - $1 WHERE product_id = $2 AND warehouse_id = $3',
+          [qtyNum, product_id, wh]
+        );
+        
+        // Registrar movimiento
+        await db.query(
+          'INSERT INTO movements (type, product_id, product_name, qty, from_warehouse_id, project_id, project_name, note, date) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+          ['salida', product_id, product_name || '', qtyNum, wh, project_id || null, project_name || '', note || '', new Date().toISOString().split('T')[0]]
+        );
+        res.status(201).json({ success: true, type: 'salida', product_id, qty: qtyNum, warehouse_id: wh, project: project_name });
+        
+      } else if (type === 'transferencia') {
+        // Transferencia entre almacenes
+        if (!from_warehouse_id || !to_warehouse_id) {
+          return res.status(400).json({ error: 'Se requieren warehouse_id de origen y destino' });
+        }
+        
+        // Verificar stock en origen
+        const check = await db.query(
+          'SELECT quantity FROM product_stock WHERE product_id = $1 AND warehouse_id = $2',
+          [product_id, from_warehouse_id]
+        );
+        const currentStock = check.rows.length > 0 ? Number(check.rows[0].quantity) : 0;
+        if (currentStock < qtyNum) {
+          return res.status(400).json({ error: `Stock insuficiente en origen. Disponible: ${currentStock}` });
+        }
+        
+        // Restar de origen
+        await db.query(
+          'UPDATE product_stock SET quantity = quantity - $1 WHERE product_id = $2 AND warehouse_id = $3',
+          [qtyNum, product_id, from_warehouse_id]
+        );
+        
+        // Sumar a destino
+        if (isPostgres) {
+          await db.query(
+            `INSERT INTO product_stock (product_id, warehouse_id, quantity) VALUES ($1, $2, $3)
+             ON CONFLICT (product_id, warehouse_id) DO UPDATE SET quantity = product_stock.quantity + $3`,
+            [product_id, to_warehouse_id, qtyNum]
+          );
+        } else {
+          const existing = await db.query(`SELECT id FROM product_stock WHERE product_id = ? AND warehouse_id = ?`, [product_id, to_warehouse_id]);
+          if (existing.rows.length > 0) {
+            await db.query(`UPDATE product_stock SET quantity = quantity + ? WHERE product_id = ? AND warehouse_id = ?`, [qtyNum, product_id, to_warehouse_id]);
+          } else {
+            await db.query(`INSERT INTO product_stock (product_id, warehouse_id, quantity) VALUES (?,?,?)`, [product_id, to_warehouse_id, qtyNum]);
+          }
+        }
+        
+        // Registrar movimiento
+        await db.query(
+          'INSERT INTO movements (type, product_id, product_name, qty, from_warehouse_id, to_warehouse_id, note, date) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
+          ['transferencia', product_id, product_name || '', qtyNum, from_warehouse_id, to_warehouse_id, note || '', new Date().toISOString().split('T')[0]]
+        );
+        res.status(201).json({ success: true, type: 'transferencia', product_id, qty: qtyNum, from: from_warehouse_id, to: to_warehouse_id });
+        
+      } else {
+        res.status(400).json({ error: 'Tipo no válido. Usar: entrada, salida, transferencia' });
+      }
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
