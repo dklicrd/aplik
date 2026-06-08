@@ -394,10 +394,9 @@ async function start() {
     try {
       const { name, type, type_label, project, salary, discounts } = req.body;
       if (!name) return res.status(400).json({ error: 'Nombre requerido' });
-      const result = await db.query(
-        'INSERT INTO employees (name, type, type_label, project, salary, discounts) VALUES (?,?,?,?,?,?)',
-        [name, type || 'C', type_label || 'Aprendiz', project || 'PYG', salary || 1100, discounts || 0]
-      );
+      const q = pgParams('INSERT INTO employees (name, type, type_label, project, salary, discounts) VALUES (?,?,?,?,?,?)',
+        [name, type || 'C', type_label || 'Aprendiz', project || 'PYG', salary || 1100, discounts || 0]);
+      const result = await db.query(q.text, q.params);
       const id = result.rowCount || result.changes;
       res.status(201).json({ id, name, type, type_label, project, salary, discounts });
     } catch (err) {
