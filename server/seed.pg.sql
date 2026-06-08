@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS categories (
   color TEXT
 );
 
+
 INSERT INTO categories (name, color) VALUES
   ('pintura', '#3498db'),
   ('herramienta', '#e67e22'),
@@ -208,6 +209,11 @@ CREATE TABLE IF NOT EXISTS users (
   permissions TEXT DEFAULT '{}',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+INSERT INTO users (username, password, role) VALUES
+  ('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'admin')
+ON CONFLICT DO NOTHING;
 
 -- Projects table
 CREATE TABLE IF NOT EXISTS projects (
