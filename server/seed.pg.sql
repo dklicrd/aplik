@@ -233,7 +233,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 INSERT INTO users (username, password, role) VALUES
   ('admin', '$2b$10$aOiV9Bdhejd9w4mOOlBuZemERoqtQHG3CqiULq3mppylNQhw2hq/K', 'admin')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (username) DO UPDATE SET password = EXCLUDED.password;
 
 -- Projects table
 CREATE TABLE IF NOT EXISTS projects (
