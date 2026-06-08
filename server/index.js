@@ -68,14 +68,22 @@ async function start() {
   // Auto-seed — choose seed file based on engine
   try {
     const result = await db.query('SELECT COUNT(*) as c FROM products');
-    if (parseInt(result.rows[0].c) === 0) {
-      console.log('🌱 Seeding database...');
+    const prodCount = parseInt(result.rows[0].c);
+    // Siempre forzar seed si hay menos de 37 empleados (seed desactualizado)
+    let empCount = 0;
+    try {
+      const empResult = await db.query('SELECT COUNT(*) as c FROM employees');
+      empCount = parseInt(empResult.rows[0].c);
+    } catch(e) {}
+    
+    if (prodCount === 0 || empCount < 37) {
+      console.log(`🌱 Seeding database (products=${prodCount}, employees=${empCount})...`);
       const seedFile = isPostgres ? 'seed.pg.sql' : 'seed.sql';
       const sql = fs.readFileSync(path.join(__dirname, seedFile), 'utf8');
       db.exec(sql);
       console.log('✅ Seed complete');
     } else {
-      console.log(`📊 Database has ${result.rows[0].c} products, skipping seed`);
+      console.log(`📊 Database has ${prodCount} products, ${empCount} employees, skipping seed`);
     }
   } catch (e) {
     console.log('🌱 First run: seeding database...');
