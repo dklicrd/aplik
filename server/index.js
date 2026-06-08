@@ -83,17 +83,19 @@ async function start() {
 
   // === Auto-migrate: add missing columns ===
   try {
-    // Check if price column exists
-    const colCheck = await db.query('SELECT price FROM products LIMIT 1');
-    console.log('✅ Column price exists');
+    // Check if price_neto column exists
+    const colCheck = await db.query('SELECT price_neto FROM products LIMIT 1');
+    console.log('✅ Column price_neto exists');
   } catch (e) {
-    console.log('🔧 Migrating: adding price and image_url columns...');
+    console.log('🔧 Migrating: adding price_neto and price_bruto columns...');
     try {
       if (isPostgres) {
-        await db.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS price REAL DEFAULT 0');
+        await db.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS price_neto REAL DEFAULT 0');
+        await db.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS price_bruto REAL DEFAULT 0');
         await db.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT \'\'');
       } else {
-        await db.query('ALTER TABLE products ADD COLUMN price REAL DEFAULT 0');
+        await db.query('ALTER TABLE products ADD COLUMN price_neto REAL DEFAULT 0');
+        await db.query('ALTER TABLE products ADD COLUMN price_bruto REAL DEFAULT 0');
         await db.query('ALTER TABLE products ADD COLUMN image_url TEXT DEFAULT \'\'');
       }
       console.log('✅ Migration complete');
@@ -454,11 +456,13 @@ async function start() {
 
   app.post('/api/products', async (req, res) => {
     try {
-      const { name, category, stock, min_stock, unit, price, image_url } = req.body;
-      const q = pgParams('INSERT INTO products (name, category, stock, min_stock, unit, price, image_url) VALUES (?,?,?,?,?,?,?)',
-        [name, category, stock, min_stock, unit, price || 0, image_url || '']);
+      const { name, category, stock, min_stock, unit, price_neto, image_url } = req.body;
+      const neto = Number(price_neto) || 0;
+      const bruto = Math.round(neto * 1.18 * 100) / 100;
+      const q = pgParams('INSERT INTO products (name, category, stock, min_stock, unit, price_neto, price_bruto, image_url) VALUES (?,?,?,?,?,?,?,?)',
+        [name, category, stock, min_stock, unit, neto, bruto, image_url || '']);
       const result = await db.query(q.text, q.params);
-      res.status(201).json({ id: result.rowCount || result.changes, name, category, stock, min_stock, unit, price: price || 0, image_url: image_url || '' });
+      res.status(201).json({ id: result.rowCount || result.changes, name, category, stock, min_stock, unit, price_neto: neto, price_bruto: bruto, image_url: image_url || '' });
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -466,11 +470,13 @@ async function start() {
 
   app.put('/api/products/:id', async (req, res) => {
     try {
-      const { name, category, stock, min_stock, unit, price, image_url } = req.body;
-      const q = pgParams('UPDATE products SET name=?, category=?, stock=?, min_stock=?, unit=?, price=?, image_url=? WHERE id=?',
-        [name, category, stock, min_stock, unit, price || 0, image_url || '', req.params.id]);
+      const { name, category, stock, min_stock, unit, price_neto, image_url } = req.body;
+      const neto = Number(price_neto) || 0;
+      const bruto = Math.round(neto * 1.18 * 100) / 100;
+      const q = pgParams('UPDATE products SET name=?, category=?, stock=?, min_stock=?, unit=?, price_neto=?, price_bruto=?, image_url=? WHERE id=?',
+        [name, category, stock, min_stock, unit, neto, bruto, image_url || '', req.params.id]);
       await db.query(q.text, q.params);
-      res.json({ id: parseInt(req.params.id), name, category, stock, min_stock, unit, price: price || 0, image_url: image_url || '' });
+      res.json({ id: parseInt(req.params.id), name, category, stock, min_stock, unit, price_neto: neto, price_bruto: bruto, image_url: image_url || '' });
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }

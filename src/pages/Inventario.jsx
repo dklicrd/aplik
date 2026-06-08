@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Plus, AlertTriangle, X, Save, Edit2, Trash2, Image, DollarSign, Package, Eye, ChevronDown, ChevronUp, Upload, Camera } from 'lucide-react';
+import { Search, Plus, AlertTriangle, X, Save, Edit2, Trash2, Image, DollarSign, Package, Eye, ChevronDown, ChevronUp, Upload } from 'lucide-react';
 import { getProducts, getMovements, getCategories, createProduct, updateProduct, deleteProduct, uploadImage } from '../utils/api';
 
 const currency = (n) => `RD$${Number(n).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+const calcBruto = (neto) => Math.round(Number(neto || 0) * 1.18 * 100) / 100;
+const calcSubtotal = (stock, price) => Number(stock) * Number(price || 0);
 
 export default function Inventario() {
   const [tab, setTab] = useState('productos');
@@ -14,7 +17,7 @@ export default function Inventario() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ name: '', category: 'pintura', stock: 0, min_stock: 3, unit: 'unidad', price: 0, image_url: '' });
+  const [form, setForm] = useState({ name: '', category: 'pintura', stock: 0, min_stock: 3, unit: 'unidad', price_neto: 0, image_url: '' });
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sortField, setSortField] = useState('name');
   const [sortDir, setSortDir] = useState('asc');
@@ -63,11 +66,10 @@ export default function Inventario() {
   };
 
   const handleSave = async () => {
-    // Validaciones
     const errors = {};
     if (!form.name.trim()) errors.name = 'El nombre es obligatorio';
     if (!form.category.trim()) errors.category = 'La categoría es obligatoria';
-    if (Number(form.price) < 0) errors.price = 'El precio no puede ser negativo';
+    if (Number(form.price_neto) < 0) errors.price_neto = 'El precio no puede ser negativo';
     if (Number(form.stock) < 0) errors.stock = 'El stock no puede ser negativo';
     if (Number(form.min_stock) < 0) errors.min_stock = 'El stock mínimo no puede ser negativo';
 
@@ -77,7 +79,7 @@ export default function Inventario() {
     try {
       const payload = {
         ...form,
-        price: Number(form.price) || 0,
+        price_neto: Number(form.price_neto) || 0,
         stock: Number(form.stock) || 0,
         min_stock: Number(form.min_stock) || 0,
       };
@@ -89,7 +91,7 @@ export default function Inventario() {
       setShowForm(false);
       setEditing(null);
       setFormErrors({});
-      setForm({ name: '', category: 'pintura', stock: 0, min_stock: 3, unit: 'unidad', price: 0, image_url: '' });
+      setForm({ name: '', category: 'pintura', stock: 0, min_stock: 3, unit: 'unidad', price_neto: 0, image_url: '' });
       fetchData();
     } catch (err) {
       alert('Error: ' + err.message);
@@ -104,7 +106,7 @@ export default function Inventario() {
       stock: Number(p.stock),
       min_stock: Number(p.min_stock),
       unit: p.unit,
-      price: Number(p.price || 0),
+      price_neto: Number(p.price_neto || 0),
       image_url: p.image_url || '',
     });
     setShowForm(true);
@@ -146,8 +148,10 @@ export default function Inventario() {
         case 'name': valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); break;
         case 'category': valA = a.category; valB = b.category; break;
         case 'stock': valA = Number(a.stock); valB = Number(b.stock); break;
-        case 'price': valA = Number(a.price || 0); valB = Number(b.price || 0); break;
-        case 'subtotal': valA = Number(a.stock) * Number(a.price || 0); valB = Number(b.stock) * Number(b.price || 0); break;
+        case 'price_neto': valA = Number(a.price_neto || 0); valB = Number(b.price_neto || 0); break;
+        case 'price_bruto': valA = Number(a.price_bruto || 0); valB = Number(b.price_bruto || 0); break;
+        case 'subtotal_neto': valA = calcSubtotal(a.stock, a.price_neto); valB = calcSubtotal(b.stock, b.price_neto); break;
+        case 'subtotal_bruto': valA = calcSubtotal(a.stock, a.price_bruto); valB = calcSubtotal(b.stock, b.price_bruto); break;
         default: valA = a.name.toLowerCase(); valB = b.name.toLowerCase();
       }
       if (valA < valB) return sortDir === 'asc' ? -1 : 1;
@@ -155,27 +159,26 @@ export default function Inventario() {
       return 0;
     });
 
-  const totalGeneral = products.reduce((sum, p) => sum + Number(p.stock) * Number(p.price || 0), 0);
+  const totalNeto = products.reduce((sum, p) => sum + calcSubtotal(p.stock, p.price_neto), 0);
+  const totalBruto = products.reduce((sum, p) => sum + calcSubtotal(p.stock, p.price_bruto), 0);
   const lowStockCount = products.filter(p => Number(p.stock) > 0 && Number(p.stock) <= Number(p.min_stock)).length;
   const outOfStockCount = products.filter(p => Number(p.stock) <= 0).length;
 
   const sortedMovements = [...movements].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  // Modal de detalle de producto
   const ProductModal = ({ product, onClose }) => {
     if (!product) return null;
-    const subtotal = Number(product.stock) * Number(product.price || 0);
-    const price = Number(product.price || 0);
+    const neto = Number(product.price_neto || 0);
+    const bruto = Number(product.price_bruto || 0);
     return (
       <div className="modal-overlay" onClick={onClose}>
-        <div className="modal" onClick={e => e.stopPropagation()} style={{ width: 520 }}>
+        <div className="modal" onClick={e => e.stopPropagation()} style={{ width: 560 }}>
           <div className="modal-header">
             <h3>{product.name}</h3>
             <button className="btn btn-sm" style={{ background: '#eee' }} onClick={onClose}><X size={14} /></button>
           </div>
           <div className="modal-body">
             <div style={{ display: 'flex', gap: 20 }}>
-              {/* Imagen */}
               <div style={{
                 width: 180, height: 180, borderRadius: 12,
                 background: product.image_url ? `url(${product.image_url}) center/cover no-repeat` : '#f0f2f5',
@@ -184,15 +187,12 @@ export default function Inventario() {
               }}>
                 {!product.image_url && <Image size={40} color="#ccc" />}
               </div>
-              {/* Info */}
               <div style={{ flex: 1 }}>
                 <table style={{ width: '100%', fontSize: 13 }}>
                   <tbody>
                     <tr>
                       <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600, whiteSpace: 'nowrap' }}>Categoría</td>
-                      <td style={{ padding: '4px 8px' }}>
-                        <span className="badge badge-info" style={{ textTransform: 'capitalize' }}>{product.category}</span>
-                      </td>
+                      <td style={{ padding: '4px 8px' }}><span className="badge badge-info" style={{ textTransform: 'capitalize' }}>{product.category}</span></td>
                     </tr>
                     <tr>
                       <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600 }}>Unidad</td>
@@ -215,22 +215,27 @@ export default function Inventario() {
                       <td style={{ padding: '4px 8px' }}>{Number(product.min_stock)} {product.unit}</td>
                     </tr>
                     <tr>
-                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600 }}>Precio Unit.</td>
-                      <td style={{ padding: '4px 8px' }}>
-                        <span style={{ fontWeight: 600, fontSize: 16 }}>{price > 0 ? currency(price) : '—'}</span>
+                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600 }}>Precio Neto</td>
+                      <td style={{ padding: '4px 8px' }}><span style={{ fontWeight: 600, fontSize: 16 }}>{neto > 0 ? currency(neto) : '—'}</span></td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600 }}>Precio Bruto (+18%)</td>
+                      <td style={{ padding: '4px 8px' }}><span style={{ fontWeight: 600, fontSize: 16, color: '#e67e22' }}>{bruto > 0 ? currency(bruto) : '—'}</span></td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600, borderTop: '2px solid #27ae60' }}>Subtotal Neto</td>
+                      <td style={{ padding: '4px 8px', borderTop: '2px solid #27ae60' }}>
+                        <span style={{ fontWeight: 700, fontSize: 20, color: '#1e3a5f' }}>{neto > 0 ? currency(calcSubtotal(product.stock, product.price_neto)) : '—'}</span>
                       </td>
                     </tr>
                     <tr>
-                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600, borderTop: '2px solid #3498db' }}>Subtotal</td>
-                      <td style={{ padding: '4px 8px', borderTop: '2px solid #3498db' }}>
-                        <span style={{ fontWeight: 700, fontSize: 20, color: '#1e3a5f' }}>
-                          {price > 0 ? currency(subtotal) : '—'}
-                        </span>
+                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600, borderTop: '2px solid #e67e22' }}>Subtotal Bruto</td>
+                      <td style={{ padding: '4px 8px', borderTop: '2px solid #e67e22' }}>
+                        <span style={{ fontWeight: 700, fontSize: 20, color: '#e67e22' }}>{bruto > 0 ? currency(calcSubtotal(product.stock, product.price_bruto)) : '—'}</span>
                       </td>
                     </tr>
                   </tbody>
                 </table>
-                {/* Estado */}
                 <div style={{ marginTop: 12, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {Number(product.stock) <= 0
                     ? <span className="badge badge-danger">Agotado</span>
@@ -259,15 +264,13 @@ export default function Inventario() {
 
   return (
     <div>
-      {/* MODAL DE PRODUCTO */}
       <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
 
       <div className="page-header">
         <h2>Inventario</h2>
-        <p>Control de productos con precios, stock y valor total del inventario</p>
+        <p>Control de productos con precios neto y bruto (+18%)</p>
       </div>
 
-      {/* Resumen financiero */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-label"><Package size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Productos</div>
@@ -282,11 +285,14 @@ export default function Inventario() {
           <div className="stat-sub">{outOfStockCount} agotados · {lowStockCount} por agotar</div>
         </div>
         <div className="stat-card" style={{ borderLeft: '4px solid #27ae60' }}>
-          <div className="stat-label"><DollarSign size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Valor Total</div>
-          <div className="stat-value" style={{ fontSize: 22 }}>{currency(totalGeneral)}</div>
-          <div className="stat-sub">
-            {products.filter(p => Number(p.price || 0) > 0).length} productos con precio asignado
-          </div>
+          <div className="stat-label"><DollarSign size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Valor Total Neto</div>
+          <div className="stat-value" style={{ fontSize: 22 }}>{currency(totalNeto)}</div>
+          <div className="stat-sub">Sin ITBIS</div>
+        </div>
+        <div className="stat-card" style={{ borderLeft: '4px solid #e67e22' }}>
+          <div className="stat-label"><DollarSign size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Valor Total Bruto</div>
+          <div className="stat-value" style={{ fontSize: 22, color: '#e67e22' }}>{currency(totalBruto)}</div>
+          <div className="stat-sub">Incluye ITBIS 18%</div>
         </div>
       </div>
 
@@ -315,12 +321,11 @@ export default function Inventario() {
               <option value="">Todas las categorías</option>
               {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
             </select>
-            <button className="btn btn-primary" onClick={() => { setEditing(null); setForm({ name: '', category: 'pintura', stock: 0, min_stock: 3, unit: 'unidad', price: 0, image_url: '' }); setShowForm(true); }}>
+            <button className="btn btn-primary" onClick={() => { setEditing(null); setForm({ name: '', category: 'pintura', stock: 0, min_stock: 3, unit: 'unidad', price_neto: 0, image_url: '' }); setShowForm(true); }}>
               <Plus size={16} /> Nuevo
             </button>
           </div>
 
-          {/* Formulario */}
           {showForm && (
             <div className="card" style={{ border: '2px solid #3498db' }}>
               <div className="card-header">
@@ -353,10 +358,15 @@ export default function Inventario() {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Precio Unit. (RD$) <span style={{color:'#e74c3c'}}>*</span></label>
-                  <input type="number" step="0.01" min="0" value={form.price} onChange={e => setForm({...form, price: e.target.value})} placeholder="0.00"
-                    style={formErrors.price ? {borderColor: '#e74c3c'} : {}} />
-                  {formErrors.price && <span style={{color:'#e74c3c', fontSize: 11}}>{formErrors.price}</span>}
+                  <label>Precio Neto (RD$) <span style={{color:'#e74c3c'}}>*</span></label>
+                  <input type="number" step="0.01" min="0" value={form.price_neto} onChange={e => setForm({...form, price_neto: e.target.value})} placeholder="0.00"
+                    style={formErrors.price_neto ? {borderColor: '#e74c3c'} : {}} />
+                  {formErrors.price_neto && <span style={{color:'#e74c3c', fontSize: 11}}>{formErrors.price_neto}</span>}
+                  {Number(form.price_neto) > 0 && (
+                    <span style={{color: '#e67e22', fontSize: 11, display: 'block', marginTop: 2}}>
+                      Bruto (+18%): <strong>{currency(calcBruto(form.price_neto))}</strong>
+                    </span>
+                  )}
                 </div>
                 <div className="form-group">
                   <label>Stock</label>
@@ -418,10 +428,16 @@ export default function Inventario() {
                   </div>
                 </div>
               </div>
-              {form.price > 0 && form.stock > 0 && (
-                <div style={{ marginTop: 8, fontSize: 13, color: '#7f8c8d', display: 'flex', gap: 16 }}>
-                  <span>Precio: <strong style={{ color: '#2c3e50' }}>{currency(form.price)}</strong></span>
-                  <span>Stock × Precio = <strong style={{ color: '#1e3a5f' }}>{currency(Number(form.stock) * Number(form.price))}</strong></span>
+              {Number(form.price_neto) > 0 && (
+                <div style={{ marginTop: 8, fontSize: 13, color: '#7f8c8d', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                  <span>Neto: <strong>{currency(form.price_neto)}</strong></span>
+                  <span>Bruto (+18%): <strong style={{ color: '#e67e22' }}>{currency(calcBruto(form.price_neto))}</strong></span>
+                  {Number(form.stock) > 0 && (
+                    <>
+                      <span>Subtotal Neto: <strong>{currency(calcSubtotal(form.stock, form.price_neto))}</strong></span>
+                      <span>Subtotal Bruto: <strong style={{ color: '#e67e22' }}>{currency(calcSubtotal(form.stock, calcBruto(form.price_neto)))}</strong></span>
+                    </>
+                  )}
                 </div>
               )}
               <button className="btn btn-primary" style={{ marginTop: 12 }} onClick={handleSave}>
@@ -430,28 +446,19 @@ export default function Inventario() {
             </div>
           )}
 
-          {/* Tabla de productos */}
           <div className="card" style={{ padding: 0 }}>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ minWidth: 900 }}>
+              <table style={{ minWidth: 1100 }}>
                 <thead>
                   <tr>
-                    <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('name')}>
-                      Producto <SortIcon field="name" />
-                    </th>
-                    <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('category')}>
-                      Categoría <SortIcon field="category" />
-                    </th>
-                    <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('stock')}>
-                      Stock <SortIcon field="stock" />
-                    </th>
+                    <th className="sortable" onClick={() => toggleSort('name')}>Producto <SortIcon field="name" /></th>
+                    <th className="sortable" onClick={() => toggleSort('category')}>Categoría <SortIcon field="category" /></th>
+                    <th className="sortable" onClick={() => toggleSort('stock')}>Stock <SortIcon field="stock" /></th>
                     <th>Unidad</th>
-                    <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('price')}>
-                      Precio <SortIcon field="price" />
-                    </th>
-                    <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('subtotal')}>
-                      Subtotal <SortIcon field="subtotal" />
-                    </th>
+                    <th className="sortable" onClick={() => toggleSort('price_neto')}>Precio Neto <SortIcon field="price_neto" /></th>
+                    <th className="sortable" onClick={() => toggleSort('price_bruto')}>Precio Bruto <SortIcon field="price_bruto" /></th>
+                    <th className="sortable" onClick={() => toggleSort('subtotal_neto')}>Subtotal Neto <SortIcon field="subtotal_neto" /></th>
+                    <th className="sortable" onClick={() => toggleSort('subtotal_bruto')}>Subtotal Bruto <SortIcon field="subtotal_bruto" /></th>
                     <th>Estado</th>
                     <th style={{ width: 100 }}>Acción</th>
                   </tr>
@@ -459,15 +466,12 @@ export default function Inventario() {
                 <tbody>
                   {filteredProducts.map(p => {
                     const isLow = Number(p.stock) <= Number(p.min_stock);
-                    const subtotal = Number(p.stock) * Number(p.price || 0);
+                    const neto = Number(p.price_neto || 0);
+                    const bruto = Number(p.price_bruto || 0);
                     return (
                       <tr key={p.id} style={isLow ? { background: '#fff9f0' } : {}}>
                         <td>
-                          <strong
-                            style={{ cursor: 'pointer', color: '#1e3a5f' }}
-                            onClick={() => setSelectedProduct(p)}
-                            title="Ver detalle"
-                          >
+                          <strong style={{ cursor: 'pointer', color: '#1e3a5f' }} onClick={() => setSelectedProduct(p)} title="Ver detalle">
                             {p.image_url ? (
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                                 <img src={p.image_url} alt="" style={{ width: 24, height: 24, borderRadius: 4, objectFit: 'cover' }} />
@@ -477,16 +481,12 @@ export default function Inventario() {
                           </strong>
                         </td>
                         <td><span className="badge badge-info" style={{ textTransform: 'capitalize' }}>{p.category}</span></td>
-                        <td style={{ fontWeight: 600, color: Number(p.stock) <= 0 ? '#e74c3c' : isLow ? '#e67e22' : '#27ae60' }}>
-                          {Number(p.stock)}
-                        </td>
+                        <td style={{ fontWeight: 600, color: Number(p.stock) <= 0 ? '#e74c3c' : isLow ? '#e67e22' : '#27ae60' }}>{Number(p.stock)}</td>
                         <td style={{ textTransform: 'capitalize' }}>{p.unit}</td>
-                        <td style={{ fontWeight: 500 }}>
-                          {Number(p.price || 0) > 0 ? currency(p.price) : <span style={{ color: '#ccc' }}>—</span>}
-                        </td>
-                        <td style={{ fontWeight: 700, color: subtotal > 0 ? '#1e3a5f' : '#ccc' }}>
-                          {subtotal > 0 ? currency(subtotal) : '—'}
-                        </td>
+                        <td style={{ fontWeight: 500 }}>{neto > 0 ? currency(neto) : <span style={{ color: '#ccc' }}>—</span>}</td>
+                        <td style={{ fontWeight: 600, color: '#e67e22' }}>{bruto > 0 ? currency(bruto) : <span style={{ color: '#ccc' }}>—</span>}</td>
+                        <td style={{ fontWeight: 700, color: neto > 0 ? '#1e3a5f' : '#ccc' }}>{neto > 0 ? currency(calcSubtotal(p.stock, p.price_neto)) : '—'}</td>
+                        <td style={{ fontWeight: 700, color: bruto > 0 ? '#e67e22' : '#ccc' }}>{bruto > 0 ? currency(calcSubtotal(p.stock, p.price_bruto)) : '—'}</td>
                         <td>
                           {Number(p.stock) <= 0
                             ? <span className="badge badge-danger">Agotado</span>
@@ -496,9 +496,7 @@ export default function Inventario() {
                         </td>
                         <td>
                           <div style={{ display: 'flex', gap: 4 }}>
-                            <button className="btn btn-sm" style={{ background: '#e8f4f8', color: '#2980b9' }} onClick={() => setSelectedProduct(p)} title="Ver detalle">
-                              <Eye size={12} />
-                            </button>
+                            <button className="btn btn-sm" style={{ background: '#e8f4f8', color: '#2980b9' }} onClick={() => setSelectedProduct(p)} title="Ver detalle"><Eye size={12} /></button>
                             <button className="btn btn-sm btn-primary" onClick={() => handleEdit(p)}><Edit2 size={12} /></button>
                             <button className="btn btn-sm" style={{ background: '#e74c3c', color: 'white' }} onClick={() => handleDelete(p.id)}><Trash2 size={12} /></button>
                           </div>
@@ -507,18 +505,15 @@ export default function Inventario() {
                     );
                   })}
                 </tbody>
-                {/* Total general */}
                 <tfoot>
-                  <tr style={{ background: '#e8f4f8' }}>
-                    <td colSpan={4} style={{ textAlign: 'right', fontWeight: 700, padding: '12px 12px', fontSize: 14 }}>
+                  <tr className="total-row">
+                    <td colSpan={6} style={{ textAlign: 'right', fontWeight: 700, padding: '12px 12px', fontSize: 14 }}>
                       TOTAL GENERAL:
                     </td>
-                    <td style={{ fontWeight: 700, padding: '12px 12px', fontSize: 14 }}>—</td>
-                    <td style={{ fontWeight: 700, padding: '12px 12px', fontSize: 16, color: '#1e3a5f' }}>
-                      {currency(totalGeneral)}
-                    </td>
+                    <td style={{ fontWeight: 700, padding: '12px 12px', fontSize: 16, color: '#1e3a5f' }}>{currency(totalNeto)}</td>
+                    <td style={{ fontWeight: 700, padding: '12px 12px', fontSize: 16, color: '#e67e22' }}>{currency(totalBruto)}</td>
                     <td colSpan={2} style={{ fontWeight: 600, padding: '12px 12px', fontSize: 13, color: '#7f8c8d' }}>
-                      {products.filter(p => Number(p.price || 0) > 0).length} productos con precio
+                      {products.filter(p => Number(p.price_neto || 0) > 0).length} productos con precio
                     </td>
                   </tr>
                 </tfoot>

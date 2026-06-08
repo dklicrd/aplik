@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS products (
   image_url TEXT DEFAULT ''
 );
 
-INSERT INTO products (id, name, category, stock, min_stock, unit, price) VALUES
+INSERT INTO products (id, name, category, stock, min_stock, unit, price_neto, price_bruto) VALUES
   (1, 'Vara de 8 a 16', 'herramienta', 3, 5, 'unidad', 0),
   (2, 'Tubos Sellador Polyflex', 'producto', 91, 20, 'tubo', 0),
   (3, 'Silicone Natural Ultra Clear', 'producto', 0, 5, 'unidad', 0),
@@ -103,7 +103,7 @@ INSERT INTO products (id, name, category, stock, min_stock, unit, price) VALUES
   (74, 'Cuchilla', 'herramienta', 27, 5, 'unidad', 0),
   (75, 'Flota', 'herramienta', 13, 5, 'unidad', 0),
   (76, 'Lámpara', 'herramienta', 7, 5, 'unidad', 0),
-  (77, 'Caballete', 'herramienta', 4, 5, 'unidad', 0)
+  (77, 'Caballete', 'herramienta', 4, 5, 'unidad', 0, 0)
 ON CONFLICT DO NOTHING;
 
 -- Employees
