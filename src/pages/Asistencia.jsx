@@ -5,6 +5,7 @@ import { RefreshCw, Save, Users, MapPin } from 'lucide-react';
 const API_BASE = import.meta.env.DEV ? '/api' : '/api';
 
 const DAY_LABELS = ['Lun 1','Mar 2','Mié 3','Jue 4','Vie 5','Sáb 6','Dom 7','Lun 8','Mar 9','Mié 10','Jue 11','Vie 12','Sáb 13','Dom 14','Lun 15'];
+const DAY_DATES = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15'];
 const PROJECT_ORDER = ['Luxury', 'PYG'];
 
 export default function Asistencia() {
@@ -185,7 +186,9 @@ export default function Asistencia() {
                 <th>Proy.</th>
                 <th>Tipo</th>
                 {DAY_LABELS.map((d, i) => (
-                  <th key={i} style={{ textAlign: 'center', minWidth: editMode ? 36 : 32, fontSize: 10 }}>{d.split(' ')[0]}</th>
+                  <th key={i} style={{ textAlign: 'center', minWidth: editMode ? 36 : 32, fontSize: 10, lineHeight: 1.3 }}>
+                    {d.split(' ')[0]}<br/><span style={{ fontSize: 9, color: '#999' }}>{DAY_DATES[i]}</span>
+                  </th>
                 ))}
                 <th style={{ background: '#f0f2f5' }}>Días</th>
               </tr>
