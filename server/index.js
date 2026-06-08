@@ -85,6 +85,19 @@ async function start() {
     console.log('✅ Seed complete');
   }
 
+  // Ensure admin user exists (in case seed was skipped)
+  try {
+    const adminCheck = await db.query("SELECT COUNT(*) as c FROM users WHERE username = 'admin'");
+    if (parseInt(adminCheck.rows[0].c) === 0) {
+      const bcrypt = require('bcryptjs');
+      const hash = bcrypt.hashSync('3806.Adm', 10);
+      await db.query("INSERT INTO users (username, password, role) VALUES ($1, $2, 'admin')", ['admin', hash]);
+      console.log('✅ Admin user created');
+    }
+  } catch (e) {
+    console.error('Admin check error:', e.message);
+  }
+
   // === Auto-migrate: add missing columns ===
   try {
     // Check if price_neto column exists
