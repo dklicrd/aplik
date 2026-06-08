@@ -569,7 +569,7 @@ async function start() {
 
   app.post('/api/reseed/force', async (req, res) => {
     try {
-      const tables = ['movements', 'attendance', 'products', 'employees', 'categories'];
+      const tables = ['movements', 'attendance', 'products', 'employees', 'categories', 'users'];
       for (const t of tables) {
         try {
           if (isPostgres) {
