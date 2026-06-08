@@ -15,15 +15,16 @@ INSERT INTO categories (name, color) VALUES
   ('producto', '#2ecc71')
 ON CONFLICT DO NOTHING;
 
--- Products
+-- Products (sin stock global — el stock se maneja por almacén)
 CREATE TABLE IF NOT EXISTS products (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   category TEXT,
-  stock REAL DEFAULT 0,
   min_stock REAL DEFAULT 3,
   unit TEXT DEFAULT 'unidad',
   price REAL DEFAULT 0,
+  price_neto REAL DEFAULT 0,
+  price_bruto REAL DEFAULT 0,
   image_url TEXT DEFAULT ''
 );
 
@@ -137,17 +138,36 @@ INSERT INTO employees (id, name, type, type_label, project, salary, discounts) V
   (28, 'Wilken', 'C', 'Aprendiz', 'PYG', 1800, 600)
 ON CONFLICT DO NOTHING;
 
--- Movements
+-- Product Stock (stock por almacén)
+CREATE TABLE IF NOT EXISTS product_stock (
+  id SERIAL PRIMARY KEY,
+  product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
+  warehouse_id INTEGER REFERENCES warehouses(id) ON DELETE CASCADE,
+  quantity REAL DEFAULT 0,
+  UNIQUE(product_id, warehouse_id)
+);
+
+-- Movements ampliados (con soporte para almacenes y proyectos)
+DROP TABLE IF EXISTS movements CASCADE;
 CREATE TABLE IF NOT EXISTS movements (
   id SERIAL PRIMARY KEY,
-  type TEXT,
-  product_id INTEGER,
-  product TEXT,
-  qty REAL,
-  date TEXT,
-  destination TEXT,
-  note TEXT
+  type TEXT NOT NULL, -- entrada, salida, transferencia
+  product_id INTEGER REFERENCES products(id),
+  product_name TEXT,
+  qty REAL NOT NULL,
+  from_warehouse_id INTEGER REFERENCES warehouses(id),
+  to_warehouse_id INTEGER REFERENCES warehouses(id),
+  project_id INTEGER REFERENCES projects(id),
+  project_name TEXT,
+  note TEXT,
+  date TEXT DEFAULT (to_char(now(), 'YYYY-MM-DD')),
+  created_at TEXT DEFAULT (to_char(now(), 'YYYY-MM-DD HH24:MI:SS'))
 );
+
+-- Reset sequences
+SELECT setval('products_id_seq', (SELECT COALESCE(MAX(id), 0) FROM products));
+SELECT setval('product_stock_id_seq', (SELECT COALESCE(MAX(id), 0) FROM product_stock));
+SELECT setval('movements_id_seq', (SELECT COALESCE(MAX(id), 0) FROM movements));
 
 INSERT INTO movements (id, type, product_id, product, qty, date, destination, note) VALUES
   (1, 'entrada', 49, 'Pintura PVA Blanca 5G', 20, '2026-05-26', 'Almacén Central', 'Compra semanal'),
@@ -247,7 +267,9 @@ CREATE TABLE IF NOT EXISTS warehouses (
 
 INSERT INTO warehouses (name, type, location) VALUES
   ('Almacén Central', 'central', 'Santo Domingo'),
-  ('Almacén Secundario', 'secundario', 'Zona Industrial')
+  ('Almacén Secundario', 'secundario', 'Sambil'),
+  ('Almacén Zona Este', 'almacen', 'Panorama PYG'),
+  ('Almacén Secundario Zona Este', 'secundario', 'Luxury')
 ON CONFLICT DO NOTHING;
 
 -- Inventory transfers
@@ -278,10 +300,11 @@ CREATE TABLE IF NOT EXISTS budgets (
 );
 
 -- Reset sequences
-SELECT setval('categories_id_seq', (SELECT MAX(id) FROM categories));
-SELECT setval('products_id_seq', (SELECT MAX(id) FROM products));
-SELECT setval('employees_id_seq', (SELECT MAX(id) FROM employees));
-SELECT setval('movements_id_seq', (SELECT MAX(id) FROM movements));
-SELECT setval('attendance_id_seq', (SELECT MAX(id) FROM attendance));
-SELECT setval('projects_id_seq', (SELECT MAX(id) FROM projects));
-SELECT setval('warehouses_id_seq', (SELECT MAX(id) FROM warehouses));
+SELECT setval('categories_id_seq', (SELECT COALESCE(MAX(id), 0) FROM categories));
+SELECT setval('products_id_seq', (SELECT COALESCE(MAX(id), 0) FROM products));
+SELECT setval('employees_id_seq', (SELECT COALESCE(MAX(id), 0) FROM employees));
+SELECT setval('movements_id_seq', (SELECT COALESCE(MAX(id), 0) FROM movements));
+SELECT setval('attendance_id_seq', (SELECT COALESCE(MAX(id), 0) FROM attendance));
+SELECT setval('projects_id_seq', (SELECT COALESCE(MAX(id), 0) FROM projects));
+SELECT setval('warehouses_id_seq', (SELECT COALESCE(MAX(id), 0) FROM warehouses));
+SELECT setval('product_stock_id_seq', (SELECT COALESCE(MAX(id), 0) FROM product_stock));

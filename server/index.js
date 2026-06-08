@@ -474,6 +474,8 @@ async function start() {
   app.post('/api/products', async (req, res) => {
     try {
       const { name, category, stock, min_stock, unit, price_neto, image_url } = req.body;
+      if (!name || !name.trim()) return res.status(400).json({ error: 'El nombre es obligatorio' });
+      if (!category || !category.trim()) return res.status(400).json({ error: 'La categoría es obligatoria' });
       const neto = Number(price_neto) || 0;
       const bruto = Math.round(neto * 1.18 * 100) / 100;
       const q = pgParams('INSERT INTO products (name, category, stock, min_stock, unit, price_neto, price_bruto, image_url) VALUES (?,?,?,?,?,?,?,?)',
@@ -488,6 +490,8 @@ async function start() {
   app.put('/api/products/:id', async (req, res) => {
     try {
       const { name, category, stock, min_stock, unit, price_neto, image_url } = req.body;
+      if (!name || !name.trim()) return res.status(400).json({ error: 'El nombre es obligatorio' });
+      if (!category || !category.trim()) return res.status(400).json({ error: 'La categoría es obligatoria' });
       const neto = Number(price_neto) || 0;
       const bruto = Math.round(neto * 1.18 * 100) / 100;
       const q = pgParams('UPDATE products SET name=?, category=?, stock=?, min_stock=?, unit=?, price_neto=?, price_bruto=?, image_url=? WHERE id=?',

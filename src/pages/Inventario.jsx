@@ -79,10 +79,17 @@ export default function Inventario() {
     try {
       const payload = {
         ...form,
+        name: (form.name || '').trim(),
+        category: (form.category || '').trim(),
         price_neto: Number(form.price_neto) || 0,
         stock: Number(form.stock) || 0,
         min_stock: Number(form.min_stock) || 0,
       };
+      if (!payload.name) {
+        errors.name = 'El nombre es obligatorio';
+        setFormErrors(errors);
+        return;
+      }
       if (editing) {
         await updateProduct(editing, payload);
       } else {
