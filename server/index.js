@@ -90,7 +90,7 @@ async function start() {
     const adminCheck = await db.query("SELECT COUNT(*) as c FROM users WHERE username = 'admin'");
     if (parseInt(adminCheck.rows[0].c) === 0) {
       const bcrypt = require('bcryptjs');
-      const hash = bcrypt.hashSync('3806.Adm', 10);
+      const hash = bcrypt.hashSync('admin123', 10);
       await db.query("INSERT INTO users (username, password, role) VALUES ($1, $2, 'admin')", ['admin', hash]);
       console.log('✅ Admin user created');
     }
