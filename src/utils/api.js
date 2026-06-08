@@ -31,6 +31,7 @@ async function request(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...authHeaders(), ...options.headers };
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
+    headers,
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
