@@ -222,6 +222,7 @@ body {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  margin-left: 0;
 }
 
 /* ── Page Header ── */
@@ -243,7 +244,7 @@ body {
 /* ── Stats Grid ── */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 12px;
   margin-bottom: 20px;
 }
@@ -264,10 +265,12 @@ body {
   gap: 4px;
 }
 
+/* optional second-line stat*/
 .stat-card .stat-value {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.2;
+  word-break: break-word;
 }
 
 .stat-card .stat-sub {
@@ -310,7 +313,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  min-width: 700px;
+  min-width: 0;
 }
 
 table th {
@@ -721,7 +724,7 @@ th.sortable:hover {
 /* ── Tablets (≥600px) ── */
 @media (min-width: 600px) {
   .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
   .chart-container {
@@ -729,6 +732,9 @@ th.sortable:hover {
   }
   .main-content {
     padding: 20px;
+  }
+  table {
+    min-width: 700px;
   }
 }
 

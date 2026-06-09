@@ -206,7 +206,7 @@ export default function Dashboard() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
 
@@ -242,8 +242,7 @@ export default function Dashboard() {
             {products.filter(p => Number(p.stock) <= Number(p.min_stock)).length === 0 && (
               <tr><td colSpan={5} style={{ textAlign: 'center', color: '#7f8c8d', padding: 20 }}>No hay alertas de stock bajo ✅</td></tr>
             )}
-          </tbody>
-        </table>
+          </tbody></table></div>
       </div>
     </div>
   );
