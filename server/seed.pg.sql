@@ -240,9 +240,9 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 
-INSERT INTO users (username, password, role) VALUES
-  ('admin', '$2b$10$aOiV9Bdhejd9w4mOOlBuZemERoqtQHG3CqiULq3mppylNQhw2hq/K', 'admin')
-ON CONFLICT (username) DO UPDATE SET password = EXCLUDED.password;
+INSERT INTO users (username, password, role, permissions) VALUES
+  ('admin', '$2b$10$aOiV9Bdhejd9w4mOOlBuZemERoqtQHG3CqiULq3mppylNQhw2hq/K', 'admin', '{"dashboard":true,"inventario":true,"asistencia":true,"nomina":true,"presupuestos":true,"usuarios":true,"proyectos":true,"almacenes":true}')
+ON CONFLICT (username) DO UPDATE SET password = EXCLUDED.password, permissions = EXCLUDED.permissions;
 
 -- Projects table
 CREATE TABLE IF NOT EXISTS projects (
