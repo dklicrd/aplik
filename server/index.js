@@ -154,13 +154,17 @@ async function start() {
         const match = await bcrypt.compare(password, user.password);
         if (match) {
           const permissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions;
+          // Ensure admin always has full permissions
+          const effectivePerms = (user.role === 'admin' && Object.keys(permissions).length === 0)
+            ? { dashboard: true, inventario: true, asistencia: true, nomina: true, presupuestos: true, usuarios: true, proyectos: true, almacenes: true }
+            : permissions;
           const token = jwt.sign({
             id: user.id,
             username: user.username,
             role: user.role,
-            permissions
+            permissions: effectivePerms
           }, JWT_SECRET, { expiresIn: '24h' });
-          return res.json({ token, user: { id: user.id, username: user.username, role: user.role, permissions } });
+          return res.json({ token, user: { id: user.id, username: user.username, role: user.role, permissions: effectivePerms } });
         }
       }
       // Fallback admin hardcoded
