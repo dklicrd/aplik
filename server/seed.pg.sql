@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 INSERT INTO products (id, name, category, stock, min_stock, unit, price_neto, price_bruto, image_url) VALUES
-  (1, 'ACRYLFLEX', 'producto', 0, 3, 'cubeta', 1500, 1770, ''),
+  (1, 'ACRYLFLEX', 'producto', 0, 3, 'cubeta', 0, 0, ''),
   (2, 'AQUAPROOF PRIMER', 'producto', 6, 3, 'cubeta', 7290, 8602.2, ''),
   (3, 'AQUAPROOF WALL', 'producto', 4, 3, 'cubeta', 7107.3, 8386.61, ''),
   (4, 'CB-1000', 'producto', 0, 3, 'cubeta', 0, 0, ''),
