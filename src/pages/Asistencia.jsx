@@ -259,7 +259,7 @@ export default function Asistencia() {
 
         {/* Tabla nómina SD */}
         <div style={{ overflowX: 'auto', marginBottom: 12 }}>
-          <table style={{ fontSize: 12 }}>
+          <div className="table-wrapper"><table className="card-table"> style={{ fontSize: 12 }}>
             <thead>
               <tr>
                 <th>Empleado</th>
@@ -292,7 +292,7 @@ export default function Asistencia() {
                 <td></td>
               </tr>
             </tbody>
-          </table>
+          </table></div>
         </div>
 
         {/* Tabla asistencia SD */}
@@ -302,7 +302,7 @@ export default function Asistencia() {
               ⓘ Registro de asistencia — salario fijo, no afecta el pago
             </div>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ fontSize: 12 }}>
+              <div className="table-wrapper"><table className="card-table"> style={{ fontSize: 12 }}>
                 <thead>
                   <tr>
                     <th style={{ position: 'sticky', left: 0, background: 'white', zIndex: 2 }}>Empleado</th>
@@ -352,7 +352,7 @@ export default function Asistencia() {
                     );
                   })}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </>
         )}
@@ -378,7 +378,7 @@ export default function Asistencia() {
         </div>
 
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ fontSize: 12 }}>
+          <div className="table-wrapper"><table className="card-table"> style={{ fontSize: 12 }}>
             <thead>
               <tr>
                 <th style={{ position: 'sticky', left: 0, background: 'white', zIndex: 2 }}>Empleado</th>
@@ -454,7 +454,7 @@ export default function Asistencia() {
                 </React.Fragment>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
 
         {projGroups.length === 0 && (

@@ -313,7 +313,10 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  min-width: 0;
+}
+
+table.card-table {
+  min-width: 700px;
 }
 
 table th {
@@ -630,7 +633,26 @@ th.sortable:hover {
 .chart-container {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
+  gap: 12px;
+}
+
+@media (max-width: 599px) {
+  .chart-container {
+    gap: 12px;
+  }
+  .stat-card .stat-value {
+    font-size: 18px;
+  }
+  .card {
+    padding: 12px;
+  }
+  .card-header h3 {
+    font-size: 14px;
+  }
+  table td, table th {
+    padding: 8px;
+    font-size: 12px;
+  }
 }
 
 /* ── Toolbar (filters + actions) ── */
@@ -720,6 +742,17 @@ th.sortable:hover {
 /* ════════════════════════════════════════════════════
    MEDIA QUERIES
    ════════════════════════════════════════════════════ */
+
+/* ── Mobile (≥0px) ── */
+.stats-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 399px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* ── Tablets (≥600px) ── */
 @media (min-width: 600px) {

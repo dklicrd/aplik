@@ -126,7 +126,7 @@ export default function Almacenes() {
             </button>
           </div>
           <div className="table-container">
-            <table>
+            <div className="table-wrapper"><table className="card-table">>
               <thead>
                 <tr>
                   <th>ID</th>
@@ -153,7 +153,7 @@ export default function Almacenes() {
                 ))}
                 {almacenes.length === 0 && <tr><td colSpan={6} className="empty">No hay almacenes</td></tr>}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </>
       )}
@@ -166,7 +166,7 @@ export default function Almacenes() {
             </button>
           </div>
           <div className="table-container">
-            <table>
+            <div className="table-wrapper"><table className="card-table">>
               <thead>
                 <tr>
                   <th>Fecha</th>
@@ -192,7 +192,7 @@ export default function Almacenes() {
                 ))}
                 {transfers.length === 0 && <tr><td colSpan={6} className="empty">No hay transferencias</td></tr>}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </>
       )}

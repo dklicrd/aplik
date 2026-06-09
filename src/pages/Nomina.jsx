@@ -232,7 +232,7 @@ export default function Nomina() {
       </div>
 
       <div className="card">
-        <table>
+        <div className="table-wrapper"><table className="card-table">>
           <thead>
             <tr>
               <th>Empleado</th>
@@ -284,13 +284,13 @@ export default function Nomina() {
               <td></td>
             </tr>
           </tfoot>
-        </table>
+        </table></div>
       </div>
 
       {projects.map(proj => (
         <div className="card" key={proj}>
           <div className="card-header"><h3>Proyecto {proj}</h3></div>
-          <table>
+          <div className="table-wrapper"><table className="card-table">>
             <thead>
               <tr><th>Empleado</th><th>Tipo</th><th>Días</th><th>Neto</th></tr>
             </thead>
@@ -308,7 +308,7 @@ export default function Nomina() {
                 );
               })}
             </tbody>
-          </table>
+          </table></div>
         </div>
       ))}
 

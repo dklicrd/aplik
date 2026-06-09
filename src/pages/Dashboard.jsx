@@ -13,29 +13,31 @@ function LowStockTable({ products }) {
       <div className="card-header">
         <h3><AlertTriangle size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} /> Productos con Stock Bajo</h3>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Producto</th>
-            <th>Categoría</th>
-            <th>Stock Actual</th>
-            <th>Stock Mínimo</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          {low.map(p => (
-            <tr key={p.id}>
-              <td><strong>{p.name}</strong></td>
-              <td style={{ textTransform: 'capitalize' }}>{p.category}</td>
-              <td>{Number(p.stock)} {p.unit}</td>
-              <td>{Number(p.min_stock)} {p.unit}</td>
-              <td>{Number(p.stock) <= 0 ? <span className="badge badge-danger">Agotado</span> : <span className="badge badge-warning">Bajo stock</span>}</td>
+      <div className="table-wrapper">
+        <table className="card-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Categoria</th>
+              <th>Stock Actual</th>
+              <th>Stock Minimo</th>
+              <th>Estado</th>
             </tr>
-          ))}
-          {low.length === 0 && <tr><td colSpan={5} style={{ textAlign: 'center', color: '#7f8c8d', padding: 20 }}>No hay alertas de stock bajo ✅</td></tr>}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {low.map(p => (
+              <tr key={p.id}>
+                <td><strong>{p.name}</strong></td>
+                <td style={{ textTransform: 'capitalize' }}>{p.category}</td>
+                <td>{Number(p.stock)} {p.unit}</td>
+                <td>{Number(p.min_stock)} {p.unit}</td>
+                <td>{Number(p.stock) <= 0 ? <span className="badge badge-danger">Agotado</span> : <span className="badge badge-warning">Bajo stock</span>}</td>
+              </tr>
+            ))}
+            {low.length === 0 && <tr><td colSpan={5} style={{ textAlign: 'center', color: '#7f8c8d', padding: 20 }}>No hay alertas de stock bajo</td></tr>}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -221,30 +223,32 @@ export default function Dashboard() {
           <div className="card-header">
             <h3><ClipboardList size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} /> Proyectos Activos</h3>
           </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Proyecto</th>
-                <th>Codigo</th>
-                <th>Ubicacion</th>
-                <th>Presupuesto</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {activeProjects.map(p => (
-                <tr key={p.id}>
-                  <td><strong>{p.name}</strong></td>
-                  <td><span className="badge badge-info">{p.code || '---'}</span></td>
-                  <td>{p.location || '---'}</td>
-                  <td>${Number(p.budget).toLocaleString('es-DO')}</td>
-                  <td><span className="badge badge-success">Activo</span></td>
+          <div className="table-wrapper">
+            <table className="card-table">
+              <thead>
+                <tr>
+                  <th>Proyecto</th>
+                  <th>Codigo</th>
+                  <th>Ubicacion</th>
+                  <th>Presupuesto</th>
+                  <th>Estado</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {activeProjects.map(p => (
+                  <tr key={p.id}>
+                    <td><strong>{p.name}</strong></td>
+                    <td><span className="badge badge-info">{p.code || '---'}</span></td>
+                    <td>{p.location || '---'}</td>
+                    <td>${Number(p.budget).toLocaleString('es-DO')}</td>
+                    <td><span className="badge badge-success">Activo</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      ) : null}
+      ) : null}}
 
       <LowStockTable products={products} />
     </div>

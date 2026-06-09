@@ -184,7 +184,7 @@ export default function Presupuestos() {
           </div>
 
           <div className="card" style={{ overflowX: 'auto' }}>
-            <table style={{ fontSize: 12 }}>
+            <div className="table-wrapper"><table className="card-table"> style={{ fontSize: 12 }}>
               <thead>
                 <tr>
                   <th>Cliente</th>
@@ -212,7 +212,7 @@ export default function Presupuestos() {
                   <tr><td colSpan={6} style={{ textAlign: 'center', padding: 20, color: '#7f8c8d' }}>No se encontraron resultados</td></tr>
                 )}
               </tbody>
-            </table>
+            </table></div>
             {filtered.length > 200 && (
               <div style={{ textAlign: 'center', padding: 12, color: '#7f8c8d', fontSize: 13 }}>
                 Mostrando 200 de {filtered.length} resultados. Usa los filtros para acotar.
@@ -227,7 +227,7 @@ export default function Presupuestos() {
           <div className="card-header">
             <h3>Presupuestos por Año</h3>
           </div>
-          <table>
+          <div className="table-wrapper"><table className="card-table">>
             <thead>
               <tr>
                 <th>Año</th>
@@ -267,7 +267,7 @@ export default function Presupuestos() {
                 );
               })}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
     </div>

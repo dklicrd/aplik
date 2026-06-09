@@ -87,7 +87,7 @@ export default function Proyectos() {
       </div>
 
       <div className="table-container">
-        <table>
+        <div className="table-wrapper"><table className="card-table">>
           <thead>
             <tr>
               <th>ID</th>
@@ -120,7 +120,7 @@ export default function Proyectos() {
               <tr><td colSpan={8} className="empty">No hay proyectos registrados</td></tr>
             )}
           </tbody>
-        </table>
+        </table></div>
       </div>
 
       {showModal && (

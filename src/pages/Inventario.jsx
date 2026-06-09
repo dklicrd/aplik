@@ -195,7 +195,7 @@ export default function Inventario() {
                 {!product.image_url && <Image size={30} color="#ccc" />}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <table style={{ width: '100%', fontSize: 13 }}>
+                <div className="table-wrapper"><table className="card-table"> style={{ width: '100%', fontSize: 13 }}>
                   <tbody>
                     <tr>
                       <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600, whiteSpace: 'nowrap' }}>Categoría</td>
@@ -242,7 +242,7 @@ export default function Inventario() {
                       </td>
                     </tr>
                   </tbody>
-                </table>
+                </table></div>
                 <div style={{ marginTop: 12, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {Number(product.stock) <= 0
                     ? <span className="badge badge-danger">Agotado</span>
@@ -446,7 +446,7 @@ export default function Inventario() {
 
           <div className="card" style={{ padding: 0 }}>
             <div className="table-wrapper">
-              <table>
+              <div className="table-wrapper"><table className="card-table">>
                 <thead>
                   <tr>
                     <th className="sortable" onClick={() => toggleSort('name')}>Producto <SortIcon field="name" /></th>
@@ -515,7 +515,7 @@ export default function Inventario() {
                     </td>
                   </tr>
                 </tfoot>
-              </table>
+              </table></div>
             </div>
             {filteredProducts.length === 0 && (
               <div style={{ textAlign: 'center', padding: 40, color: '#7f8c8d' }}>
@@ -533,7 +533,7 @@ export default function Inventario() {
             <h3>Historial de Movimientos</h3>
             <span style={{ fontSize: 13, color: '#7f8c8d' }}>Más recientes primero</span>
           </div>
-          <table>
+          <div className="table-wrapper"><table className="card-table">>
             <thead>
               <tr><th>Fecha</th><th>Tipo</th><th>Producto</th><th>Cantidad</th><th>Nota / Destino</th></tr>
             </thead>
@@ -550,14 +550,14 @@ export default function Inventario() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
 
       {tab === 'alertas' && (
         <div className="card">
           <div className="card-header"><h3><AlertTriangle size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} /> Alertas por Punto de Reorden</h3></div>
-          <table>
+          <div className="table-wrapper"><table className="card-table">>
             <thead>
               <tr><th>Producto</th><th>Categoría</th><th>Stock Actual</th><th>Stock Mínimo</th><th>Diferencia</th><th>Estado</th></tr>
             </thead>
@@ -583,7 +583,7 @@ export default function Inventario() {
                 <tr><td colSpan={6} style={{ textAlign: 'center', color: '#7f8c8d', padding: 20 }}>✅ Todos en orden</td></tr>
               )}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
     </div>

@@ -130,7 +130,7 @@ export default function Usuarios() {
       </div>
 
       <div className="card">
-        <table>
+        <div className="table-wrapper"><table className="card-table">>
           <thead>
             <tr>
               <th>ID</th>
@@ -183,7 +183,7 @@ export default function Usuarios() {
               <tr><td colSpan={6} style={{ textAlign: 'center', color: '#7f8c8d', padding: 20 }}>No hay usuarios</td></tr>
             )}
           </tbody>
-        </table>
+        </table></div>
       </div>
 
       {/* Modal */}
