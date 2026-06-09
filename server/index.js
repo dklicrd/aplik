@@ -732,15 +732,17 @@ async function start() {
       const hash = bcrypt.hashSync('admin123', 10);
       // Try update first, then insert
       try {
-        await db.query('UPDATE users SET password = ? WHERE username = \'admin\'', [hash]);
-        const r = await db.query('SELECT COUNT(*) as c FROM users WHERE username=\'admin\'');
+        await db.query("UPDATE users SET password = $1 WHERE username = 'admin'", [hash]);
+        const r = await db.query("SELECT COUNT(*) as c FROM users WHERE username='admin'");
         if (parseInt(r.rows[0].c) > 0) {
           return res.json({ status: 'updated', hash_verifies: bcrypt.compareSync('admin123', hash) });
         }
-      } catch(e) {}
+      } catch(e) {
+        return res.json({ error: 'update failed: ' + (e.message||e) });
+      }
       // If no admin user, insert one
       try {
-        await db.query('INSERT INTO users (username, password, role) VALUES (?,?,?)', ['admin', hash, 'admin']);
+        await db.query('INSERT INTO users (username, password, role) VALUES ($1, $2, $3)', ['admin', hash, 'admin']);
         res.json({ status: 'created', hash_verifies: bcrypt.compareSync('admin123', hash) });
       } catch(e) {
         res.status(500).json({ error: e.message || String(e) });
