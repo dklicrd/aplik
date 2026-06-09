@@ -6,6 +6,40 @@ import { getProducts, getEmployees, getMovements, getCategories } from '../utils
 const API = 'https://aplik-dashboard.onrender.com';
 const COLORS = ['#3498db', '#e67e22', '#2ecc71', '#e74c3c', '#9b59b6', '#1abc9c', '#f39c12', '#2980b9'];
 
+function LowStockTable({ products }) {
+  const low = products.filter(p => Number(p.stock) <= Number(p.min_stock)).sort((a, b) => Number(a.stock) - Number(b.stock)).slice(0, 10);
+  return (
+    <div className="card" style={{ marginTop: 20 }}>
+      <div className="card-header">
+        <h3><AlertTriangle size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} /> Productos con Stock Bajo</h3>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th>Stock Actual</th>
+            <th>Stock Mínimo</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {low.map(p => (
+            <tr key={p.id}>
+              <td><strong>{p.name}</strong></td>
+              <td style={{ textTransform: 'capitalize' }}>{p.category}</td>
+              <td>{Number(p.stock)} {p.unit}</td>
+              <td>{Number(p.min_stock)} {p.unit}</td>
+              <td>{Number(p.stock) <= 0 ? <span className="badge badge-danger">Agotado</span> : <span className="badge badge-warning">Bajo stock</span>}</td>
+            </tr>
+          ))}
+          {low.length === 0 && <tr><td colSpan={5} style={{ textAlign: 'center', color: '#7f8c8d', padding: 20 }}>No hay alertas de stock bajo ✅</td></tr>}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const [products, setProducts] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -23,11 +57,11 @@ export default function Dashboard() {
       ]);
       let pr = [], bu = [];
       try {
-        const prRes = await fetch(`${API}/api/projects`);
+        const prRes = await fetch(API + '/api/projects');
         pr = await prRes.json();
       } catch(_) {}
       try {
-        const buRes = await fetch(`${API}/api/budgets`);
+        const buRes = await fetch(API + '/api/budgets');
         bu = await buRes.json();
       } catch(_) {}
       setProducts(Array.isArray(p) ? p : []);
@@ -85,6 +119,8 @@ export default function Dashboard() {
   });
   const pieData = Object.values(stockByCat).filter(d => d.value > 0);
 
+  const activeProjects = projects.filter(p => p.status === 'activo');
+
   return (
     <div>
       <div className="page-header">
@@ -96,27 +132,27 @@ export default function Dashboard() {
         <div className="stat-card">
           <div className="stat-label"><Package size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Productos</div>
           <div className="stat-value">{totalProducts}</div>
-          <div className="stat-sub">{categories.length} categorías</div>
+          <div className="stat-sub">{categories.length} categorias</div>
         </div>
         <div className="stat-card">
           <div className="stat-label"><Users size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Empleados</div>
           <div className="stat-value">{totalEmployees}</div>
-          <div className="stat-sub">{projects.filter(p => p.status === 'activo').length} proyectos activos</div>
+          <div className="stat-sub">{activeProjects.length} proyectos activos</div>
         </div>
         <div className="stat-card">
           <div className="stat-label"><FolderKanban size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Proyectos</div>
           <div className="stat-value">{totalProjects}</div>
-          <div className="stat-sub">{completedProjects} completados · ${activeBudget.toLocaleString('es-DO')} activos</div>
+          <div className="stat-sub">{completedProjects} completados - {activeBudget.toLocaleString('es-DO')} activos</div>
         </div>
         <div className="stat-card" style={totalWarning > 0 ? { borderLeft: '4px solid #e74c3c' } : {}}>
           <div className="stat-label"><AlertTriangle size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Alertas de Stock</div>
           <div className="stat-value" style={{ color: totalWarning > 0 ? '#e74c3c' : '#27ae60' }}>{totalWarning}</div>
-          <div className="stat-sub">{outOfStock} agotados · {lowStock} por agotar</div>
+          <div className="stat-sub">{outOfStock} agotados - {lowStock} por agotar</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label"><DollarSign size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Nómina Quincenal (est.)</div>
+          <div className="stat-label"><DollarSign size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Nomina Quincenal (est.)</div>
           <div className="stat-value">${totalPayroll.toLocaleString('es-DO')}</div>
-          <div className="stat-sub">15 días laborables</div>
+          <div className="stat-sub">15 dias laborables</div>
         </div>
         <div className="stat-card">
           <div className="stat-label"><ClipboardList size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Presupuesto Total</div>
@@ -145,13 +181,13 @@ export default function Dashboard() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p style={{ color: '#7f8c8d', padding: 40, textAlign: 'center' }}>No hay movimientos registrados aún</p>
+            <p style={{ color: '#7f8c8d', padding: 40, textAlign: 'center' }}>No hay movimientos registrados aun</p>
           )}
         </div>
 
         <div className="card">
           <div className="card-header">
-            <h3>Stock por Categoría</h3>
+            <h3>Stock por Categoria</h3>
           </div>
           {pieData.length > 0 ? (
             <>
@@ -180,7 +216,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {projects.length > 0 && (
+      {activeProjects.length > 0 ? (
         <div className="card" style={{ marginTop: 20 }}>
           <div className="card-header">
             <h3><ClipboardList size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} /> Proyectos Activos</h3>
@@ -189,61 +225,28 @@ export default function Dashboard() {
             <thead>
               <tr>
                 <th>Proyecto</th>
-                <th>Código</th>
-                <th>Ubicación</th>
+                <th>Codigo</th>
+                <th>Ubicacion</th>
                 <th>Presupuesto</th>
                 <th>Estado</th>
               </tr>
             </thead>
             <tbody>
-              {projects.filter(p => p.status === 'activo').map(p => (
+              {activeProjects.map(p => (
                 <tr key={p.id}>
                   <td><strong>{p.name}</strong></td>
-                  <td><span className="badge badge-info">{p.code || '—'}</span></td>
-                  <td>{p.location || '—'}</td>
+                  <td><span className="badge badge-info">{p.code || '---'}</span></td>
+                  <td>{p.location || '---'}</td>
                   <td>${Number(p.budget).toLocaleString('es-DO')}</td>
                   <td><span className="badge badge-success">Activo</span></td>
                 </tr>
               ))}
             </tbody>
-          </table></div>
+          </table>
         </div>
-      )}
+      ) : null}
 
-      <div className="card" style={{ marginTop: 20 }}>
-        <div className="card-header">
-          <h3><AlertTriangle size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} /> Productos con Stock Bajo</h3>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Producto</th>
-              <th>Categoría</th>
-              <th>Stock Actual</th>
-              <th>Stock Mínimo</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.filter(p => Number(p.stock) <= Number(p.min_stock)).sort((a, b) => Number(a.stock) - Number(b.stock)).slice(0, 10).map(p => (
-              <tr key={p.id}>
-                <td><strong>{p.name}</strong></td>
-                <td style={{ textTransform: 'capitalize' }}>{p.category}</td>
-                <td>{Number(p.stock)} {p.unit}</td>
-                <td>{Number(p.min_stock)} {p.unit}</td>
-                <td>
-                  {Number(p.stock) <= 0
-                    ? <span className="badge badge-danger">Agotado</span>
-                    : <span className="badge badge-warning">Bajo stock</span>
-                  }
-                </td>
-              </tr>
-            ))}
-            {products.filter(p => Number(p.stock) <= Number(p.min_stock)).length === 0 && (
-              <tr><td colSpan={5} style={{ textAlign: 'center', color: '#7f8c8d', padding: 20 }}>No hay alertas de stock bajo ✅</td></tr>
-            )}
-          </tbody></table></div>
-      </div>
+      <LowStockTable products={products} />
     </div>
   );
 }
