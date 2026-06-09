@@ -41,15 +41,15 @@ function RequirePermission({ perm, children }) {
 function AppLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const username = user?.username || 'admin';
+
+  const closeSidebar = () => setSidebarOpen(false);
 
   // Close sidebar on navigation (mobile)
   useEffect(() => {
     setSidebarOpen(false);
   }, [location.pathname]);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const username = user?.username || 'admin';
-
-  const closeSidebar = () => setSidebarOpen(false);
 
   const currentPageLabel = NAV_ITEMS.find(
     item => item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
