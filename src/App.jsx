@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { Package, Users, ClipboardList, LayoutDashboard, Calculator, FileText, LogOut, User, Shield, Menu, X } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -41,6 +41,11 @@ function RequirePermission({ perm, children }) {
 function AppLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
+
+  // Close sidebar on navigation (mobile)
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const username = user?.username || 'admin';
 
