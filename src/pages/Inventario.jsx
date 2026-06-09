@@ -185,16 +185,16 @@ export default function Inventario() {
             <button className="btn btn-sm" style={{ background: '#eee' }} onClick={onClose}><X size={14} /></button>
           </div>
           <div className="modal-body">
-            <div style={{ display: 'flex', gap: 20 }}>
+            <div className="product-modal-body">
               <div style={{
-                width: 180, height: 180, borderRadius: 12,
+                width: 140, height: 140, borderRadius: 12,
                 background: product.image_url ? `url(${product.image_url}) center/cover no-repeat` : '#f0f2f5',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0, border: '1px solid #e0e0e0', overflow: 'hidden'
               }}>
-                {!product.image_url && <Image size={40} color="#ccc" />}
+                {!product.image_url && <Image size={30} color="#ccc" />}
               </div>
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <table style={{ width: '100%', fontSize: 13 }}>
                   <tbody>
                     <tr>
@@ -317,14 +317,12 @@ export default function Inventario() {
 
       {tab === 'productos' && (
         <>
-          <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-            <div style={{ flex: 1, position: 'relative' }}>
-              <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#7f8c8d' }} />
-              <input type="text" placeholder="Buscar producto..." value={search} onChange={e => setSearch(e.target.value)}
-                style={{ width: '100%', padding: '10px 12px 10px 36px', border: '1px solid #e0e0e0', borderRadius: 8, fontSize: 14 }} />
+          <div className="toolbar">
+            <div className="search-wrapper">
+              <Search size={16} className="search-icon" />
+              <input type="text" placeholder="Buscar producto..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
-            <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
-              style={{ padding: '10px 12px', border: '1px solid #e0e0e0', borderRadius: 8, fontSize: 14 }}>
+            <select value={catFilter} onChange={e => setCatFilter(e.target.value)}>
               <option value="">Todas las categorías</option>
               {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
             </select>
@@ -339,7 +337,7 @@ export default function Inventario() {
                 <h3>{editing ? 'Editar Producto' : 'Nuevo Producto'}</h3>
                 <button className="btn btn-sm" style={{ background: '#eee' }} onClick={() => { setShowForm(false); setEditing(null); }}><X size={14} /></button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12 }}>
+              <div className="form-grid">
                 <div className="form-group">
                   <label>Nombre <span style={{color:'#e74c3c'}}>*</span></label>
                   <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Ej: Cub Total Blanco"
@@ -387,21 +385,14 @@ export default function Inventario() {
                     style={formErrors.min_stock ? {borderColor: '#e74c3c'} : {}} />
                   {formErrors.min_stock && <span style={{color:'#e74c3c', fontSize: 11}}>{formErrors.min_stock}</span>}
                 </div>
-                <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                <div className="form-group form-group-wide">
                   <label>Imagen del Producto</label>
                   <div
                     onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                     onDragLeave={() => setDragOver(false)}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    style={{
-                      border: `2px dashed ${dragOver ? '#3498db' : form.image_url ? '#27ae60' : '#ccc'}`,
-                      borderRadius: 8, padding: 16, cursor: 'pointer',
-                      background: dragOver ? '#ebf5fb' : '#fafafa',
-                      transition: 'all 0.2s',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-                      minHeight: 100, justifyContent: 'center'
-                    }}
+                    className={`upload-area ${dragOver ? 'dragover' : ''} ${form.image_url ? 'has-image' : ''}`}
                   >
                     {form.image_url ? (
                       <>
@@ -447,27 +438,27 @@ export default function Inventario() {
                   )}
                 </div>
               )}
-              <button className="btn btn-primary" style={{ marginTop: 12 }} onClick={handleSave}>
+              <button className="btn btn-primary btn-full" onClick={handleSave}>
                 <Save size={16} /> {editing ? 'Actualizar' : 'Guardar'}
               </button>
             </div>
           )}
 
           <div className="card" style={{ padding: 0 }}>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ minWidth: 1100 }}>
+            <div className="table-wrapper">
+              <table>
                 <thead>
                   <tr>
                     <th className="sortable" onClick={() => toggleSort('name')}>Producto <SortIcon field="name" /></th>
                     <th className="sortable" onClick={() => toggleSort('category')}>Categoría <SortIcon field="category" /></th>
                     <th className="sortable" onClick={() => toggleSort('stock')}>Stock <SortIcon field="stock" /></th>
-                    <th>Unidad</th>
-                    <th className="sortable" onClick={() => toggleSort('price_neto')}>Precio Neto <SortIcon field="price_neto" /></th>
-                    <th className="sortable" onClick={() => toggleSort('price_bruto')}>Precio Bruto <SortIcon field="price_bruto" /></th>
-                    <th className="sortable" onClick={() => toggleSort('subtotal_neto')}>Subtotal Neto <SortIcon field="subtotal_neto" /></th>
-                    <th className="sortable" onClick={() => toggleSort('subtotal_bruto')}>Subtotal Bruto <SortIcon field="subtotal_bruto" /></th>
-                    <th>Estado</th>
-                    <th style={{ width: 100 }}>Acción</th>
+                    <th>Und.</th>
+                    <th className="sortable" onClick={() => toggleSort('price_neto')}>Neto <SortIcon field="price_neto" /></th>
+                    <th className="sortable" onClick={() => toggleSort('price_bruto')}>Bruto <SortIcon field="price_bruto" /></th>
+                    <th className="sortable" onClick={() => toggleSort('subtotal_neto')}>S/Neto <SortIcon field="subtotal_neto" /></th>
+                    <th className="sortable" onClick={() => toggleSort('subtotal_bruto')}>S/Bruto <SortIcon field="subtotal_bruto" /></th>
+                    <th>Est.</th>
+                    <th style={{ width: 80 }}>Acción</th>
                   </tr>
                 </thead>
                 <tbody>

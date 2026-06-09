@@ -125,7 +125,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20 }}>
+      <div className="chart-container">
         <div className="card">
           <div className="card-header">
             <h3>Movimientos de Inventario</h3>

@@ -1,6 +1,6 @@
-import React from 'react';
-import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
-import { Package, Users, ClipboardList, LayoutDashboard, Calculator, FileText, LogOut, User, Shield } from 'lucide-react';
+import React, { useState } from 'react';
+import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
+import { Package, Users, ClipboardList, LayoutDashboard, Calculator, FileText, LogOut, User, Shield, Menu, X } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { hasPermission } from './utils/api';
 import Dashboard from './pages/Dashboard';
@@ -26,7 +26,7 @@ const NAV_ITEMS = [
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', color: '#7f8c8d' }}>Cargando...</div>;
+  if (loading) return <div className="loading-spinner"><div className="spinner-inline" /> Cargando...</div>;
   if (!user) return <Navigate to="/login" replace />;
   return children;
 }
@@ -40,27 +40,47 @@ function RequirePermission({ perm, children }) {
 
 function AppLayout() {
   const { user, logout } = useAuth();
+  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const username = user?.username || 'admin';
+
+  const closeSidebar = () => setSidebarOpen(false);
+
+  const currentPageLabel = NAV_ITEMS.find(
+    item => item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
+  )?.label || 'Dashboard';
 
   return (
     <div className="app-layout">
-      <aside className="sidebar">
+      {/* Sidebar overlay (mobile only) */}
+      <div
+        className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`}
+        onClick={closeSidebar}
+      />
+
+      {/* Sidebar */}
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <img src="/logo.webp" alt="APLIK" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
+          <div className="sidebar-brand">
+            <img src="/logo.webp" alt="APLIK" />
             <div>
-              <h1 style={{ margin: 0, lineHeight: 1.2 }}>APLIK</h1>
-              <p style={{ margin: 0, fontSize: 11, opacity: 0.7 }}>Dashboard de Gestión</p>
+              <h1>APLIK</h1>
+              <p>Dashboard de Gestión</p>
             </div>
           </div>
         </div>
         <nav className="sidebar-nav">
           {NAV_ITEMS.map(item => {
             const allowed = hasPermission(item.perm);
-            if (!allowed && item.perm !== 'dashboard') return null; // dashboard always visible
+            if (!allowed && item.perm !== 'dashboard') return null;
             return (
-              <NavLink key={item.path} to={item.path} end={item.path === '/'}
-                style={!allowed ? { opacity: 0.4, pointerEvents: 'none' } : {}}>
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.path === '/'}
+                onClick={closeSidebar}
+                style={!allowed ? { opacity: 0.4, pointerEvents: 'none' } : {}}
+              >
                 {item.icon} <span>{item.label}</span>
               </NavLink>
             );
@@ -77,6 +97,15 @@ function AppLayout() {
         </div>
       </aside>
 
+      {/* Mobile top bar */}
+      <div className="topbar">
+        <button className="hamburger" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Menú">
+          {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+        <span className="page-title">{currentPageLabel}</span>
+      </div>
+
+      {/* Main content */}
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Dashboard />} />
