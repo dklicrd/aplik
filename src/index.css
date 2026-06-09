@@ -36,7 +36,14 @@ body {
 /* ── App Layout ── */
 .app-layout {
   display: flex;
+  flex-direction: column;
   min-height: 100dvh;
+}
+
+@media (min-width: 1024px) {
+  .app-layout {
+    flex-direction: row;
+  }
 }
 
 /* ── Sidebar (mobile-first: hidden by default) ── */
@@ -186,20 +193,32 @@ body {
   top: 0;
   z-index: 100;
   min-height: var(--topbar-height);
+  flex-shrink: 0;
 }
 
 .topbar .hamburger {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border: none;
-  background: var(--bg);
+  background: var(--accent);
   border-radius: 8px;
   cursor: pointer;
-  color: var(--text);
+  color: white;
   flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.topbar .hamburger:hover {
+  background: #2563eb;
+}
+
+.topbar .page-title {
+  font-size: 15px;
+  font-weight: 600;
+  flex: 1;
 }
 
 .topbar .hamburger:hover {
