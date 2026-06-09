@@ -708,7 +708,7 @@ async function start() {
 
       for (const stmt of statements) {
         try {
-          db.exec(stmt + ';');
+          await db.query(stmt + ';');
           count++;
         } catch (e) {
           errorLog.push(e.message ? e.message.substring(0, 80) : String(e));
@@ -726,7 +726,30 @@ async function start() {
     }
   });
 
-  // Image upload endpoint
+  // Add a simple /api/reseed/password endpoint (no auth) to force password update
+  app.post('/api/reseed/password', async (req, res) => {
+    try {
+      const bcrypt = require('bcryptjs');
+      const hash = bcrypt.hashSync('admin123', 10);
+      // Try update first, then insert
+      try {
+        await db.query(`UPDATE users SET password = ? WHERE username = 'admin'`, [hash]);
+        const r = await db.query(`SELECT COUNT(*) as c FROM users WHERE username='admin'`);
+        if (parseInt(r.rows[0].c) > 0) {
+          return res.json({ status: 'updated', hash_verifies: bcrypt.compareSync('admin123', hash) });
+        }
+      } catch(e) {}
+      // If no admin user, insert one
+      try {
+        await db.query(`INSERT INTO users (username, password, role) VALUES (?,?,?)`, ['admin', hash, 'admin']);
+        res.json({ status: 'created', hash_verifies: bcrypt.compareSync('admin123', hash) });
+      } catch(e) {
+        res.status(500).json({ error: e.message || String(e) });
+      }
+    } catch(e) {
+      res.status(500).json({ error: e.message || String(e) });
+    }
+  });
   app.post('/api/upload', authMiddleware, upload.single('image'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No se subió ninguna imagen' });
     const url = `/uploads/${req.file.filename}`;
