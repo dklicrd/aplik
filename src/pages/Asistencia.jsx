@@ -139,7 +139,9 @@ export default function Asistencia() {
   const sortByPosition = (a, b) => {
     const pa = positionOrder[a.position] ?? 99;
     const pb = positionOrder[b.position] ?? 99;
-    return pa - pb || (a.position ? -1 : b.position ? 1 : 0);
+    if (pa !== pb) return pa - pb;
+    // Segundo criterio: por tipo (A → B → C → M)
+    return (typeOrder[a.type] ?? 99) - (typeOrder[b.type] ?? 99);
   };
 
   const sdEmployees = employees.filter(e => e.project === 'Santo Domingo' && (e.status !== 'baja' || periodEmpIds.has(e.id))).sort(sortByPosition);
