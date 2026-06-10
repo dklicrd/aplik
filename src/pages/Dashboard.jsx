@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { AlertTriangle, Package, Users, DollarSign, TrendingUp, RefreshCw, FolderKanban, ClipboardList } from 'lucide-react';
 import { getProducts, getEmployees, getMovements, getCategories } from '../utils/api';
@@ -43,6 +44,7 @@ function LowStockTable({ products }) {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [movements, setMovements] = useState([]);
@@ -138,32 +140,32 @@ export default function Dashboard() {
       </div>
 
       <div className="stats-grid">
-        <div className="stat-card">
+        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/inventario')}>
           <div className="stat-label"><Package size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Productos</div>
           <div className="stat-value">{totalProducts}</div>
           <div className="stat-sub">{categories.length} categorias</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/nomina')}>
           <div className="stat-label"><Users size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Empleados</div>
           <div className="stat-value">{totalEmployees}</div>
           <div className="stat-sub">{activeProjects.length} proyectos activos</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/proyectos')}>
           <div className="stat-label"><FolderKanban size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Proyectos</div>
           <div className="stat-value">{totalProjects}</div>
           <div className="stat-sub">{completedProjects} completados - {activeBudget.toLocaleString('es-DO')} activos</div>
         </div>
-        <div className="stat-card" style={totalWarning > 0 ? { borderLeft: '4px solid #e74c3c' } : {}}>
+        <div className="stat-card" style={totalWarning > 0 ? { borderLeft: '4px solid #e74c3c', cursor: 'pointer' } : { cursor: 'pointer' }} onClick={() => navigate('/inventario')}>
           <div className="stat-label"><AlertTriangle size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Alertas de Stock</div>
           <div className="stat-value" style={{ color: totalWarning > 0 ? '#e74c3c' : '#27ae60' }}>{totalWarning}</div>
           <div className="stat-sub">{outOfStock} agotados - {lowStock} por agotar</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/nomina')}>
           <div className="stat-label"><DollarSign size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Nomina Quincenal (est.)</div>
           <div className="stat-value">${totalPayroll.toLocaleString('es-DO')}</div>
           <div className="stat-sub">15 dias laborables</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/presupuestos')}>
           <div className="stat-label"><ClipboardList size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Presupuesto Total</div>
           <div className="stat-value">${totalBudget.toLocaleString('es-DO')}</div>
           <div className="stat-sub">{budgets.length} presupuestos registrados</div>
