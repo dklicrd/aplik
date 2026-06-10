@@ -129,17 +129,30 @@ export default function Asistencia() {
   };
 
   const periodEmpIds = new Set(periodAtt.map(a => a.employee_id));
-  const sdEmployees = employees.filter(e => e.project === 'Santo Domingo' && (e.status !== 'baja' || periodEmpIds.has(e.id)));
-  const bavaroEmployees = employees.filter(e => e.project !== 'Santo Domingo' && (e.status !== 'baja' || periodEmpIds.has(e.id)));
+
+  // Orden de tipos para Bávaro (jerarquía: A → B → C → M)
+  const typeOrder = { 'A': 0, 'B': 1, 'C': 2, 'M': 3 };
+  const sortByType = (a, b) => (typeOrder[a.type] ?? 99) - (typeOrder[b.type] ?? 99);
+
+  // Orden de posición/cargo para SD (primero los que tienen cargo definido)
+  const positionOrder = { 'Encargado': 0, 'Supervisor': 1, 'Chofer': 2, 'Obrero': 3 };
+  const sortByPosition = (a, b) => {
+    const pa = positionOrder[a.position] ?? 99;
+    const pb = positionOrder[b.position] ?? 99;
+    return pa - pb || (a.position ? -1 : b.position ? 1 : 0);
+  };
+
+  const sdEmployees = employees.filter(e => e.project === 'Santo Domingo' && (e.status !== 'baja' || periodEmpIds.has(e.id))).sort(sortByPosition);
+  const bavaroSorted = bavaroEmployees.sort(sortByType);
 
   // Filtro por proyecto para Bávaro
-  const filteredBavaro = bavaroEmployees.filter(e => !filterProj || e.project === filterProj);
+  const filteredBavaro = bavaroSorted.filter(e => !filterProj || e.project === filterProj);
 
-  // Agrupar por proyecto en orden definido
+  // Agrupar por proyecto en orden definido, y dentro de cada grupo ordenar por tipo
   const projGroups = PROJECT_ORDER.map(p => ({
     project: p,
     label: p,
-    employees: filteredBavaro.filter(e => e.project === p)
+    employees: filteredBavaro.filter(e => e.project === p).sort(sortByType)
   })).filter(g => g.employees.length > 0);
 
   const bavaroProjects = [...new Set(bavaroEmployees.map(e => e.project))];
