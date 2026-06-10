@@ -115,8 +115,10 @@ export default function Asistencia() {
   };
 
   // Separar SD de Bávaro
-  const sdEmployees = employees.filter(e => e.project === 'Santo Domingo');
-  const bavaroEmployees = employees.filter(e => e.project !== 'Santo Domingo');
+  // Empleados activos + inactivos que tienen asistencia en este período (para no perder registro)
+  const periodEmpIds = new Set(periodAtt.map(a => a.employee_id));
+  const sdEmployees = employees.filter(e => e.project === 'Santo Domingo' && (e.status !== 'baja' || periodEmpIds.has(e.id)));
+  const bavaroEmployees = employees.filter(e => e.project !== 'Santo Domingo' && (e.status !== 'baja' || periodEmpIds.has(e.id)));
 
   // Filtro por proyecto para Bávaro
   const filteredBavaro = bavaroEmployees.filter(e => !filterProj || e.project === filterProj);
@@ -286,11 +288,15 @@ export default function Asistencia() {
                 </thead>
                 <tbody>
                   {sdEmployees.map(emp => {
+                    const isBaja = emp.status === 'baja';
                     const days = fortnightInfo.days.map(d => getDayValue(emp.id, d));
                     const worked = days.reduce((a, b) => a + b, 0);
                     return (
-                      <tr key={emp.id} style={{ borderBottom: '1px solid #eee' }}>
-                        <td style={{ fontWeight: 600, position: 'sticky', left: 0, background: 'white' }}>{emp.name}</td>
+                      <tr key={emp.id} style={{ borderBottom: '1px solid #eee', opacity: isBaja ? 0.65 : 1 }}>
+                        <td style={{ fontWeight: 600, position: 'sticky', left: 0, background: 'white' }}>
+                          {emp.name}
+                          {isBaja && <span className="badge" style={{ marginLeft: 6, background: '#ffeaa7', color: '#d68910', fontSize: 9 }}>Baja</span>}
+                        </td>
                         <td>{emp.type_label || emp.type}</td>
                         <td><span className="badge badge-info">SD</span></td>
                         {days.map((d, i) => {
@@ -299,23 +305,23 @@ export default function Asistencia() {
                           return (
                             <td
                               key={i}
-                              onClick={() => cycleDay(emp.id, dayNum)}
+                              onClick={() => !isBaja && cycleDay(emp.id, dayNum)}
                               style={{
                                 textAlign: 'center',
-                                cursor: editMode ? 'pointer' : 'default',
+                                cursor: editMode && !isBaja ? 'pointer' : 'default',
                                 background: d >= 1 ? '#d4edda' : d > 0 ? '#fff3cd' : '#f8f9fa',
                                 color: d >= 1 ? '#155724' : d > 0 ? '#856404' : '#adb5bd',
                                 fontWeight: isEdited ? 700 : 400,
                                 border: isEdited ? '2px solid #3498db' : 'none',
                                 transition: 'all 0.15s'
                               }}
-                              title={editMode ? 'Click: ✓ → ½ → 0 → ✓' : ''}
+                              title={isBaja ? 'Trabajador dado de baja' : editMode ? 'Click: ✓ → ½ → 0 → ✓' : ''}
                             >
-                              {d >= 1 ? '✓' : d > 0 ? '½' : editMode ? '○' : ''}
+                              {d >= 1 ? '✓' : d > 0 ? '½' : editMode && !isBaja ? '○' : ''}
                             </td>
                           );
                         })}
-                        <td style={{ fontWeight: 700, textAlign: 'center', background: '#eaf2f8' }}>{worked}</td>
+                        <td style={{ fontWeight: 700, textAlign: 'center', background: '#eaf2f8', opacity: isBaja ? 0.65 : 1 }}>{worked}</td>
                       </tr>
                     );
                   })}
@@ -382,12 +388,16 @@ export default function Asistencia() {
                     </td>
                   </tr>
                   {group.employees.map(emp => {
+                    const isBaja = emp.status === 'baja';
                     const days = fortnightInfo.days.map(d => getDayValue(emp.id, d));
                     const worked = days.reduce((a, b) => a + b, 0);
                     const totalPay = worked * (emp.salary || 0);
                     return (
-                      <tr key={emp.id} style={{ borderBottom: '1px solid #eee' }}>
-                        <td style={{ fontWeight: 600, position: 'sticky', left: 0, background: 'white' }}>{emp.name}</td>
+                      <tr key={emp.id} style={{ borderBottom: '1px solid #eee', opacity: isBaja ? 0.65 : 1 }}>
+                        <td style={{ fontWeight: 600, position: 'sticky', left: 0, background: 'white' }}>
+                          {emp.name}
+                          {isBaja && <span className="badge" style={{ marginLeft: 6, background: '#ffeaa7', color: '#d68910', fontSize: 9 }}>Baja</span>}
+                        </td>
                         <td style={{ fontSize: 11 }}>{emp.project}</td>
                         <td><span className="badge badge-info">{emp.type}</span></td>
                         {days.map((d, i) => {
@@ -396,24 +406,24 @@ export default function Asistencia() {
                           return (
                             <td
                               key={i}
-                              onClick={() => cycleDay(emp.id, dayNum)}
+                              onClick={() => !isBaja && cycleDay(emp.id, dayNum)}
                               style={{
                                 textAlign: 'center',
-                                cursor: editMode ? 'pointer' : 'default',
+                                cursor: editMode && !isBaja ? 'pointer' : 'default',
                                 background: d >= 1 ? '#d4edda' : d > 0 ? '#fff3cd' : '#f8f9fa',
                                 color: d >= 1 ? '#155724' : d > 0 ? '#856404' : '#adb5bd',
                                 fontWeight: isEdited ? 700 : 400,
                                 border: isEdited ? '2px solid #3498db' : 'none',
                                 transition: 'all 0.15s'
                               }}
-                              title={editMode ? 'Click: ✓ → ½ → 0 → ✓' : ''}
+                              title={isBaja ? 'Trabajador dado de baja' : editMode ? 'Click: ✓ → ½ → 0 → ✓' : ''}
                             >
-                              {d >= 1 ? '✓' : d > 0 ? '½' : editMode ? '○' : ''}
+                              {d >= 1 ? '✓' : d > 0 ? '½' : editMode && !isBaja ? '○' : ''}
                             </td>
                           );
                         })}
-                        <td style={{ fontWeight: 700, textAlign: 'center', background: '#f0f2f5' }}>{worked}</td>
-                        <td style={{ fontWeight: 700, textAlign: 'center', background: '#e8f5e9', color: totalPay > 0 ? '#155724' : '#999' }}>
+                        <td style={{ fontWeight: 700, textAlign: 'center', background: '#f0f2f5', opacity: isBaja ? 0.65 : 1 }}>{worked}</td>
+                        <td style={{ fontWeight: 700, textAlign: 'center', background: '#e8f5e9', color: totalPay > 0 ? '#155724' : '#999', opacity: isBaja ? 0.65 : 1 }}>
                           RD${totalPay.toLocaleString()}
                         </td>
                       </tr>

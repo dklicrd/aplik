@@ -110,7 +110,11 @@ CREATE TABLE IF NOT EXISTS employees (
   start_date TEXT DEFAULT '',
   position TEXT DEFAULT '',
   contract_type TEXT DEFAULT 'obra',
-  salary_type TEXT DEFAULT 'diario'
+  salary_type TEXT DEFAULT 'diario',
+  status TEXT DEFAULT 'activo',
+  exit_type TEXT DEFAULT '',
+  exit_reason TEXT DEFAULT '',
+  exit_date TEXT DEFAULT ''
 );
 
 INSERT INTO employees (id, name, type, type_label, project, salary, discounts) VALUES

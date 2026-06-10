@@ -128,8 +128,12 @@ async function start() {
         await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS position TEXT DEFAULT \'\'');
         await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS contract_type TEXT DEFAULT \'obra\'');
         await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS salary_type TEXT DEFAULT \'diario\'');
+        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS status TEXT DEFAULT \'activo\'');
+        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS exit_type TEXT DEFAULT \'\'');
+        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS exit_reason TEXT DEFAULT \'\'');
+        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS exit_date TEXT DEFAULT \'\'');
       } else {
-        const cols = ['identity_doc', 'identity_image', 'start_date', 'position', 'contract_type', 'salary_type'];
+        const cols = ['identity_doc', 'identity_image', 'start_date', 'position', 'contract_type', 'salary_type', 'status', 'exit_type', 'exit_reason', 'exit_date'];
         for (const col of cols) {
           try {
             await db.query(`ALTER TABLE employees ADD COLUMN ${col} TEXT DEFAULT ''`);
@@ -488,6 +492,22 @@ async function start() {
     }
   });
 
+  // Dar de baja (exit) — mantiene datos históricos y asistencia
+  app.post('/api/employees/:id/exit', authMiddleware, async (req, res) => {
+    try {
+      const { exit_type, exit_reason, exit_date } = req.body;
+      if (!exit_type) return res.status(400).json({ error: 'Tipo de salida requerido' });
+      const validTypes = ['desahucio', 'cancelacion', 'renuncia', 'abandono'];
+      if (!validTypes.includes(exit_type)) return res.status(400).json({ error: 'Tipo de salida inválido' });
+      await db.query('UPDATE employees SET status=?, exit_type=?, exit_reason=?, exit_date=? WHERE id=?',
+        ['baja', exit_type, exit_reason || '', exit_date || new Date().toISOString().slice(0,10), req.params.id]);
+      res.json({ id: parseInt(req.params.id), status: 'baja', exit_type, exit_reason, exit_date });
+      logAudit(req, 'dar_baja', 'empleado', parseInt(req.params.id), 'Tipo: ' + exit_type + ', Razón: ' + (exit_reason || 'N/A'));
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
   app.delete('/api/employees/:id', authMiddleware, async (req, res) => {
     try {
       await db.query('DELETE FROM attendance WHERE employee_id = ?', [req.params.id]);
@@ -610,7 +630,7 @@ async function start() {
     try {
       const { name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type } = req.body;
       await db.query('UPDATE employees SET name=?, type=?, type_label=?, project=?, salary=?, discounts=?, identity_doc=?, identity_image=?, start_date=?, position=?, contract_type=?, salary_type=? WHERE id=?',
-        [name, type, type_label, project, salary, discounts, identity_doc || '', identity_image || '', start_date || '', position || '', contract_type || 'obra', salary_type || 'diario', req.params.id]);
+        [name, type, type_label, project, salary, discounts || 0, identity_doc || '', identity_image || '', start_date || '', position || '', contract_type || 'obra', salary_type || 'diario', req.params.id]);
       res.json({ id: parseInt(req.params.id), name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type });
       logAudit(req, 'editar', 'empleado', parseInt(req.params.id), 'Nombre: ' + name);
     } catch (err) {

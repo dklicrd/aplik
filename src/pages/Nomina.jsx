@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ModuleNav from '../components/ModuleNav';
 import { getEmployees, getAttendance, updateEmployee } from '../utils/api';
-import { Download, RefreshCw, Plus, Edit2, Trash2, X, Save, FileText, MapPin, Info, Camera } from 'lucide-react';
+import { Download, RefreshCw, Plus, Edit2, Trash2, X, Save, FileText, MapPin, Info, Camera, LogOut } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -17,11 +17,15 @@ export default function Nomina() {
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterProj, setFilterProj] = useState('');
+  const [showInactive, setShowInactive] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editEmp, setEditEmp] = useState(null);
   const [form, setForm] = useState({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc: '', identity_image: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario' });
   const uniqueProjects = [...new Set(employees.map(e => e.project))].filter(Boolean);
   const [saving, setSaving] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
+  const [exitEmp, setExitEmp] = useState(null);
+  const [exitForm, setExitForm] = useState({ exit_type: 'renuncia', exit_reason: '', exit_date: new Date().toISOString().slice(0,10) });
 
   const getToken = () => localStorage.getItem('token');
 
@@ -38,7 +42,7 @@ export default function Nomina() {
 
   useEffect(() => { fetchData(); }, []);
 
-  const filtered = employees.filter(e => !filterProj || e.project === filterProj);
+  const filtered = employees.filter(e => (!filterProj || e.project === filterProj) && (showInactive || e.status !== 'baja'));
   const projects = [...new Set(employees.map(e => e.project))];
 
   const getDaysWorked = (empId) => {
@@ -88,14 +92,30 @@ export default function Nomina() {
     }
   };
 
-  const handleDelete = async (emp) => {
-    if (!confirm(`¿Eliminar a ${emp.name} de la nómina? También se eliminará su asistencia.`)) return;
+  const handleExit = (emp) => {
+    setExitEmp(emp);
+    setExitForm({ exit_type: 'renuncia', exit_reason: '', exit_date: new Date().toISOString().slice(0,10) });
+    setShowExitModal(true);
+  };
+
+  const confirmExit = async () => {
+    if (!exitEmp) return;
+    setSaving(true);
     try {
       const token = getToken();
-      await fetch(`/api/employees/${emp.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`/api/employees/${exitEmp.id}/exit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(exitForm),
+      });
+      if (!res.ok) throw new Error((await res.json()).error);
+      setShowExitModal(false);
+      setExitEmp(null);
       await fetchData();
     } catch (e) {
       alert('Error: ' + e.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -234,6 +254,10 @@ export default function Nomina() {
         <button className="btn btn-primary" onClick={openNew}><Plus size={16} /> Agregar Trabajador</button>
         <button className="btn btn-accent" onClick={exportCSV}><Download size={16} /> Exportar CSV</button>
         <button className="btn btn-accent" onClick={exportPDF} style={{ marginLeft: 8 }}><FileText size={16} /> Exportar PDF</button>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer', marginLeft: 8 }}>
+          <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} />
+          Mostrar dados de baja
+        </label>
       </div>
 
       {/* Nómina Santo Domingo (salario fijo mensual) */}
@@ -308,10 +332,11 @@ export default function Nomina() {
               const gross = getGross(emp.id, emp.salary);
               const net = gross - Number(emp.discounts || 0);
               return (
-                <tr key={emp.id}>
+                <tr key={emp.id} style={{ opacity: emp.status === 'baja' ? 0.6 : 1 }}>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <strong>{emp.name}</strong>
+                      {emp.status === 'baja' && <span className="badge" style={{ background: '#ffeaa7', color: '#d68910', fontSize: 9 }}>Baja</span>}
                       {(emp.identity_doc || emp.position) && (
                         <span title={`
 ${emp.position ? 'Cargo: ' + emp.position : ''}
@@ -342,8 +367,8 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                     <button className="btn btn-sm" onClick={() => openEdit(emp)} style={{ marginRight: 4 }}>
                       <Edit2 size={13} />
                     </button>
-                    <button className="btn btn-sm" onClick={() => handleDelete(emp)} style={{ color: '#e74c3c' }}>
-                      <Trash2 size={13} />
+                    <button className="btn btn-sm" onClick={() => handleExit(emp)} style={{ color: '#e67e22' }}>
+                      <LogOut size={13} />
                     </button>
                   </td>
                 </tr>
@@ -479,6 +504,49 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
               <button className="btn" onClick={() => setShowModal(false)}>Cancelar</button>
               <button className="btn btn-primary" onClick={handleSave} disabled={saving || !form.name.trim()}>
                 <Save size={14} /> {saving ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showExitModal && (
+        <div className="modal-overlay" onClick={() => setShowExitModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 style={{ color: '#e67e22' }}>🟠 Dar de Baja — {exitEmp?.name}</h3>
+              <button className="btn btn-sm" onClick={() => setShowExitModal(false)}><X size={16} /></button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: 13, color: '#7f8c8d', marginBottom: 16 }}>
+                El trabajador mantendrá su asistencia registrada en la quincena actual, pero no podrá agregarse más días.
+                Al cerrar la quincena, desaparecerá del período siguiente.
+              </p>
+              <div className="form-group">
+                <label>Fecha de Salida</label>
+                <input type="date" value={exitForm.exit_date} onChange={e => setExitForm({...exitForm, exit_date: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label>Tipo de Salida</label>
+                <select value={exitForm.exit_type} onChange={e => setExitForm({...exitForm, exit_type: e.target.value})}>
+                  <option value="desahucio">Desahucio</option>
+                  <option value="cancelacion">Cancelación</option>
+                  <option value="renuncia">Renuncia</option>
+                  <option value="abandono">Abandono</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Justificación / Comentario</label>
+                <textarea value={exitForm.exit_reason} onChange={e => setExitForm({...exitForm, exit_reason: e.target.value})}
+                  rows={3} style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid #ddd', resize: 'vertical' }}
+                  placeholder="Motivo de la salida..." />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn" onClick={() => setShowExitModal(false)}>Cancelar</button>
+              <button className="btn" onClick={confirmExit} disabled={saving || !exitForm.exit_type}
+                style={{ background: '#e67e22', color: 'white', fontWeight: 600 }}>
+                <LogOut size={14} /> {saving ? 'Procesando...' : 'Confirmar Baja'}
               </button>
             </div>
           </div>
