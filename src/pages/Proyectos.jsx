@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ModuleNav from '../components/ModuleNav';
 import { Plus, Edit2, Trash2, X, Save, RefreshCw } from 'lucide-react';
 import { getToken } from '../utils/api';
 
@@ -79,11 +80,16 @@ export default function Proyectos() {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <h2>Gestión de Proyectos</h2>
-        <button className="btn btn-primary" onClick={openNew}>
-          <Plus size={16} /> Nuevo Proyecto
-        </button>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+        <div>
+          <h2>Gestión de Proyectos</h2>
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <ModuleNav />
+          <button className="btn btn-primary" onClick={openNew}>
+            <Plus size={16} /> Nuevo Proyecto
+          </button>
+        </div>
       </div>
 
       <div className="table-container">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ModuleNav from '../components/ModuleNav';
 import { getEmployees, getAttendance, updateEmployee } from '../utils/api';
 import { Download, RefreshCw, Plus, Edit2, Trash2, X, Save, FileText } from 'lucide-react';
 import jsPDF from 'jspdf';
@@ -196,9 +197,12 @@ export default function Nomina() {
 
   return (
     <div>
-      <div className="page-header">
-        <h2>Nómina</h2>
-        <p>Período activo</p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+        <div>
+          <h2>Nómina</h2>
+          <p>Período activo</p>
+        </div>
+        <ModuleNav />
       </div>
 
       <div className="stats-grid">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ModuleNav from '../components/ModuleNav';
 import { getEmployees, getAttendance } from '../utils/api';
 import { RefreshCw, Save, Users, MapPin, AlertTriangle, Calendar } from 'lucide-react';
 
@@ -192,6 +193,7 @@ export default function Asistencia() {
             <strong>{fortnightInfo.label}</strong>
           </p>
         </div>
+        <ModuleNav />
         <div style={{ display: 'flex', gap: 6 }}>
           <button
             className={`btn ${quincena === '1ra' ? 'btn-primary' : ''}`}

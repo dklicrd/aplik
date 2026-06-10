@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ModuleNav from '../components/ModuleNav';
 import { getToken } from '../utils/api';
 import { Shield, UserPlus, Edit2, Trash2, X, Save, Eye, EyeOff, KeyRound } from 'lucide-react';
 
@@ -118,9 +119,12 @@ export default function Usuarios() {
 
   return (
     <div>
-      <div className="page-header">
-        <h2>Gestión de Usuarios</h2>
-        <p>Administra accesos y permisos al dashboard</p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+        <div>
+          <h2>Gestión de Usuarios</h2>
+          <p>Administra accesos y permisos al dashboard</p>
+        </div>
+        <ModuleNav />
       </div>
 
       <div style={{ marginBottom: 16 }}>

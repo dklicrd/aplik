@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ModuleNav from '../components/ModuleNav';
 import { Search, Plus, AlertTriangle, X, Save, Edit2, Trash2, Image, DollarSign, Package, Eye, ChevronDown, ChevronUp, Upload } from 'lucide-react';
 import { getProducts, getMovements, getCategories, createProduct, updateProduct, deleteProduct, uploadImage } from '../utils/api';
 
@@ -273,9 +274,12 @@ export default function Inventario() {
     <div>
       <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
 
-      <div className="page-header">
-        <h2>Inventario</h2>
-        <p>Control de productos con precios neto y bruto (+18%)</p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+        <div>
+          <h2>Inventario</h2>
+          <p>Control de productos con precios neto y bruto (+18%)</p>
+        </div>
+        <ModuleNav />
       </div>
 
       <div className="stats-grid">

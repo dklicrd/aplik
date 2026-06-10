@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import ModuleNav from '../components/ModuleNav';
 import { Search, Filter, TrendingUp, DollarSign, CheckCircle, Clock, BarChart3 } from 'lucide-react';
 import { allPresupuestos, getStatusLabel, getStatusBadge, getStatusColor } from '../utils/presupuestos';
 
@@ -53,9 +54,12 @@ export default function Presupuestos() {
 
   return (
     <div>
-      <div className="page-header">
-        <h2>Presupuestos</h2>
-        <p>Control histórico {years[0]} → {years[years.length - 1]} · {stats.total} presupuestos</p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+        <div>
+          <h2>Presupuestos</h2>
+          <p>Control histórico {years[0]} → {years[years.length - 1]} · {stats.total} presupuestos</p>
+        </div>
+        <ModuleNav />
       </div>
 
       <div className="stats-grid">

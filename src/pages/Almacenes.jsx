@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ModuleNav from '../components/ModuleNav';
 import { Plus, Edit2, Trash2, X, Save, RefreshCw, Warehouse, ArrowRightLeft, ArrowRight } from 'lucide-react';
 import { getToken } from '../utils/api';
 
@@ -104,9 +105,12 @@ export default function Almacenes() {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <h2>Almacenes</h2>
-        <div style={{ display: 'flex', gap: 8 }}>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+        <div>
+          <h2>Almacenes</h2>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <ModuleNav />
           <button className={`btn ${tab === 'almacenes' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setTab('almacenes')}>
             <Warehouse size={16} /> Almacenes
