@@ -74,6 +74,7 @@ function isCutoffDay(info) {
 
 /** Nombres de meses */
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const todayStr = () => new Date().toISOString().split('T')[0];
 
 export default function Asistencia() {
   const [employees, setEmployees] = useState([]);
@@ -106,8 +107,6 @@ export default function Asistencia() {
   };
 
   useEffect(() => { fetchData(); }, []);
-
-  const todayStr = () => new Date().toISOString().split('T')[0];
 
   const saveNote = (date, text) => {
     const updated = { ...notes, [date]: text };
