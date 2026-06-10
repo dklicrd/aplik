@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ModuleNav from '../components/ModuleNav';
 import { getEmployees, getAttendance, updateEmployee } from '../utils/api';
-import { Download, RefreshCw, Plus, Edit2, Trash2, X, Save, FileText, MapPin } from 'lucide-react';
+import { Download, RefreshCw, Plus, Edit2, Trash2, X, Save, FileText, MapPin, Info, Camera } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -19,7 +19,7 @@ export default function Nomina() {
   const [filterProj, setFilterProj] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editEmp, setEditEmp] = useState(null);
-  const [form, setForm] = useState({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0 });
+  const [form, setForm] = useState({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc: '', identity_image: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario' });
   const [saving, setSaving] = useState(false);
 
   const getToken = () => localStorage.getItem('token');
@@ -54,13 +54,13 @@ export default function Nomina() {
 
   const openNew = () => {
     setEditEmp(null);
-    setForm({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0 });
+    setForm({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc: '', identity_image: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario' });
     setShowModal(true);
   };
 
   const openEdit = (emp) => {
     setEditEmp(emp);
-    setForm({ name: emp.name, type: emp.type, type_label: emp.type_label, project: emp.project, salary: emp.salary, discounts: emp.discounts });
+    setForm({ name: emp.name, type: emp.type, type_label: emp.type_label, project: emp.project, salary: emp.salary, discounts: emp.discounts, identity_doc: emp.identity_doc || '', identity_image: emp.identity_image || '', start_date: emp.start_date || '', position: emp.position || '', contract_type: emp.contract_type || 'obra', salary_type: emp.salary_type || 'diario' });
     setShowModal(true);
   };
 
@@ -308,7 +308,26 @@ export default function Nomina() {
               const net = gross - Number(emp.discounts || 0);
               return (
                 <tr key={emp.id}>
-                  <td><strong>{emp.name}</strong></td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <strong>{emp.name}</strong>
+                      {(emp.identity_doc || emp.position) && (
+                        <span title={`
+${emp.position ? 'Cargo: ' + emp.position : ''}
+${emp.identity_doc ? 'Doc: ' + emp.identity_doc : ''}
+${emp.contract_type === 'indefinido' ? 'Contrato indefinido' : 'Por obra'}
+${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
+`.trim()} style={{ cursor: 'pointer', opacity: 0.5 }}>
+                          <Info size={12} />
+                        </span>
+                      )}
+                      {emp.identity_image && (
+                        <a href={emp.identity_image} target="_blank" rel="noreferrer" title="Ver documento" style={{ opacity: 0.5 }}>
+                          <Camera size={12} />
+                        </a>
+                      )}
+                    </div>
+                  </td>
                   <td>{emp.project}</td>
                   <td><span className="badge badge-info">{emp.type} — {emp.type_label}</span></td>
                   <td>${Number(emp.salary).toLocaleString('es-DO')}</td>
@@ -385,8 +404,66 @@ export default function Nomina() {
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label>Nombre</label>
+                <label>Nombre Completo *</label>
                 <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} required />
+              </div>
+              <div className="form-group">
+                <label>Documento de Identidad</label>
+                <input type="text" value={form.identity_doc} onChange={e => setForm({...form, identity_doc: e.target.value})} placeholder="Ej: 001-2345678-9" />
+              </div>
+              <div className="form-group">
+                <label>📸 Imagen del Documento</label>
+                <input type="file" accept="image/*" onChange={async e => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  const fd = new FormData();
+                  fd.append('image', file);
+                  try {
+                    const token = getToken();
+                    const res = await fetch('/api/upload/identity', {
+                      method: 'POST',
+                      headers: { Authorization: `Bearer ${token}` },
+                      body: fd
+                    });
+                    const data = await res.json();
+                    if (data.url) setForm({...form, identity_image: data.url});
+                  } catch (err) {
+                    alert('Error al subir imagen: ' + err.message);
+                  }
+                }} />
+                {form.identity_image && (
+                  <div style={{ marginTop: 8 }}>
+                    <img src={form.identity_image} alt="Documento" style={{ maxWidth: 200, maxHeight: 120, borderRadius: 6, border: '1px solid #ddd' }} />
+                    <button className="btn btn-sm" style={{ marginLeft: 8, color: '#e74c3c' }} onClick={() => setForm({...form, identity_image: ''})}>✕</button>
+                  </div>
+                )}
+              </div>
+              <div className="form-group">
+                <label>Fecha de Ingreso</label>
+                <input type="date" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label>Posición / Cargo</label>
+                <input type="text" value={form.position} onChange={e => setForm({...form, position: e.target.value})} placeholder="Ej: Obrero, Supervisor, Encargado, Chofer" />
+              </div>
+              <div className="form-group">
+                <label>Tipo de Contrato</label>
+                <select value={form.contract_type} onChange={e => {
+                  const ct = e.target.value;
+                  const st = ct === 'indefinido' ? 'mensual' : 'diario';
+                  setForm({...form, contract_type: ct, salary_type: st});
+                }}>
+                  <option value="obra">Por obra o servicio determinado</option>
+                  <option value="indefinido">Indefinido</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>{form.contract_type === 'indefinido' ? 'Salario Mensual (RD$)' : 'Salario Diario (RD$)'}</label>
+                <input type="number" value={form.salary} onChange={e => setForm({...form, salary: Number(e.target.value)})} min={0} />
+              </div>
+              <div className="form-group">
+                <label>Descuento (RD$)</label>
+                <input type="number" value={form.discounts} onChange={e => setForm({...form, discounts: Number(e.target.value)})} min={0} />
               </div>
               <div className="form-group">
                 <label>Tipo</label>
@@ -397,18 +474,10 @@ export default function Nomina() {
               <div className="form-group">
                 <label>Proyecto</label>
                 <select value={form.project} onChange={e => setForm({...form, project: e.target.value})}>
-                  {projects.map(p => <option key={p} value={p}>{p}</option>)}
+                  {projects.map(p => <option key={p} value={p}>{p}</option>)},
                   <option value="PYG">PYG</option>
                   <option value="Luxury">Luxury</option>
                 </select>
-              </div>
-              <div className="form-group">
-                <label>Salario Diario (RD$)</label>
-                <input type="number" value={form.salary} onChange={e => setForm({...form, salary: Number(e.target.value)})} min={0} />
-              </div>
-              <div className="form-group">
-                <label>Descuento (RD$)</label>
-                <input type="number" value={form.discounts} onChange={e => setForm({...form, discounts: Number(e.target.value)})} min={0} />
               </div>
             </div>
             <div className="modal-footer">

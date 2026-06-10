@@ -114,6 +114,34 @@ async function start() {
     }
   }
 
+  // === Auto-migrate: employee columns ===
+  try {
+    const empColCheck = await db.query('SELECT identity_doc FROM employees LIMIT 1');
+    console.log('✅ Employee columns exist');
+  } catch (e) {
+    console.log('🔧 Migrating: adding employee columns...');
+    try {
+      if (isPostgres) {
+        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS identity_doc TEXT DEFAULT \'\'');
+        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS identity_image TEXT DEFAULT \'\'');
+        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS start_date TEXT DEFAULT \'\'');
+        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS position TEXT DEFAULT \'\'');
+        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS contract_type TEXT DEFAULT \'obra\'');
+        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS salary_type TEXT DEFAULT \'diario\'');
+      } else {
+        const cols = ['identity_doc', 'identity_image', 'start_date', 'position', 'contract_type', 'salary_type'];
+        for (const col of cols) {
+          try {
+            await db.query(`ALTER TABLE employees ADD COLUMN ${col} TEXT DEFAULT ''`);
+          } catch (ce) { /* column may already exist */ }
+        }
+      }
+      console.log('✅ Employee migration complete');
+    } catch (migErr) {
+      console.log('⚠️ Employee migration note:', migErr.message);
+    }
+  }
+
   // === Seed / ensure default admin user (PostgreSQL-safe) ===
   try {
     const adminHash = await bcrypt.hash('admin123', 10);
@@ -447,13 +475,13 @@ async function start() {
   // === EMPLOYEES CRUD ===
   app.post('/api/employees', authMiddleware, async (req, res) => {
     try {
-      const { name, type, type_label, project, salary, discounts } = req.body;
+      const { name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type } = req.body;
       if (!name) return res.status(400).json({ error: 'Nombre requerido' });
-      const q = pgParams('INSERT INTO employees (name, type, type_label, project, salary, discounts) VALUES (?,?,?,?,?,?)',
-        [name, type || 'C', type_label || 'Aprendiz', project || 'PYG', salary || 1100, discounts || 0]);
+      const q = pgParams('INSERT INTO employees (name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+        [name, type || 'C', type_label || 'Aprendiz', project || 'PYG', salary || 1100, discounts || 0, identity_doc || '', identity_image || '', start_date || '', position || '', contract_type || 'obra', salary_type || 'diario']);
       const result = await db.query(q.text, q.params);
       const id = result.rowCount || result.changes;
-      res.status(201).json({ id, name, type, type_label, project, salary, discounts });
+      res.status(201).json({ id, name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type });
       logAudit(req, 'crear', 'empleado', id, 'Nombre: ' + name);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
@@ -580,10 +608,10 @@ async function start() {
 
   app.put('/api/employees/:id', async (req, res) => {
     try {
-      const { name, type, type_label, project, salary, discounts } = req.body;
-      await db.query('UPDATE employees SET name=?, type=?, type_label=?, project=?, salary=?, discounts=? WHERE id=?',
-        [name, type, type_label, project, salary, discounts, req.params.id]);
-      res.json({ id: parseInt(req.params.id), name, type, type_label, project, salary, discounts });
+      const { name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type } = req.body;
+      await db.query('UPDATE employees SET name=?, type=?, type_label=?, project=?, salary=?, discounts=?, identity_doc=?, identity_image=?, start_date=?, position=?, contract_type=?, salary_type=? WHERE id=?',
+        [name, type, type_label, project, salary, discounts, identity_doc || '', identity_image || '', start_date || '', position || '', contract_type || 'obra', salary_type || 'diario', req.params.id]);
+      res.json({ id: parseInt(req.params.id), name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type });
       logAudit(req, 'editar', 'empleado', parseInt(req.params.id), 'Nombre: ' + name);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
@@ -806,6 +834,12 @@ async function start() {
     }
   });
   app.post('/api/upload', authMiddleware, upload.single('image'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No se subió ninguna imagen' });
+    const url = `/uploads/${req.file.filename}`;
+    res.json({ url, filename: req.file.filename });
+  });
+
+  app.post('/api/upload/identity', authMiddleware, upload.single('image'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No se subió ninguna imagen' });
     const url = `/uploads/${req.file.filename}`;
     res.json({ url, filename: req.file.filename });

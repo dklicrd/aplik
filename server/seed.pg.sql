@@ -104,7 +104,13 @@ CREATE TABLE IF NOT EXISTS employees (
   type_label TEXT,
   project TEXT,
   salary REAL,
-  discounts REAL DEFAULT 0
+  discounts REAL DEFAULT 0,
+  identity_doc TEXT DEFAULT '',
+  identity_image TEXT DEFAULT '',
+  start_date TEXT DEFAULT '',
+  position TEXT DEFAULT '',
+  contract_type TEXT DEFAULT 'obra',
+  salary_type TEXT DEFAULT 'diario'
 );
 
 INSERT INTO employees (id, name, type, type_label, project, salary, discounts) VALUES
