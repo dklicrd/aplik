@@ -84,6 +84,11 @@ export default function Asistencia() {
   const [editMode, setEditMode] = useState(false);
   const [edits, setEdits] = useState({});
   const [quincena, setQuincena] = useState(getActiveFortnight()); // '1ra' o '2da'
+  const [noteDate, setNoteDate] = useState(todayStr());
+  const [notes, setNotes] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('aplik_notas') || '{}'); }
+    catch { return {}; }
+  });
 
   const fortnightInfo = getFortnightInfo(quincena);
   const showCutoffAlert = isCutoffDay(fortnightInfo);
@@ -101,6 +106,14 @@ export default function Asistencia() {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  const todayStr = () => new Date().toISOString().split('T')[0];
+
+  const saveNote = (date, text) => {
+    const updated = { ...notes, [date]: text };
+    setNotes(updated);
+    try { localStorage.setItem('aplik_notas', JSON.stringify(updated)); } catch {}
+  };
 
   // Separar SD de Bávaro
   const sdEmployees = employees.filter(e => e.project === 'Santo Domingo');
@@ -433,10 +446,92 @@ export default function Asistencia() {
       </div>
 
       {/* Notas del día */}
-      <div className="card">
-        <div className="card-header"><h3>Notas del día</h3></div>
-        <div style={{ fontSize: 13, lineHeight: 1.8 }}>
-          <p><strong>{new Date().toLocaleDateString('es-DO', { weekday: 'long', day: 'numeric', month: 'long' })}</strong> — Sin novedades registradas</p>
+      <div className="card" style={{ marginTop: 24 }}>
+        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+          <h3>📓 Cuaderno de Notas</h3>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <button className="btn btn-sm" onClick={() => setNoteDate(new Date(new Date(noteDate).setDate(new Date(noteDate).getDate() - 1)))}
+              title="Día anterior" style={{ padding: '4px 8px', fontSize: 12 }}>◀</button>
+            <input type="date" value={noteDate} onChange={e => setNoteDate(e.target.value)}
+              style={{ padding: '4px 8px', border: '1px solid #e0e0e0', borderRadius: 6, fontSize: 12 }} />
+            <button className="btn btn-sm" onClick={() => setNoteDate(new Date(new Date(noteDate).setDate(new Date(noteDate).getDate() + 1)))}
+              title="Día siguiente" style={{ padding: '4px 8px', fontSize: 12 }}>▶</button>
+            <button className="btn btn-sm" onClick={() => setNoteDate(todayStr())}
+              style={{ padding: '4px 8px', fontSize: 11 }}>Hoy</button>
+          </div>
+        </div>
+        <div>
+          <textarea
+            value={notes[noteDate] || ''}
+            onChange={e => saveNote(noteDate, e.target.value)}
+            placeholder="Escribe tus notas del día aquí..."
+            style={{
+              width: '100%',
+              minHeight: 120,
+              padding: 12,
+              border: '1px solid #e0e0e0',
+              borderRadius: 8,
+              fontSize: 13,
+              lineHeight: 1.7,
+              fontFamily: 'inherit',
+              resize: 'vertical',
+              background: notes[noteDate] ? '#fffdf5' : 'white'
+            }}
+          />
+          <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>
+            {notes[noteDate] ? '✓ Guardado automáticamente' : '💡 Las notas se guardan automáticamente al escribir'}
+            <span style={{ marginLeft: 16 }}>{noteDate}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Mini calendario — días con notas */}
+      <div className="card" style={{ marginTop: 16 }}>
+        <div className="card-header"><h4>🗓️ Calendario de Notas</h4></div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: '4px 0' }}>
+          {(() => {
+            const today = new Date();
+            const entries = Object.keys(notes);
+            // Mostrar últimos 30 días
+            const days = [];
+            for (let i = 29; i >= 0; i--) {
+              const d = new Date(today);
+              d.setDate(d.getDate() - i);
+              const key = d.toISOString().split('T')[0];
+              const dayNum = d.getDate();
+              const monthName = MONTHS[d.getMonth()];
+              const hasNote = notes[key] && notes[key].trim();
+              const isToday = key === todayStr();
+              const isSelected = key === noteDate;
+              days.push(
+                <div
+                  key={key}
+                  onClick={() => setNoteDate(key)}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 6,
+                    background: isSelected ? '#3498db' : isToday ? '#eaf2f8' : hasNote ? '#fff3cd' : '#f8f9fa',
+                    color: isSelected ? 'white' : isToday ? '#2980b9' : '#555',
+                    cursor: 'pointer',
+                    fontSize: 12,
+                    fontWeight: isToday || isSelected ? 700 : hasNote ? 600 : 400,
+                    border: hasNote && !isSelected ? '1px solid #ffc107' : 'none',
+                    transition: 'all 0.15s'
+                  }}
+                  title={`${dayNum} ${monthName}${hasNote ? ' · Tiene notas' : ''}`}
+                >
+                  <span>{dayNum}</span>
+                  {hasNote && <span style={{ fontSize: 7, marginTop: -2 }}>📝</span>}
+                </div>
+              );
+            }
+            return days;
+          })()}
         </div>
       </div>
     </div>

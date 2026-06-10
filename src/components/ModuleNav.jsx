@@ -4,12 +4,12 @@ import { ArrowLeft, ArrowRight, Home } from 'lucide-react';
 const MODULES = [
   { path: '/',           label: 'Dashboard' },
   { path: '/inventario',  label: 'Inventario' },
+  { path: '/almacenes',   label: 'Almacenes' },
   { path: '/asistencia',  label: 'Asistencia' },
   { path: '/nomina',      label: 'Nómina' },
   { path: '/presupuestos',label: 'Presupuestos' },
-  { path: '/usuarios',    label: 'Usuarios' },
   { path: '/proyectos',   label: 'Proyectos' },
-  { path: '/almacenes',   label: 'Almacenes' },
+  { path: '/usuarios',    label: 'Usuarios' },
 ];
 
 export default function ModuleNav() {
