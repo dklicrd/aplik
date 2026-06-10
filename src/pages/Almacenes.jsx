@@ -110,7 +110,6 @@ export default function Almacenes() {
           <h2>Almacenes</h2>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <ModuleNav />
           <button className={`btn ${tab === 'almacenes' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setTab('almacenes')}>
             <Warehouse size={16} /> Almacenes
@@ -120,6 +119,7 @@ export default function Almacenes() {
             <ArrowRightLeft size={16} /> Transferencias
           </button>
         </div>
+        <ModuleNav />
       </div>
 
       {tab === 'almacenes' && (

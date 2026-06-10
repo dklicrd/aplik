@@ -135,7 +135,7 @@ export default function Asistencia() {
   const cycleDay = (empId, day) => {
     if (!editMode) return;
     const current = getDayValue(empId, day);
-    const next = current >= 1 ? 0 : current >= 0.5 ? 1 : 0.5;
+    const next = current >= 1 ? 0.5 : current > 0 ? 0 : 1;
     setEdits(prev => ({
       ...prev,
       [empId]: { ...prev[empId], [day]: next }
@@ -297,7 +297,7 @@ export default function Asistencia() {
                                 border: isEdited ? '2px solid #3498db' : 'none',
                                 transition: 'all 0.15s'
                               }}
-                              title={editMode ? 'Click: ½ → 0 → 1 → ½' : ''}
+                              title={editMode ? 'Click: ✓ → ½ → 0 → ✓' : ''}
                             >
                               {d >= 1 ? '✓' : d > 0 ? '½' : editMode ? '○' : ''}
                             </td>
@@ -394,7 +394,7 @@ export default function Asistencia() {
                                 border: isEdited ? '2px solid #3498db' : 'none',
                                 transition: 'all 0.15s'
                               }}
-                              title={editMode ? 'Click: ½ → 0 → 1 → ½' : ''}
+                              title={editMode ? 'Click: ✓ → ½ → 0 → ✓' : ''}
                             >
                               {d >= 1 ? '✓' : d > 0 ? '½' : editMode ? '○' : ''}
                             </td>

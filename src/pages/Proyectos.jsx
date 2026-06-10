@@ -85,11 +85,11 @@ export default function Proyectos() {
           <h2>Gestión de Proyectos</h2>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-          <ModuleNav />
           <button className="btn btn-primary" onClick={openNew}>
             <Plus size={16} /> Nuevo Proyecto
           </button>
         </div>
+        <ModuleNav />
       </div>
 
       <div className="table-container">
