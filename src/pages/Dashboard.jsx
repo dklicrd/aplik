@@ -98,8 +98,15 @@ export default function Dashboard() {
   const lowStock = products.filter(p => Number(p.stock) > 0 && Number(p.stock) <= Number(p.min_stock)).length;
   const outOfStock = products.filter(p => Number(p.stock) <= 0).length;
   const totalWarning = lowStock + outOfStock;
-  const totalPayroll = employees.reduce((sum, e) => sum + (15 * Number(e.salary) - Number(e.discounts || 0)), 0);
-  const totalBudget = projects.reduce((s, p) => s + Number(p.budget || 0), 0);
+  const totalPayroll = employees.reduce((sum, e) => {
+    // SD = salario mensual / 2 (quincena)
+    // Bávaro = 15 días * salario diario
+    if (e.project === 'Santo Domingo') {
+      return sum + (Number(e.salary) / 2);
+    }
+    return sum + (15 * Number(e.salary));
+  }, 0);
+  const totalBudget = budgets.reduce((s, b) => s + Number(b.amount || 0), 0);
   const completedProjects = projects.filter(p => p.status === 'completado').length;
   const activeBudget = projects.filter(p => p.status === 'activo').reduce((s, p) => s + Number(p.budget || 0), 0);
 
@@ -159,7 +166,7 @@ export default function Dashboard() {
         <div className="stat-card">
           <div className="stat-label"><ClipboardList size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Presupuesto Total</div>
           <div className="stat-value">${totalBudget.toLocaleString('es-DO')}</div>
-          <div className="stat-sub">{totalProjects} proyectos planificados</div>
+          <div className="stat-sub">{budgets.length} presupuestos registrados</div>
         </div>
       </div>
 
