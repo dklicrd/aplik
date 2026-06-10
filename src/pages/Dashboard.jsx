@@ -248,7 +248,7 @@ export default function Dashboard() {
             </table>
           </div>
         </div>
-      ) : null}}
+      ) : null}
 
       <LowStockTable products={products} />
     </div>

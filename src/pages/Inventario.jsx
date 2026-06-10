@@ -195,7 +195,7 @@ export default function Inventario() {
                 {!product.image_url && <Image size={30} color="#ccc" />}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="table-wrapper"><table className="card-table"> style={{ width: '100%', fontSize: 13 }}>
+                <div className="table-wrapper"><table className="card-table" style={{ width: '100%', fontSize: 13 }}>
                   <tbody>
                     <tr>
                       <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600, whiteSpace: 'nowrap' }}>Categoría</td>
@@ -446,7 +446,7 @@ export default function Inventario() {
 
           <div className="card" style={{ padding: 0 }}>
             <div className="table-wrapper">
-              <div className="table-wrapper"><table className="card-table">>
+              <div className="table-wrapper"><table className="card-table">
                 <thead>
                   <tr>
                     <th className="sortable" onClick={() => toggleSort('name')}>Producto <SortIcon field="name" /></th>
@@ -533,7 +533,7 @@ export default function Inventario() {
             <h3>Historial de Movimientos</h3>
             <span style={{ fontSize: 13, color: '#7f8c8d' }}>Más recientes primero</span>
           </div>
-          <div className="table-wrapper"><table className="card-table">>
+          <div className="table-wrapper"><table className="card-table">
             <thead>
               <tr><th>Fecha</th><th>Tipo</th><th>Producto</th><th>Cantidad</th><th>Nota / Destino</th></tr>
             </thead>
@@ -557,7 +557,7 @@ export default function Inventario() {
       {tab === 'alertas' && (
         <div className="card">
           <div className="card-header"><h3><AlertTriangle size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} /> Alertas por Punto de Reorden</h3></div>
-          <div className="table-wrapper"><table className="card-table">>
+          <div className="table-wrapper"><table className="card-table">
             <thead>
               <tr><th>Producto</th><th>Categoría</th><th>Stock Actual</th><th>Stock Mínimo</th><th>Diferencia</th><th>Estado</th></tr>
             </thead>

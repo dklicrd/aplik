@@ -126,7 +126,7 @@ export default function Almacenes() {
             </button>
           </div>
           <div className="table-container">
-            <div className="table-wrapper"><table className="card-table">>
+            <div className="table-wrapper"><table className="card-table">
               <thead>
                 <tr>
                   <th>ID</th>
@@ -166,7 +166,7 @@ export default function Almacenes() {
             </button>
           </div>
           <div className="table-container">
-            <div className="table-wrapper"><table className="card-table">>
+            <div className="table-wrapper"><table className="card-table">
               <thead>
                 <tr>
                   <th>Fecha</th>

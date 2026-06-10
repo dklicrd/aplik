@@ -130,7 +130,7 @@ export default function Usuarios() {
       </div>
 
       <div className="card">
-        <div className="table-wrapper"><table className="card-table">>
+        <div className="table-wrapper"><table className="card-table">
           <thead>
             <tr>
               <th>ID</th>

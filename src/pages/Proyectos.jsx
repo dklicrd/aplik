@@ -87,7 +87,7 @@ export default function Proyectos() {
       </div>
 
       <div className="table-container">
-        <div className="table-wrapper"><table className="card-table">>
+        <div className="table-wrapper"><table className="card-table">
           <thead>
             <tr>
               <th>ID</th>

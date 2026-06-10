@@ -259,7 +259,7 @@ export default function Asistencia() {
 
         {/* Tabla nómina SD */}
         <div style={{ overflowX: 'auto', marginBottom: 12 }}>
-          <div className="table-wrapper"><table className="card-table"> style={{ fontSize: 12 }}>
+          <div className="table-wrapper"><table className="card-table" style={{ fontSize: 12 }}>
             <thead>
               <tr>
                 <th>Empleado</th>
@@ -302,7 +302,7 @@ export default function Asistencia() {
               ⓘ Registro de asistencia — salario fijo, no afecta el pago
             </div>
             <div style={{ overflowX: 'auto' }}>
-              <div className="table-wrapper"><table className="card-table"> style={{ fontSize: 12 }}>
+              <div className="table-wrapper"><table className="card-table" style={{ fontSize: 12 }}>
                 <thead>
                   <tr>
                     <th style={{ position: 'sticky', left: 0, background: 'white', zIndex: 2 }}>Empleado</th>
@@ -378,7 +378,7 @@ export default function Asistencia() {
         </div>
 
         <div style={{ overflowX: 'auto' }}>
-          <div className="table-wrapper"><table className="card-table"> style={{ fontSize: 12 }}>
+          <div className="table-wrapper"><table className="card-table" style={{ fontSize: 12 }}>
             <thead>
               <tr>
                 <th style={{ position: 'sticky', left: 0, background: 'white', zIndex: 2 }}>Empleado</th>

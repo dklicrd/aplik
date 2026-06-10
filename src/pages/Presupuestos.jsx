@@ -184,7 +184,7 @@ export default function Presupuestos() {
           </div>
 
           <div className="card" style={{ overflowX: 'auto' }}>
-            <div className="table-wrapper"><table className="card-table"> style={{ fontSize: 12 }}>
+            <div className="table-wrapper"><table className="card-table" style={{ fontSize: 12 }}>
               <thead>
                 <tr>
                   <th>Cliente</th>
@@ -227,7 +227,7 @@ export default function Presupuestos() {
           <div className="card-header">
             <h3>Presupuestos por Año</h3>
           </div>
-          <div className="table-wrapper"><table className="card-table">>
+          <div className="table-wrapper"><table className="card-table">
             <thead>
               <tr>
                 <th>Año</th>
