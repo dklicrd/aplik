@@ -20,6 +20,7 @@ export default function Nomina() {
   const [showModal, setShowModal] = useState(false);
   const [editEmp, setEditEmp] = useState(null);
   const [form, setForm] = useState({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc: '', identity_image: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario' });
+  const uniqueProjects = [...new Set(employees.map(e => e.project))].filter(Boolean);
   const [saving, setSaving] = useState(false);
 
   const getToken = () => localStorage.getItem('token');
@@ -462,10 +463,6 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                 <input type="number" value={form.salary} onChange={e => setForm({...form, salary: Number(e.target.value)})} min={0} />
               </div>
               <div className="form-group">
-                <label>Descuento (RD$)</label>
-                <input type="number" value={form.discounts} onChange={e => setForm({...form, discounts: Number(e.target.value)})} min={0} />
-              </div>
-              <div className="form-group">
                 <label>Tipo</label>
                 <select value={form.type} onChange={e => handleTypeChange(e.target.value)}>
                   {TYPES.map(t => <option key={t.value} value={t.value}>{t.value} — {t.label}</option>)}
@@ -474,9 +471,7 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
               <div className="form-group">
                 <label>Proyecto</label>
                 <select value={form.project} onChange={e => setForm({...form, project: e.target.value})}>
-                  {projects.map(p => <option key={p} value={p}>{p}</option>)},
-                  <option value="PYG">PYG</option>
-                  <option value="Luxury">Luxury</option>
+                  {uniqueProjects.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
             </div>
