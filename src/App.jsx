@@ -16,12 +16,12 @@ import Login from './pages/Login';
 const NAV_ITEMS = [
   { path: '/', label: 'Dashboard', icon: <LayoutDashboard />, perm: 'dashboard' },
   { path: '/inventario', label: 'Inventario', icon: <Package />, perm: 'inventario' },
+  { path: '/almacenes', label: 'Almacenes', icon: <Package />, perm: 'almacenes' },
   { path: '/asistencia', label: 'Asistencia', icon: <Users />, perm: 'asistencia' },
   { path: '/nomina', label: 'Nómina', icon: <Calculator />, perm: 'nomina' },
   { path: '/presupuestos', label: 'Presupuestos', icon: <FileText />, perm: 'presupuestos' },
-  { path: '/usuarios', label: 'Usuarios', icon: <Shield />, perm: 'usuarios' },
   { path: '/proyectos', label: 'Proyectos', icon: <ClipboardList />, perm: 'proyectos' },
-  { path: '/almacenes', label: 'Almacenes', icon: <Package />, perm: 'almacenes' },
+  { path: '/usuarios', label: 'Usuarios', icon: <Shield />, perm: 'usuarios' },
 ];
 
 function ProtectedRoute({ children }) {
