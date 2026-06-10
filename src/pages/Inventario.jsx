@@ -185,7 +185,7 @@ export default function Inventario() {
             <h3>{product.name}</h3>
             <button className="btn btn-sm" style={{ background: '#eee' }} onClick={onClose}><X size={14} /></button>
           </div>
-          <div className="modal-body" style={{ maxHeight: '70dvh', overflowY: 'auto' }}>
+          <div className="modal-body" style={{ padding: '12px 16px' }}>
             <div className="product-modal-body" style={{ flexDirection: 'column', padding: 0 }}>
               <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
                 <div style={{ textAlign: 'center', flexShrink: 0 }}>
