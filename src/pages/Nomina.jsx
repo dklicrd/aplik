@@ -20,7 +20,7 @@ export default function Nomina() {
   const [showInactive, setShowInactive] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editEmp, setEditEmp] = useState(null);
-  const [form, setForm] = useState({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc: '', identity_image: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario' });
+  const [form, setForm] = useState({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc: '', identity_image: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario', pay_type: 'asistencia', bonus: 0 });
   const uniqueProjects = [...new Set(employees.map(e => e.project))].filter(Boolean);
   const [saving, setSaving] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
@@ -50,22 +50,25 @@ export default function Nomina() {
     return records.reduce((sum, r) => sum + Number(r.value), 0);
   };
 
-  const getGross = (empId, salary) => getDaysWorked(empId) * Number(salary);
+  const getGross = (empId, salary, emp) => {
+    if (emp && emp.pay_type === 'resultado') return Number(emp.bonus || 0);
+    return getDaysWorked(empId) * Number(salary);
+  };
 
   const totalNomina = filtered.reduce((sum, emp) => {
-    const gross = getGross(emp.id, emp.salary);
+    const gross = getGross(emp.id, emp.salary, emp);
     return sum + (gross - Number(emp.discounts || 0));
   }, 0);
 
   const openNew = () => {
     setEditEmp(null);
-    setForm({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc: '', identity_image: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario' });
+    setForm({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc: '', identity_image: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario', pay_type: 'asistencia', bonus: 0 });
     setShowModal(true);
   };
 
   const openEdit = (emp) => {
     setEditEmp(emp);
-    setForm({ name: emp.name, type: emp.type, type_label: emp.type_label, project: emp.project, salary: emp.salary, discounts: emp.discounts, identity_doc: emp.identity_doc || '', identity_image: emp.identity_image || '', start_date: emp.start_date || '', position: emp.position || '', contract_type: emp.contract_type || 'obra', salary_type: emp.salary_type || 'diario' });
+    setForm({ name: emp.name, type: emp.type, type_label: emp.type_label, project: emp.project, salary: emp.salary, discounts: emp.discounts, identity_doc: emp.identity_doc || '', identity_image: emp.identity_image || '', start_date: emp.start_date || '', position: emp.position || '', contract_type: emp.contract_type || 'obra', salary_type: emp.salary_type || 'diario', pay_type: emp.pay_type || 'asistencia', bonus: emp.bonus || 0 });
     setShowModal(true);
   };
 
@@ -128,7 +131,7 @@ export default function Nomina() {
     let csv = 'Empleado,Proyecto,Tipo,Días,Bruto,Descuento,Neto\n';
     filtered.forEach(emp => {
       const days = getDaysWorked(emp.id);
-      const gross = getGross(emp.id, emp.salary);
+      const gross = getGross(emp.id, emp.salary, emp);
       const net = gross - Number(emp.discounts || 0);
       csv += `${emp.name},${emp.project},${emp.type},${days},${gross},${Number(emp.discounts)},${net}\n`;
     });
@@ -178,7 +181,7 @@ export default function Nomina() {
     filtered.forEach((emp, idx) => {
       if (y > 180) { doc.addPage(); y = 20; }
       const days = getDaysWorked(emp.id);
-      const gross = getGross(emp.id, emp.salary);
+      const gross = getGross(emp.id, emp.salary, emp);
       const net = gross - Number(emp.discounts || 0);
       totalBruto += gross;
       totalDesc += Number(emp.discounts || 0);
@@ -328,8 +331,9 @@ export default function Nomina() {
           </thead>
           <tbody>
             {filtered.map(emp => {
-              const days = getDaysWorked(emp.id);
-              const gross = getGross(emp.id, emp.salary);
+              const isEcr = emp.pay_type === 'resultado';
+              const days = isEcr ? '-' : getDaysWorked(emp.id);
+              const gross = getGross(emp.id, emp.salary, emp);
               const net = gross - Number(emp.discounts || 0);
               return (
                 <tr key={emp.id} style={{ opacity: emp.status === 'baja' ? 0.6 : 1 }}>
@@ -337,6 +341,7 @@ export default function Nomina() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <strong>{emp.name}</strong>
                       {emp.status === 'baja' && <span className="badge" style={{ background: '#ffeaa7', color: '#d68910', fontSize: 9 }}>Baja</span>}
+                      {emp.pay_type === 'resultado' && <span className="badge" style={{ background: '#d5f5e3', color: '#1e8449', fontSize: 9 }}>ECR</span>}
                       {(emp.identity_doc || emp.position) && (
                         <span title={`
 ${emp.position ? 'Cargo: ' + emp.position : ''}
@@ -378,7 +383,7 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
           <tfoot>
             <tr style={{ background: '#f0f2f5', fontWeight: 700 }}>
               <td colSpan={5} style={{ textAlign: 'right' }}>TOTAL:</td>
-              <td>${filtered.reduce((s, e) => s + getGross(e.id, e.salary), 0).toLocaleString('es-DO')}</td>
+              <td>${filtered.reduce((s, e) => s + getGross(e.id, e.salary, e), 0).toLocaleString('es-DO')}</td>
               <td style={{ color: '#e74c3c' }}>${filtered.reduce((s, e) => s + Number(e.discounts || 0), 0).toLocaleString('es-DO')}</td>
               <td style={{ color: '#27ae60' }}>${totalNomina.toLocaleString('es-DO')}</td>
               <td></td>
@@ -499,6 +504,19 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                   {uniqueProjects.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
+              <div className="form-group">
+                <label>Tipo de Pago</label>
+                <select value={form.pay_type} onChange={e => setForm({...form, pay_type: e.target.value})}>
+                  <option value="asistencia">ECA — Controlado por Asistencia</option>
+                  <option value="resultado">ECR — Controlado por Resultado</option>
+                </select>
+              </div>
+              {form.pay_type === 'resultado' && (
+                <div className="form-group">
+                  <label>Bono por Quincena (RD$)</label>
+                  <input type="number" value={form.bonus} onChange={e => setForm({...form, bonus: Number(e.target.value)})} min={0} />
+                </div>
+              )}
             </div>
             <div className="modal-footer">
               <button className="btn" onClick={() => setShowModal(false)}>Cancelar</button>

@@ -144,8 +144,8 @@ export default function Asistencia() {
     return (typeOrder[a.type] ?? 99) - (typeOrder[b.type] ?? 99);
   };
 
-  const sdEmployees = employees.filter(e => e.project === 'Santo Domingo' && (e.status !== 'baja' || periodEmpIds.has(e.id))).sort(sortByPosition);
-  const bavaroEmployees = employees.filter(e => e.project !== 'Santo Domingo' && (e.status !== 'baja' || periodEmpIds.has(e.id)));
+  const sdEmployees = employees.filter(e => e.project === 'Santo Domingo' && (e.status !== 'baja' || periodEmpIds.has(e.id)) && (e.pay_type === 'asistencia' || !e.pay_type)).sort(sortByPosition);
+  const bavaroEmployees = employees.filter(e => e.project !== 'Santo Domingo' && (e.status !== 'baja' || periodEmpIds.has(e.id)) && (e.pay_type === 'asistencia' || !e.pay_type));
   const bavaroSorted = bavaroEmployees.sort(sortByType);
 
   // Filtro por proyecto para Bávaro

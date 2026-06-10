@@ -127,7 +127,9 @@ CREATE TABLE IF NOT EXISTS employees (
   status TEXT DEFAULT 'activo',
   exit_type TEXT DEFAULT '',
   exit_reason TEXT DEFAULT '',
-  exit_date TEXT DEFAULT ''
+  exit_date TEXT DEFAULT '',
+  pay_type TEXT DEFAULT 'asistencia',
+  bonus REAL DEFAULT 0
 );
 
 INSERT INTO employees (id, name, type, type_label, project, salary, discounts) VALUES
