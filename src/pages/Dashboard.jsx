@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ModuleNav from '../components/ModuleNav';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { AlertTriangle, Package, Users, DollarSign, TrendingUp, RefreshCw, FolderKanban, ClipboardList } from 'lucide-react';
 import { getProducts, getEmployees, getMovements, getCategories } from '../utils/api';
@@ -134,9 +135,12 @@ export default function Dashboard() {
 
   return (
     <div>
-      <div className="page-header">
-        <h2>Dashboard</h2>
-        <p>Resumen general de operaciones — Aplik Ingeniería</p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+        <div>
+          <h2>Dashboard</h2>
+          <p>Resumen general de operaciones — Aplik Ingeniería</p>
+        </div>
+        <ModuleNav />
       </div>
 
       <div className="stats-grid">
