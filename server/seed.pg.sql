@@ -377,6 +377,21 @@ CREATE TABLE IF NOT EXISTS budgets (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Audit logs (trazabilidad)
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER,
+  username TEXT NOT NULL DEFAULT 'admin',
+  action TEXT NOT NULL,
+  entity TEXT NOT NULL,
+  entity_id INTEGER,
+  details TEXT DEFAULT '',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_entity ON audit_logs(entity);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON audit_logs(created_at);
+
 -- Reset sequences
 SELECT setval('categories_id_seq', (SELECT COALESCE(MAX(id), 0) FROM categories));
 SELECT setval('products_id_seq', (SELECT COALESCE(MAX(id), 0) FROM products));
@@ -386,3 +401,4 @@ SELECT setval('attendance_id_seq', (SELECT COALESCE(MAX(id), 0) FROM attendance)
 SELECT setval('projects_id_seq', (SELECT COALESCE(MAX(id), 0) FROM projects));
 SELECT setval('warehouses_id_seq', (SELECT COALESCE(MAX(id), 0) FROM warehouses));
 SELECT setval('product_stock_id_seq', (SELECT COALESCE(MAX(id), 0) FROM product_stock));
+SELECT setval('audit_logs_id_seq', (SELECT COALESCE(MAX(id), 0) FROM audit_logs));

@@ -283,3 +283,18 @@ CREATE TABLE IF NOT EXISTS budgets (
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Audit logs (trazabilidad)
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER DEFAULT 1,
+  username TEXT NOT NULL DEFAULT 'admin',
+  action TEXT NOT NULL,
+  entity TEXT NOT NULL,
+  entity_id INTEGER,
+  details TEXT DEFAULT '',
+  created_at TEXT DEFAULT (datetime('now', '-4 hours'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_entity ON audit_logs(entity);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON audit_logs(created_at);

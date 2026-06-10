@@ -137,6 +137,39 @@ async function start() {
     }
   }
 
+  // Audit logging helper
+  async function logAudit(req, action, entity, entityId, details) {
+    try {
+      const username = req?.user?.username || 'admin';
+      const userId = req?.user?.id || 1;
+      const p = pgParams(
+        'INSERT INTO audit_logs (user_id, username, action, entity, entity_id, details) VALUES (?,?,?,?,?,?)',
+        [userId, username, action, entity, entityId || null, details || '']
+      );
+      await db.query(p.text, p.params);
+    } catch (e) {
+      console.log('⚠️ Audit log error:', e.message);
+    }
+  }
+
+  // === AUDIT LOGS ===
+  app.get('/api/audit-logs', async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit) || 200;
+      const entity = req.query.entity || null;
+      let p;
+      if (entity) {
+        p = pgParams('SELECT * FROM audit_logs WHERE entity = ? ORDER BY created_at DESC LIMIT ?', [entity, limit]);
+      } else {
+        p = pgParams('SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT ?', [limit]);
+      }
+      const result = await db.query(p.text, p.params);
+      res.json(result.rows);
+    } catch (err) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
+  });
+
   // === AUTH ===
   function pgParams(sql, params) {
     if (!isPostgres) return { text: sql, params };
@@ -209,6 +242,7 @@ async function start() {
       const result = await db.query(q.text, q.params);
       const id = result.rowCount || result.changes;
       res.status(201).json({ id, username, role: role || 'user' });
+      logAudit(req, 'crear', 'usuario', id, 'Usuario: ' + username);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -230,6 +264,7 @@ async function start() {
         await db.query(q.text, q.params);
       }
       res.json({ id: parseInt(req.params.id), username, role });
+      logAudit(req, 'editar', 'usuario', parseInt(req.params.id), 'Usuario: ' + username);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -241,6 +276,7 @@ async function start() {
       const q = pgParams('DELETE FROM users WHERE id = ?', [req.params.id]);
       await db.query(q.text, q.params);
       res.json({ deleted: true });
+      logAudit(req, 'eliminar', 'usuario', parseInt(req.params.id), 'ID: ' + req.params.id);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -265,6 +301,7 @@ async function start() {
       const result = await db.query(q.text, q.params);
       const id = result.rowCount || result.changes;
       res.status(201).json({ id, name, code });
+      logAudit(req, 'crear', 'proyecto', id, `Nombre: ${name} - Código: ${code}`);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -277,6 +314,7 @@ async function start() {
         [name, code, location, status, budget, client, notes, req.params.id]);
       await db.query(q.text, q.params);
       res.json({ id: parseInt(req.params.id) });
+      logAudit(req, 'editar', 'proyecto', parseInt(req.params.id), `Nombre: ${name}`);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -287,6 +325,7 @@ async function start() {
       const q = pgParams('DELETE FROM projects WHERE id = ?', [req.params.id]);
       await db.query(q.text, q.params);
       res.json({ deleted: true });
+      logAudit(req, 'eliminar', 'proyecto', parseInt(req.params.id), 'ID: ' + req.params.id);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -321,6 +360,7 @@ async function start() {
       const result = await db.query(q.text, q.params);
       const id = result.rowCount || result.changes;
       res.status(201).json({ id, name, type });
+      logAudit(req, 'crear', 'almacen', id, 'Nombre: ' + name);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -333,6 +373,7 @@ async function start() {
         [name, type, location, project_id || null, req.params.id]);
       await db.query(q.text, q.params);
       res.json({ id: parseInt(req.params.id) });
+      logAudit(req, 'editar', 'almacen', parseInt(req.params.id), 'Nombre: ' + name);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -343,6 +384,7 @@ async function start() {
       const q = pgParams('DELETE FROM warehouses WHERE id = ?', [req.params.id]);
       await db.query(q.text, q.params);
       res.json({ deleted: true });
+      logAudit(req, 'eliminar', 'almacen', parseInt(req.params.id), 'ID: ' + req.params.id);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -369,6 +411,7 @@ async function start() {
       await db.query(upd.text, upd.params);
       const id = result.rowCount || result.changes;
       res.status(201).json({ id, product_name, qty, from_location, to_location });
+      logAudit(req, 'crear', 'transferencia', id, product_name + ' qty:' + qty);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -411,6 +454,7 @@ async function start() {
       const result = await db.query(q.text, q.params);
       const id = result.rowCount || result.changes;
       res.status(201).json({ id, name, type, type_label, project, salary, discounts });
+      logAudit(req, 'crear', 'empleado', id, 'Nombre: ' + name);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -421,6 +465,7 @@ async function start() {
       await db.query('DELETE FROM attendance WHERE employee_id = ?', [req.params.id]);
       await db.query('DELETE FROM employees WHERE id = ?', [req.params.id]);
       res.json({ deleted: true });
+      logAudit(req, 'eliminar', 'empleado', parseInt(req.params.id), 'ID: ' + req.params.id);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -481,6 +526,7 @@ async function start() {
         [name, category, stock, min_stock, unit, neto, bruto, image_url || '']);
       const result = await db.query(q.text, q.params);
       res.status(201).json({ id: result.rowCount || result.changes, name, category, stock, min_stock, unit, price_neto: neto, price_bruto: bruto, image_url: image_url || '' });
+      logAudit(req, 'crear', 'producto', result.rowCount || result.changes, `${name} - ${category} - Stock: ${stock}`);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -498,6 +544,7 @@ async function start() {
         [name, category, stock, min_stock, unit, neto, bruto, image_url || '', req.params.id]);
       await db.query(q.text, q.params);
       res.json({ id: parseInt(req.params.id), name, category, stock, min_stock, unit, price_neto: neto, price_bruto: bruto, image_url: image_url || '' });
+      logAudit(req, 'editar', 'producto', parseInt(req.params.id), `${name} - stock: ${stock}`);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -507,6 +554,7 @@ async function start() {
     try {
       await db.query('DELETE FROM products WHERE id = ?', [req.params.id]);
       res.json({ deleted: true });
+      logAudit(req, 'eliminar', 'producto', parseInt(req.params.id), 'ID: ' + req.params.id);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -536,6 +584,7 @@ async function start() {
       await db.query('UPDATE employees SET name=?, type=?, type_label=?, project=?, salary=?, discounts=? WHERE id=?',
         [name, type, type_label, project, salary, discounts, req.params.id]);
       res.json({ id: parseInt(req.params.id), name, type, type_label, project, salary, discounts });
+      logAudit(req, 'editar', 'empleado', parseInt(req.params.id), 'Nombre: ' + name);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }
@@ -686,6 +735,7 @@ async function start() {
       await db.query('INSERT INTO attendance (employee_id, day, value, period) VALUES (?,?,?,?)',
         [employee_id, day, value, period || '2026-06-1ra']);
       res.json({ employee_id, day, value, period });
+      logAudit({user: {username:'admin',id:1}}, 'editar', 'asistencia', employee_id, 'Dia: ' + day + ' valor:' + value);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
     }

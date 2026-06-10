@@ -264,6 +264,102 @@ export default function Usuarios() {
           </div>
         </div>
       )}
+
+      {/* === TRAZABILIDAD === */}
+      <div style={{ marginTop: 32 }}>
+        <AuditTrail />
+      </div>
+    </div>
+  );
+}
+
+// Audit trail component
+const ACTION_STYLES = {
+  crear: 'badge-success',
+  editar: 'badge-info',
+  eliminar: 'badge-danger',
+};
+
+function AuditTrail() {
+  const [logs, setLogs] = useState([]);
+  const [filterEntity, setFilterEntity] = useState('');
+  const [limit, setLimit] = useState(100);
+
+  const fetchLogs = async () => {
+    try {
+      const token = getToken();
+      let url = '/api/audit-logs?limit=' + limit;
+      if (filterEntity) url += '&entity=' + encodeURIComponent(filterEntity);
+      const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+      const data = await res.json();
+      setLogs(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => { fetchLogs(); }, [filterEntity, limit]);
+
+  return (
+    <div className="card" style={{ overflow: 'visible' }}>
+      <h3 style={{ padding: '16px 16px 0' }}>
+        <Shield size={16} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+        Trazabilidad 📋
+      </h3>
+      <div style={{ padding: '8px 16px', display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <label style={{ fontSize: 13, fontWeight: 600 }}>Filtrar por modulo:</label>
+        <select value={filterEntity} onChange={e => setFilterEntity(e.target.value)}
+          style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #ccc', fontSize: 13 }}>
+          <option value="">Todos</option>
+          <option value="producto">Productos</option>
+          <option value="proyecto">Proyectos</option>
+          <option value="almacen">Almacenes</option>
+          <option value="transferencia">Transferencias</option>
+          <option value="empleado">Empleados</option>
+          <option value="asistencia">Asistencia</option>
+          <option value="usuario">Usuarios</option>
+        </select>
+        <label style={{ fontSize: 13, fontWeight: 600, marginLeft: 8 }}>Mostrar:</label>
+        <select value={limit} onChange={e => setLimit(Number(e.target.value))}
+          style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #ccc', fontSize: 13 }}>
+          <option value={100}>100</option>
+          <option value={200}>200</option>
+          <option value={500}>500</option>
+        </select>
+        <button className="btn btn-sm" onClick={fetchLogs} style={{ marginLeft: 'auto' }}>
+          Refrescar
+        </button>
+      </div>
+      <div className="table-wrapper"><table className="card-table">
+        <thead>
+          <tr>
+            <th>Fecha/Hora</th>
+            <th>Usuario</th>
+            <th>Accion</th>
+            <th>Modulo</th>
+            <th>ID</th>
+            <th>Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          {logs.map(log => {
+            const dt = log.created_at ? new Date((log.created_at.endsWith('Z') ? log.created_at : log.created_at + 'Z')).toLocaleString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+            return (
+              <tr key={log.id}>
+                <td style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{dt}</td>
+                <td><strong>{log.username}</strong></td>
+                <td><span className={'badge ' + (ACTION_STYLES[log.action] || 'badge-info')}>{log.action}</span></td>
+                <td><span className="badge badge-secondary" style={{ textTransform: 'capitalize' }}>{log.entity}</span></td>
+                <td>{log.entity_id || '-'}</td>
+                <td style={{ fontSize: 13, color: '#555', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.details}</td>
+              </tr>
+            );
+          })}
+          {logs.length === 0 && (
+            <tr><td colSpan={6} style={{ textAlign: 'center', color: '#7f8c8d', padding: 20 }}>No hay registros de trazabilidad</td></tr>
+          )}
+        </tbody>
+      </table></div>
     </div>
   );
 }
