@@ -83,11 +83,11 @@ export default function Proyectos() {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
         <div>
           <h2>Gestión de Proyectos</h2>
-        </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-          <button className="btn btn-primary" onClick={openNew}>
-            <Plus size={16} /> Nuevo Proyecto
-          </button>
+          <div style={{ marginTop: 8 }}>
+            <button className="btn btn-primary" onClick={openNew}>
+              <Plus size={16} /> Nuevo Proyecto
+            </button>
+          </div>
         </div>
         <ModuleNav />
       </div>

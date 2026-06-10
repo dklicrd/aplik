@@ -108,16 +108,16 @@ export default function Almacenes() {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
         <div>
           <h2>Almacenes</h2>
-        </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <button className={`btn ${tab === 'almacenes' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setTab('almacenes')}>
-            <Warehouse size={16} /> Almacenes
-          </button>
-          <button className={`btn ${tab === 'transferencias' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setTab('transferencias')}>
-            <ArrowRightLeft size={16} /> Transferencias
-          </button>
+          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <button className={`btn ${tab === 'almacenes' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setTab('almacenes')}>
+              <Warehouse size={16} /> Almacenes
+            </button>
+            <button className={`btn ${tab === 'transferencias' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setTab('transferencias')}>
+              <ArrowRightLeft size={16} /> Transferencias
+            </button>
+          </div>
         </div>
         <ModuleNav />
       </div>
