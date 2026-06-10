@@ -181,35 +181,29 @@ export default function Asistencia() {
 
   if (loading) return <div className="page-header"><h2>Asistencia</h2><p><RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> Cargando...</p></div>;
 
-  const totalSD = sdEmployees.reduce((s, e) => s + (e.salary || 0), 0);
-
   return (
     <div>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
         <div>
           <h2>Control de Asistencia</h2>
-          <p>
-            <Calendar size={14} style={{ marginRight: 4 }} />
-            <strong>{fortnightInfo.label}</strong>
-          </p>
+          <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+            <button
+              className={`btn ${quincena === '1ra' ? 'btn-primary' : ''}`}
+              style={{ padding: '4px 12px', fontSize: 13, fontWeight: quincena === '1ra' ? 700 : 400 }}
+              onClick={() => changeFortnight('1ra')}
+            >
+              1ra Quincena
+            </button>
+            <button
+              className={`btn ${quincena === '2da' ? 'btn-primary' : ''}`}
+              style={{ padding: '4px 12px', fontSize: 13, fontWeight: quincena === '2da' ? 700 : 400 }}
+              onClick={() => changeFortnight('2da')}
+            >
+              2da Quincena
+            </button>
+          </div>
         </div>
         <ModuleNav />
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button
-            className={`btn ${quincena === '1ra' ? 'btn-primary' : ''}`}
-            style={{ padding: '6px 14px', fontSize: 13, fontWeight: quincena === '1ra' ? 700 : 400 }}
-            onClick={() => changeFortnight('1ra')}
-          >
-            1ra Quincena
-          </button>
-          <button
-            className={`btn ${quincena === '2da' ? 'btn-primary' : ''}`}
-            style={{ padding: '6px 14px', fontSize: 13, fontWeight: quincena === '2da' ? 700 : 400 }}
-            onClick={() => changeFortnight('2da')}
-          >
-            2da Quincena
-          </button>
-        </div>
       </div>
 
       {/* ALERTA DE CORTE — PREPARAR NÓMINA */}
@@ -255,49 +249,9 @@ export default function Asistencia() {
         <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
           <h3><MapPin size={16} style={{ marginRight: 6 }} />Santo Domingo</h3>
           <span style={{ fontSize: 13, color: '#7f8c8d' }}>
-            {sdEmployees.length} empleados · Salario fijo mensual · RD${totalSD.toLocaleString()}/mes
+            {sdEmployees.length} empleados · Salario fijo mensual
           </span>
         </div>
-
-        {/* Tabla nómina SD */}
-        <div style={{ overflowX: 'auto', marginBottom: 12 }}>
-          <div className="table-wrapper"><table className="card-table" style={{ fontSize: 12 }}>
-            <thead>
-              <tr>
-                <th>Empleado</th>
-                <th>Cargo</th>
-                <th>Salario Mensual</th>
-                <th>Esta Quincena</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sdEmployees.map(emp => {
-                const qSalary = Math.round((emp.salary || 0) / 2);
-                return (
-                  <tr key={emp.id} style={{ borderBottom: '1px solid #eee' }}>
-                    <td style={{ fontWeight: 600 }}>{emp.name}</td>
-                    <td>{emp.type_label || emp.type}</td>
-                    <td style={{ fontWeight: 700, color: '#2980b9' }}>RD${(emp.salary || 0).toLocaleString()}</td>
-                    <td style={{ color: '#2980b9', fontSize: 12 }}>
-                      RD${qSalary.toLocaleString()}
-                      <span style={{ color: '#999', fontSize: 10, marginLeft: 4 }}>(fijo)</span>
-                    </td>
-                    <td><span className="badge badge-success">Activo</span></td>
-                  </tr>
-                );
-              })}
-              <tr style={{ background: '#eaf2f8', fontWeight: 700 }}>
-                <td colSpan={2}>TOTAL NÓMINA MENSUAL</td>
-                <td style={{ color: '#2980b9', fontSize: 14 }}>RD${totalSD.toLocaleString()}</td>
-                <td style={{ color: '#2980b9' }}>RD${(totalSD / 2).toLocaleString()} / quincena</td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table></div>
-        </div>
-
-        {/* Tabla asistencia SD */}
         {sdEmployees.length > 0 && (
           <>
             <div style={{ fontSize: 11, color: '#3498db', marginBottom: 6, fontStyle: 'italic' }}>

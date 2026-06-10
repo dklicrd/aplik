@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ModuleNav from '../components/ModuleNav';
 import { getEmployees, getAttendance, updateEmployee } from '../utils/api';
-import { Download, RefreshCw, Plus, Edit2, Trash2, X, Save, FileText } from 'lucide-react';
+import { Download, RefreshCw, Plus, Edit2, Trash2, X, Save, FileText, MapPin } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -234,6 +234,57 @@ export default function Nomina() {
         <button className="btn btn-accent" onClick={exportCSV}><Download size={16} /> Exportar CSV</button>
         <button className="btn btn-accent" onClick={exportPDF} style={{ marginLeft: 8 }}><FileText size={16} /> Exportar PDF</button>
       </div>
+
+      {/* Nómina Santo Domingo (salario fijo mensual) */}
+      {(() => {
+        const sdEmps = employees.filter(e => e.project === 'Santo Domingo');
+        const totalSD = sdEmps.reduce((s, e) => s + (e.salary || 0), 0);
+        if (sdEmps.length === 0) return null;
+        return (
+          <div className="card" style={{ marginBottom: 24, borderLeft: '4px solid #3498db' }}>
+            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+              <h3><MapPin size={16} style={{ marginRight: 6 }} />Nómina Santo Domingo</h3>
+              <span style={{ fontSize: 13, color: '#7f8c8d' }}>
+                {sdEmps.length} empleados · Salario fijo mensual
+              </span>
+            </div>
+            <div className="table-wrapper"><table className="card-table" style={{ fontSize: 12 }}>
+              <thead>
+                <tr>
+                  <th>Empleado</th>
+                  <th>Cargo</th>
+                  <th>Salario Mensual</th>
+                  <th>Esta Quincena</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sdEmps.map(emp => {
+                  const qSalary = Math.round((emp.salary || 0) / 2);
+                  return (
+                    <tr key={emp.id} style={{ borderBottom: '1px solid #eee' }}>
+                      <td style={{ fontWeight: 600 }}>{emp.name}</td>
+                      <td>{emp.type_label || emp.type}</td>
+                      <td style={{ fontWeight: 700, color: '#2980b9' }}>RD${(emp.salary || 0).toLocaleString()}</td>
+                      <td style={{ color: '#2980b9', fontSize: 12 }}>
+                        RD${qSalary.toLocaleString()}
+                        <span style={{ color: '#999', fontSize: 10, marginLeft: 4 }}>(fijo)</span>
+                      </td>
+                      <td><span className="badge badge-success">Activo</span></td>
+                    </tr>
+                  );
+                })}
+                <tr style={{ background: '#eaf2f8', fontWeight: 700 }}>
+                  <td colSpan={2}>TOTAL NÓMINA MENSUAL</td>
+                  <td style={{ color: '#2980b9', fontSize: 14 }}>RD${totalSD.toLocaleString()}</td>
+                  <td style={{ color: '#2980b9' }}>RD${(totalSD / 2).toLocaleString()} / quincena</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table></div>
+          </div>
+        );
+      })()}
 
       <div className="card">
         <div className="table-wrapper"><table className="card-table">
