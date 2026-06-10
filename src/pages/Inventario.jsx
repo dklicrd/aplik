@@ -185,74 +185,44 @@ export default function Inventario() {
             <h3>{product.name}</h3>
             <button className="btn btn-sm" style={{ background: '#eee' }} onClick={onClose}><X size={14} /></button>
           </div>
-          <div className="modal-body">
-            <div className="product-modal-body">
-              <div style={{
-                width: 140, height: 140, borderRadius: 12,
-                background: product.image_url ? `url(${product.image_url}) center/cover no-repeat` : '#f0f2f5',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0, border: '1px solid #e0e0e0', overflow: 'hidden'
-              }}>
-                {!product.image_url && <Image size={30} color="#ccc" />}
-              </div>
+            <div className="modal-body" style={{ maxHeight: '60dvh', overflowY: 'auto' }}>
+            <div className="product-modal-body" style={{ flexDirection: 'column' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="table-wrapper"><table className="card-table" style={{ width: '100%', fontSize: 13 }}>
-                  <tbody>
-                    <tr>
-                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600, whiteSpace: 'nowrap' }}>Categoría</td>
-                      <td style={{ padding: '4px 8px' }}><span className="badge badge-info" style={{ textTransform: 'capitalize' }}>{product.category}</span></td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600 }}>Unidad</td>
-                      <td style={{ padding: '4px 8px', textTransform: 'capitalize' }}>{product.unit}</td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600 }}>Stock</td>
-                      <td style={{ padding: '4px 8px' }}>
-                        <span style={{
-                          fontWeight: 700, fontSize: 18,
-                          color: Number(product.stock) <= 0 ? '#e74c3c' : Number(product.stock) <= Number(product.min_stock) ? '#e67e22' : '#27ae60'
-                        }}>
-                          {Number(product.stock)}
-                        </span>
-                        <span style={{ color: '#7f8c8d', fontSize: 12, marginLeft: 4 }}>{product.unit}</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600 }}>Stock Mín.</td>
-                      <td style={{ padding: '4px 8px' }}>{Number(product.min_stock)} {product.unit}</td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600 }}>Precio Neto</td>
-                      <td style={{ padding: '4px 8px' }}><span style={{ fontWeight: 600, fontSize: 16 }}>{neto > 0 ? currency(neto) : '—'}</span></td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600 }}>Precio Bruto (+18%)</td>
-                      <td style={{ padding: '4px 8px' }}><span style={{ fontWeight: 600, fontSize: 16, color: '#e67e22' }}>{bruto > 0 ? currency(bruto) : '—'}</span></td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600, borderTop: '2px solid #27ae60' }}>Subtotal Neto</td>
-                      <td style={{ padding: '4px 8px', borderTop: '2px solid #27ae60' }}>
-                        <span style={{ fontWeight: 700, fontSize: 20, color: '#1e3a5f' }}>{neto > 0 ? currency(calcSubtotal(product.stock, product.price_neto)) : '—'}</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: '4px 8px', color: '#7f8c8d', fontWeight: 600, borderTop: '2px solid #e67e22' }}>Subtotal Bruto</td>
-                      <td style={{ padding: '4px 8px', borderTop: '2px solid #e67e22' }}>
-                        <span style={{ fontWeight: 700, fontSize: 20, color: '#e67e22' }}>{bruto > 0 ? currency(calcSubtotal(product.stock, product.price_bruto)) : '—'}</span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table></div>
-                <div style={{ marginTop: 12, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {Number(product.stock) <= 0
-                    ? <span className="badge badge-danger">Agotado</span>
-                    : Number(product.stock) <= Number(product.min_stock)
-                      ? <span className="badge badge-warning">Stock bajo</span>
-                      : <span className="badge badge-success">Stock OK</span>
-                  }
-                  {product.category && <span className="badge badge-info" style={{ textTransform: 'capitalize' }}>{product.category}</span>}
-                  {product.unit && <span className="badge" style={{ background: '#e8e8e8', color: '#555' }}>{product.unit}</span>}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{
+                      width: 100, height: 100, borderRadius: 12, margin: '0 auto 8px',
+                      background: product.image_url ? `url(${product.image_url}) center/cover no-repeat` : '#f0f2f5',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      border: '1px solid #e0e0e0', overflow: 'hidden'
+                    }}>
+                      {!product.image_url && <Image size={24} color="#ccc" />}
+                    </div>
+                    <span style={{ fontWeight: 600, fontSize: 14 }}>{product.name}</span>
+                    <div style={{ marginTop: 4, display: 'flex', gap: 4, justifyContent: 'center', flexWrap: 'wrap' }}>
+                      {Number(product.stock) <= 0
+                        ? <span className="badge badge-danger">Agotado</span>
+                        : Number(product.stock) <= Number(product.min_stock)
+                          ? <span className="badge badge-warning">Stock bajo</span>
+                          : <span className="badge badge-success">Stock OK</span>
+                      }
+                      <span className="badge badge-info" style={{ textTransform: 'capitalize' }}>{product.category}</span>
+                      {product.unit && <span className="badge" style={{ background: '#e8e8e8', color: '#555' }}>{product.unit}</span>}
+                    </div>
+                  </div>
+                  <div>
+                    <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+                      <tbody>
+                        <tr><td style={{ padding: 4, color: '#999' }}>Unidad</td><td style={{ padding: 4, textTransform: 'capitalize' }}>{product.unit}</td></tr>
+                        <tr><td style={{ padding: 4, color: '#999' }}>Stock</td><td style={{ padding: 4 }}><strong style={{ fontSize: 16, color: Number(product.stock) <= 0 ? '#e74c3c' : Number(product.stock) <= Number(product.min_stock) ? '#e67e22' : '#27ae60' }}>{Number(product.stock)}</strong> {product.unit}</td></tr>
+                        <tr><td style={{ padding: 4, color: '#999' }}>Mínimo</td><td style={{ padding: 4 }}>{Number(product.min_stock)} {product.unit}</td></tr>
+                        <tr><td style={{ padding: 4, color: '#999' }}>Neto</td><td style={{ padding: 4 }}><strong>{neto > 0 ? currency(neto) : '—'}</strong></td></tr>
+                        <tr><td style={{ padding: 4, color: '#999' }}>Bruto (+18%)</td><td style={{ padding: 4 }}><strong style={{ color: '#e67e22' }}>{bruto > 0 ? currency(bruto) : '—'}</strong></td></tr>
+                        <tr><td style={{ padding: 4, color: '#999', borderTop: '2px solid #27ae60' }}>Subtotal Neto</td><td style={{ padding: 4, borderTop: '2px solid #27ae60' }}><strong style={{ fontSize: 17, color: '#1e3a5f' }}>{neto > 0 ? currency(product.stock * product.price_neto) : '—'}</strong></td></tr>
+                        <tr><td style={{ padding: 4, color: '#999', borderTop: '2px solid #e67e22' }}>Subtotal Bruto</td><td style={{ padding: 4, borderTop: '2px solid #e67e22' }}><strong style={{ fontSize: 17, color: '#e67e22' }}>{bruto > 0 ? currency(product.stock * product.price_bruto) : '—'}</strong></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
