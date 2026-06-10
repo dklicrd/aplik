@@ -17,7 +17,7 @@ export default function Presupuestos() {
     });
   }, [yearFilter, statusFilter, search]);
 
-  const years = [...new Set(allPresupuestos.map(p => p.year))].sort((a, b) => b - a);
+  const years = [...new Set(allPresupuestos.map(p => p.year))].sort((a, b) => a - b);
   const statuses = [...new Set(allPresupuestos.map(p => p.estatus))];
 
   // Stats
