@@ -114,8 +114,20 @@ export default function Asistencia() {
     try { localStorage.setItem('aplik_notas', JSON.stringify(updated)); } catch {}
   };
 
-  // Separar SD de Bávaro
-  // Empleados activos + inactivos que tienen asistencia en este período (para no perder registro)
+  // Asistencia map
+  const attMap = {};
+  // Filtrar por período activo
+  const periodAtt = attendance.filter(a => a.period === fortnightInfo.period);
+  periodAtt.forEach(a => {
+    if (!attMap[a.employee_id]) attMap[a.employee_id] = {};
+    attMap[a.employee_id][a.day] = Number(a.value);
+  });
+
+  const getDayValue = (empId, day) => {
+    if (edits[empId]?.[day] !== undefined) return edits[empId][day];
+    return attMap[empId]?.[day] || 0;
+  };
+
   const periodEmpIds = new Set(periodAtt.map(a => a.employee_id));
   const sdEmployees = employees.filter(e => e.project === 'Santo Domingo' && (e.status !== 'baja' || periodEmpIds.has(e.id)));
   const bavaroEmployees = employees.filter(e => e.project !== 'Santo Domingo' && (e.status !== 'baja' || periodEmpIds.has(e.id)));
@@ -132,22 +144,7 @@ export default function Asistencia() {
 
   const bavaroProjects = [...new Set(bavaroEmployees.map(e => e.project))];
 
-  // Asistencia map
-  const attMap = {};
-  // Filtrar por período activo
-  const periodAtt = attendance.filter(a => a.period === fortnightInfo.period);
-  periodAtt.forEach(a => {
-    if (!attMap[a.employee_id]) attMap[a.employee_id] = {};
-    attMap[a.employee_id][a.day] = Number(a.value);
-  });
-
-  const getDayValue = (empId, day) => {
-    if (edits[empId]?.[day] !== undefined) return edits[empId][day];
-    return attMap[empId]?.[day] || 0;
-  };
-
   const cycleDay = (empId, day) => {
-    if (!editMode) return;
     const current = getDayValue(empId, day);
     const next = current >= 1 ? 0.5 : current > 0 ? 0 : 1;
     setEdits(prev => ({
