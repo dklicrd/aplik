@@ -143,6 +143,7 @@ export default function Asistencia() {
   };
 
   const sdEmployees = employees.filter(e => e.project === 'Santo Domingo' && (e.status !== 'baja' || periodEmpIds.has(e.id))).sort(sortByPosition);
+  const bavaroEmployees = employees.filter(e => e.project !== 'Santo Domingo' && (e.status !== 'baja' || periodEmpIds.has(e.id)));
   const bavaroSorted = bavaroEmployees.sort(sortByType);
 
   // Filtro por proyecto para Bávaro
