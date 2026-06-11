@@ -492,15 +492,18 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                   setForm({...form, position: pos, type: isPintor ? form.type : form.type, type_label: isPintor ? form.type_label : form.type_label });
                 }} placeholder="Ej: Obrero, Pintor, Supervisor, Encargado, Chofer" />
               </div>
-              {form.position && form.position.toLowerCase().startsWith('pintor') && (
+              {form.position && (form.position.toLowerCase().startsWith('pintor') || form.position.toLowerCase().startsWith('masillero')) && (
                 <div className="form-group">
-                  <label>Tipo de Pintor</label>
+                  <label>Tipo de {form.position.toLowerCase().startsWith('pintor') ? 'Pintor' : 'Masillero'}</label>
                   <select value={form.type} onChange={e => {
                     const t = e.target.value;
                     const lbl = TYPES.find(tp => tp.value === t)?.label || 'Aprendiz';
                     setForm({...form, type: t, type_label: lbl});
                   }}>
-                    {TYPES.map(t => <option key={t.value} value={t.value}>{t.label} ({t.value})</option>)}
+                    {form.position.toLowerCase().startsWith('pintor')
+                      ? TYPES.map(t => <option key={t.value} value={t.value}>{t.label} ({t.value})</option>)
+                      : <option value="M">Masillero (M)</option>
+                    }
                   </select>
                 </div>
               )}
