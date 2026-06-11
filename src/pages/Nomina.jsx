@@ -452,6 +452,7 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
               <button className="btn btn-sm" onClick={() => setShowModal(false)}><X size={16} /></button>
             </div>
             <div className="modal-body">
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: '#2c3e50', marginBottom: 12, paddingBottom: 6, borderBottom: '2px solid #3498db' }}>📋 Datos Personales</h4>
               <div className="form-group">
                 <label>Nombres *</label>
                 <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Nombres" required />
@@ -473,10 +474,8 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                 </select>
                 {form.identity_doc_type === 'cedula' && (
                   <input type="text" value={form.identity_doc_number} onChange={e => {
-                    // Máscara de 13 caracteres para cédula dominicana: 000-0000000-0
                     let v = e.target.value.replace(/[^0-9-]/g, '');
                     if (v.length > 13) v = v.slice(0, 13);
-                    // Auto-insertar guiones
                     if (v.length === 3 && !v.includes('-')) v = v + '-';
                     if (v.length === 11) { const p = v.replace(/-/g,''); if(p.length === 11) v = p.slice(0,3)+'-'+p.slice(3,10)+'-'+p.slice(10); }
                     setForm({...form, identity_doc_number: v, identity_doc: v});
@@ -535,6 +534,8 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                 <label>Fecha de Ingreso</label>
                 <input type="date" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} />
               </div>
+
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: '#2c3e50', marginTop: 20, marginBottom: 12, paddingBottom: 6, borderBottom: '2px solid #27ae60' }}>📄 Datos del Contrato</h4>
               <div className="form-group">
                 <label>Posición / Cargo</label>
                 <input type="text" value={form.position} onChange={e => {
