@@ -20,7 +20,7 @@ export default function Nomina() {
   const [showInactive, setShowInactive] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editEmp, setEditEmp] = useState(null);
-  const [form, setForm] = useState({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc: '', identity_image: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario', pay_type: 'asistencia', bonus: 0, eca_type: 'diario' });
+  const [form, setForm] = useState({ name: '', last_name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc_type: '', identity_doc_number: '', identity_doc: '', identity_image: '', other_doc_type: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario', pay_type: 'asistencia', bonus: 0, eca_type: 'diario' });
   const uniqueProjects = [...new Set(employees.map(e => e.project))].filter(Boolean);
   const [saving, setSaving] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
@@ -63,13 +63,13 @@ export default function Nomina() {
 
   const openNew = () => {
     setEditEmp(null);
-    setForm({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc: '', identity_image: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario', pay_type: 'asistencia', bonus: 0, eca_type: 'diario' });
+    setForm({ name: '', last_name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc_type: '', identity_doc_number: '', identity_doc: '', identity_image: '', other_doc_type: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario', pay_type: 'asistencia', bonus: 0, eca_type: 'diario' });
     setShowModal(true);
   };
 
   const openEdit = (emp) => {
     setEditEmp(emp);
-    setForm({ name: emp.name, type: emp.type, type_label: emp.type_label, project: emp.project, salary: emp.salary, discounts: emp.discounts, identity_doc: emp.identity_doc || '', identity_image: emp.identity_image || '', start_date: emp.start_date || '', position: emp.position || '', contract_type: emp.contract_type || 'obra', salary_type: emp.salary_type || 'diario', pay_type: emp.pay_type || 'asistencia', bonus: emp.bonus || 0, eca_type: emp.eca_type || 'diario' });
+    setForm({ name: emp.name, last_name: emp.last_name || '', type: emp.type, type_label: emp.type_label, project: emp.project, salary: emp.salary, discounts: emp.discounts, identity_doc_type: emp.identity_doc_type || '', identity_doc_number: emp.identity_doc_number || emp.identity_doc || '', identity_doc: emp.identity_doc || '', identity_image: emp.identity_image || '', other_doc_type: emp.other_doc_type || '', start_date: emp.start_date || '', position: emp.position || '', contract_type: emp.contract_type || 'obra', salary_type: emp.salary_type || 'diario', pay_type: emp.pay_type || 'asistencia', bonus: emp.bonus || 0, eca_type: emp.eca_type || 'diario' });
     setShowModal(true);
   };
 
@@ -446,12 +446,56 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label>Nombre Completo *</label>
-                <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} required />
+                <label>Nombres *</label>
+                <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Nombres" required />
+              </div>
+              <div className="form-group">
+                <label>Apellidos</label>
+                <input type="text" value={form.last_name} onChange={e => setForm({...form, last_name: e.target.value})} placeholder="Apellidos" />
               </div>
               <div className="form-group">
                 <label>Documento de Identidad</label>
-                <input type="text" value={form.identity_doc} onChange={e => setForm({...form, identity_doc: e.target.value})} placeholder="Ej: 001-2345678-9" />
+                <select value={form.identity_doc_type} onChange={e => {
+                  const t = e.target.value;
+                  setForm({...form, identity_doc_type: t, identity_doc_number: '', other_doc_type: ''});
+                }} style={{ marginBottom: 8 }}>
+                  <option value="">— Seleccionar tipo —</option>
+                  <option value="cedula">Cédula</option>
+                  <option value="pasaporte">Pasaporte</option>
+                  <option value="otro">Otro</option>
+                </select>
+                {form.identity_doc_type === 'cedula' && (
+                  <input type="text" value={form.identity_doc_number} onChange={e => {
+                    // Máscara de 13 caracteres para cédula dominicana: 000-0000000-0
+                    let v = e.target.value.replace(/[^0-9-]/g, '');
+                    if (v.length > 13) v = v.slice(0, 13);
+                    // Auto-insertar guiones
+                    if (v.length === 3 && !v.includes('-')) v = v + '-';
+                    if (v.length === 11) { const p = v.replace(/-/g,''); if(p.length === 11) v = p.slice(0,3)+'-'+p.slice(3,10)+'-'+p.slice(10); }
+                    setForm({...form, identity_doc_number: v, identity_doc: v});
+                  }} placeholder="000-0000000-0" maxLength={13} />
+                )}
+                {form.identity_doc_type === 'pasaporte' && (
+                  <input type="text" value={form.identity_doc_number} onChange={e => {
+                    setForm({...form, identity_doc_number: e.target.value.toUpperCase(), identity_doc: e.target.value.toUpperCase()});
+                  }} placeholder="Número de pasaporte" />
+                )}
+                {form.identity_doc_type === 'otro' && (
+                  <>
+                    <input type="text" value={form.other_doc_type} onChange={e => setForm({...form, other_doc_type: e.target.value})} placeholder="Especificar tipo de documento" style={{ marginBottom: 8 }} />
+                    <input type="text" value={form.identity_doc_number} onChange={e => {
+                      setForm({...form, identity_doc_number: e.target.value, identity_doc: e.target.value});
+                    }} placeholder="Número de documento" />
+                  </>
+                )}
+                {form.identity_doc_number && (
+                  <div style={{ fontSize: 12, color: '#7f8c8d', marginTop: 4 }}>
+                    {form.identity_doc_type === 'cedula' && '✓ Cédula: '}
+                    {form.identity_doc_type === 'pasaporte' && '✓ Pasaporte: '}
+                    {form.identity_doc_type === 'otro' && '✓ ' + form.other_doc_type + ': '}
+                    {form.identity_doc_number}
+                  </div>
+                )}
               </div>
               <div className="form-group">
                 <label>📸 Imagen del Documento</label>
@@ -487,9 +531,7 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
               <div className="form-group">
                 <label>Posición / Cargo</label>
                 <input type="text" value={form.position} onChange={e => {
-                  const pos = e.target.value;
-                  const isPintor = pos.toLowerCase().startsWith('pintor');
-                  setForm({...form, position: pos, type: isPintor ? form.type : form.type, type_label: isPintor ? form.type_label : form.type_label });
+                  setForm({...form, position: e.target.value});
                 }} placeholder="Ej: Obrero, Pintor, Supervisor, Encargado, Chofer" />
               </div>
               {form.position && (form.position.toLowerCase().startsWith('pintor') || form.position.toLowerCase().startsWith('masillero')) && (
@@ -511,15 +553,17 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                 <label>Tipo de Contrato</label>
                 <select value={form.contract_type} onChange={e => {
                   const ct = e.target.value;
-                  const st = ct === 'indefinido' ? 'mensual' : 'diario';
+                  const st = ct === 'indefinido' ? 'mensual' : ct === 'iguala' ? 'mensual' : ct === 'contratista' ? 'diario' : 'diario';
                   setForm({...form, contract_type: ct, salary_type: st});
                 }}>
                   <option value="obra">Por obra o servicio determinado</option>
                   <option value="indefinido">Indefinido</option>
+                  <option value="iguala">Iguala</option>
+                  <option value="contratista">Contratista</option>
                 </select>
               </div>
               <div className="form-group">
-                <label>{form.contract_type === 'indefinido' ? 'Salario Mensual (RD$)' : 'Salario Diario (RD$)'}</label>
+                <label>{form.contract_type === 'indefinido' || form.contract_type === 'iguala' ? 'Salario Mensual (RD$)' : 'Salario Diario (RD$)'}</label>
                 <input type="number" value={form.salary} onChange={e => setForm({...form, salary: Number(e.target.value)})} min={0} />
               </div>
               <div className="form-group">
