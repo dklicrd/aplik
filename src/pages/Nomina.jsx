@@ -320,6 +320,7 @@ export default function Nomina() {
           <thead>
             <tr>
               <th>Empleado</th>
+              <th>Cargo</th>
               <th>Proyecto</th>
               <th>Tipo</th>
               <th>Salario Diario</th>
@@ -367,6 +368,7 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                       )}
                     </div>
                   </td>
+                  <td>{emp.position || '—'}</td>
                   <td>{emp.project}</td>
                   <td><span className="badge badge-info">{emp.type} — {emp.type_label}</span></td>
                   <td>${Number(emp.salary).toLocaleString('es-DO')}</td>
@@ -405,7 +407,7 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
           <div className="card-header"><h3>Proyecto {proj}</h3></div>
           <div className="table-wrapper"><table className="card-table">
             <thead>
-              <tr><th>Empleado</th><th>Tipo</th><th>Días</th><th>Neto</th></tr>
+              <tr><th>Empleado</th><th>Cargo</th><th>Tipo</th><th>Días</th><th>Neto</th></tr>
             </thead>
             <tbody>
               {employees.filter(e => e.project === proj).map(emp => {
@@ -414,6 +416,7 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                 return (
                   <tr key={emp.id}>
                     <td>{emp.name}</td>
+                    <td>{emp.position || '—'}</td>
                     <td><span className="badge badge-info">{emp.type}</span></td>
                     <td>{days}</td>
                     <td style={{ fontWeight: 600 }}>${net.toLocaleString('es-DO')}</td>
@@ -483,8 +486,24 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
               </div>
               <div className="form-group">
                 <label>Posición / Cargo</label>
-                <input type="text" value={form.position} onChange={e => setForm({...form, position: e.target.value})} placeholder="Ej: Obrero, Supervisor, Encargado, Chofer" />
+                <input type="text" value={form.position} onChange={e => {
+                  const pos = e.target.value;
+                  const isPintor = pos.toLowerCase().startsWith('pintor');
+                  setForm({...form, position: pos, type: isPintor ? form.type : form.type, type_label: isPintor ? form.type_label : form.type_label });
+                }} placeholder="Ej: Obrero, Pintor, Supervisor, Encargado, Chofer" />
               </div>
+              {form.position && form.position.toLowerCase().startsWith('pintor') && (
+                <div className="form-group">
+                  <label>Tipo de Pintor</label>
+                  <select value={form.type} onChange={e => {
+                    const t = e.target.value;
+                    const lbl = TYPES.find(tp => tp.value === t)?.label || 'Aprendiz';
+                    setForm({...form, type: t, type_label: lbl});
+                  }}>
+                    {TYPES.map(t => <option key={t.value} value={t.value}>{t.label} ({t.value})</option>)}
+                  </select>
+                </div>
+              )}
               <div className="form-group">
                 <label>Tipo de Contrato</label>
                 <select value={form.contract_type} onChange={e => {

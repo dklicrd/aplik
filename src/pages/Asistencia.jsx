@@ -369,6 +369,7 @@ export default function Asistencia() {
             <thead>
               <tr>
                 <th style={{ position: 'sticky', left: 0, background: 'white', zIndex: 2 }}>Empleado</th>
+                <th>Cargo</th>
                 <th>Proy.</th>
                 <th>Tipo</th>
                 {fortnightInfo.days.map((d, i) => (
@@ -411,6 +412,7 @@ export default function Asistencia() {
                           {emp.name}
                           {isBaja && <span className="badge" style={{ marginLeft: 6, background: '#ffeaa7', color: '#d68910', fontSize: 9 }}>Baja</span>}
                         </td>
+                        <td style={{ fontSize: 11 }}>{emp.position || emp.type_label || emp.type}</td>
                         <td style={{ fontSize: 11 }}>{emp.project}</td>
                         <td><span className="badge badge-info">{emp.type}</span></td>
                         {days.map((d, i) => {
