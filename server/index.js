@@ -484,11 +484,17 @@ async function start() {
     try {
       const { name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type, bonus, eca_type } = req.body;
       if (!name) return res.status(400).json({ error: 'Nombre requerido' });
-      const q = pgParams('INSERT INTO employees (name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type, bonus, eca_type) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-        [name, type || 'C', type_label || 'Aprendiz', project || 'PYG', salary || 1100, discounts || 0, identity_doc || '', identity_image || '', start_date || '', position || '', contract_type || 'obra', salary_type || 'diario', pay_type || 'asistencia', bonus || 0, eca_type || 'diario']);
+      const q = pgParams('INSERT INTO employees (name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+        [name, type || 'C', type_label || 'Aprendiz', project || 'PYG', salary || 1100, discounts || 0, identity_doc || '', identity_image || '', start_date || '', position || '', contract_type || 'obra', salary_type || 'diario']);
       const result = await db.query(q.text, q.params);
       const id = result.rowCount || result.changes;
-      res.status(201).json({ id, name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type, bonus, eca_type });
+
+      // Intentar actualizar pay_type, eca_type, bonus si las columnas existen
+      try {
+        await db.query('UPDATE employees SET pay_type=$1, eca_type=$2, bonus=$3 WHERE id=$4', [pay_type || 'asistencia', eca_type || 'diario', bonus || 0, id]);
+      } catch(e) { /* columnas aún no existen */ }
+
+      res.status(201).json({ id, name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type: pay_type || 'asistencia', eca_type: eca_type || 'diario', bonus: bonus || 0 });
       logAudit(req, 'crear', 'empleado', id, 'Nombre: ' + name);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
@@ -632,9 +638,15 @@ async function start() {
   app.put('/api/employees/:id', async (req, res) => {
     try {
       const { name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type, bonus, eca_type } = req.body;
-      await db.query('UPDATE employees SET name=?, type=?, type_label=?, project=?, salary=?, discounts=?, identity_doc=?, identity_image=?, start_date=?, position=?, contract_type=?, salary_type=?, pay_type=?, bonus=?, eca_type=? WHERE id=?',
-        [name, type, type_label, project, salary, discounts || 0, identity_doc || '', identity_image || '', start_date || '', position || '', contract_type || 'obra', salary_type || 'diario', pay_type || 'asistencia', bonus || 0, eca_type || 'diario', req.params.id]);
-      res.json({ id: parseInt(req.params.id), name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type, bonus, eca_type });
+      await db.query('UPDATE employees SET name=?, type=?, type_label=?, project=?, salary=?, discounts=?, identity_doc=?, identity_image=?, start_date=?, position=?, contract_type=?, salary_type=? WHERE id=?',
+        [name, type, type_label, project, salary, discounts || 0, identity_doc || '', identity_image || '', start_date || '', position || '', contract_type || 'obra', salary_type || 'diario', req.params.id]);
+
+      // Intentar actualizar nuevos campos si las columnas existen
+      try {
+        await db.query('UPDATE employees SET pay_type=$1, eca_type=$2, bonus=$3 WHERE id=$4', [pay_type || 'asistencia', eca_type || 'diario', bonus || 0, req.params.id]);
+      } catch(e) { /* columnas aún no existen */ }
+
+      res.json({ id: parseInt(req.params.id), name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type: pay_type || 'asistencia', eca_type: eca_type || 'diario', bonus: bonus || 0 });
       logAudit(req, 'editar', 'empleado', parseInt(req.params.id), 'Nombre: ' + name);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
