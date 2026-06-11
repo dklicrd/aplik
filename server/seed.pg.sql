@@ -117,7 +117,12 @@ CREATE TABLE IF NOT EXISTS employees (
   exit_date TEXT DEFAULT '',
   pay_type TEXT DEFAULT 'asistencia',
   bonus REAL DEFAULT 0,
-  eca_type TEXT DEFAULT 'diario'
+  eca_type TEXT DEFAULT 'fijo',
+  identity_doc_type TEXT DEFAULT '',
+  identity_doc_number TEXT DEFAULT '',
+  other_doc_type TEXT DEFAULT '',
+  last_name TEXT DEFAULT '',
+  zona TEXT DEFAULT 'Santo Domingo'
 );
 
 INSERT INTO employees (id, name, type, type_label, project, salary, discounts) VALUES

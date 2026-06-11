@@ -20,7 +20,7 @@ export default function Nomina() {
   const [showInactive, setShowInactive] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editEmp, setEditEmp] = useState(null);
-  const [form, setForm] = useState({ name: '', last_name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc_type: '', identity_doc_number: '', identity_doc: '', identity_image: '', other_doc_type: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario', pay_type: 'asistencia', bonus: 0, eca_type: 'diario' });
+  const [form, setForm] = useState({ name: '', last_name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc_type: '', identity_doc_number: '', identity_doc: '', identity_image: '', other_doc_type: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario', pay_type: 'asistencia', bonus: 0, eca_type: 'fijo', zona: 'Santo Domingo' });
   const uniqueProjects = [...new Set(employees.map(e => e.project))].filter(Boolean);
   const [saving, setSaving] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
@@ -52,7 +52,13 @@ export default function Nomina() {
 
   const getGross = (empId, salary, emp) => {
     if (emp && emp.pay_type === 'resultado') return Number(emp.bonus || 0);
+    // ECA-F: salario fijo mensual
     if (emp && emp.eca_type === 'fijo') return Number(emp.salary || 0);
+    // ECA-I: iguala / salario fijo (paga completo sin importar días)
+    if (emp && emp.eca_type === 'iguala') return Number(emp.salary || 0);
+    // ECA-C: contratista — pago por día
+    if (emp && emp.eca_type === 'contratista') return getDaysWorked(empId) * Number(salary);
+    // Default: ECA-D (pago por día)
     return getDaysWorked(empId) * Number(salary);
   };
 
@@ -63,13 +69,13 @@ export default function Nomina() {
 
   const openNew = () => {
     setEditEmp(null);
-    setForm({ name: '', last_name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc_type: '', identity_doc_number: '', identity_doc: '', identity_image: '', other_doc_type: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario', pay_type: 'asistencia', bonus: 0, eca_type: 'diario' });
+    setForm({ name: '', last_name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc_type: '', identity_doc_number: '', identity_doc: '', identity_image: '', other_doc_type: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario', pay_type: 'asistencia', bonus: 0, eca_type: 'fijo', zona: 'Santo Domingo' });
     setShowModal(true);
   };
 
   const openEdit = (emp) => {
     setEditEmp(emp);
-    setForm({ name: emp.name, last_name: emp.last_name || '', type: emp.type, type_label: emp.type_label, project: emp.project, salary: emp.salary, discounts: emp.discounts, identity_doc_type: emp.identity_doc_type || '', identity_doc_number: emp.identity_doc_number || emp.identity_doc || '', identity_doc: emp.identity_doc || '', identity_image: emp.identity_image || '', other_doc_type: emp.other_doc_type || '', start_date: emp.start_date || '', position: emp.position || '', contract_type: emp.contract_type || 'obra', salary_type: emp.salary_type || 'diario', pay_type: emp.pay_type || 'asistencia', bonus: emp.bonus || 0, eca_type: emp.eca_type || 'diario' });
+    setForm({ name: emp.name, last_name: emp.last_name || '', type: emp.type, type_label: emp.type_label, project: emp.project, salary: emp.salary, discounts: emp.discounts, identity_doc_type: emp.identity_doc_type || '', identity_doc_number: emp.identity_doc_number || emp.identity_doc || '', identity_doc: emp.identity_doc || '', identity_image: emp.identity_image || '', other_doc_type: emp.other_doc_type || '', start_date: emp.start_date || '', position: emp.position || '', contract_type: emp.contract_type || 'obra', salary_type: emp.salary_type || 'diario', pay_type: emp.pay_type || 'asistencia', bonus: emp.bonus || 0, eca_type: emp.eca_type || 'fijo', zona: emp.zona || 'Santo Domingo' });
     setShowModal(true);
   };
 
@@ -348,6 +354,10 @@ export default function Nomina() {
                         <span className="badge" style={{ background: '#d5f5e3', color: '#1e8449', fontSize: 9 }}>ECR</span>
                       ) : emp.eca_type === 'fijo' ? (
                         <span className="badge" style={{ background: '#e8f0fe', color: '#1a73e8', fontSize: 9 }}>ECA-F</span>
+                      ) : emp.eca_type === 'iguala' ? (
+                        <span className="badge" style={{ background: '#f0e6ff', color: '#7b2ff7', fontSize: 9 }}>ECA-I</span>
+                      ) : emp.eca_type === 'contratista' ? (
+                        <span className="badge" style={{ background: '#fce4ec', color: '#c62828', fontSize: 9 }}>ECA-C</span>
                       ) : (
                         <span className="badge" style={{ background: '#fef3e2', color: '#e67e22', fontSize: 9 }}>ECA-D</span>
                       )}
@@ -579,8 +589,21 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                 </select>
               </div>
               <div className="form-group">
+                <label>Zona</label>
+                <select value={form.zona} onChange={e => setForm({...form, zona: e.target.value})}>
+                  <option value="Santo Domingo">Santo Domingo</option>
+                  <option value="Este">Este (Bávaro / Punta Cana)</option>
+                  <option value="Interno">Interno</option>
+                </select>
+              </div>
+              <div className="form-group">
                 <label>Tipo de Pago</label>
-                <select value={form.pay_type} onChange={e => setForm({...form, pay_type: e.target.value})}>
+                <select value={form.pay_type} onChange={e => {
+                  const pt = e.target.value;
+                  // Al cambiar a ECA, default a Salario Fijo
+                  const et = pt === 'asistencia' ? 'fijo' : 'diario';
+                  setForm({...form, pay_type: pt, eca_type: et});
+                }}>
                   <option value="asistencia">ECA — Controlado por Asistencia</option>
                   <option value="resultado">ECR — Controlado por Resultado</option>
                 </select>
@@ -589,8 +612,9 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                 <div className="form-group">
                   <label>Modalidad ECA</label>
                   <select value={form.eca_type} onChange={e => setForm({...form, eca_type: e.target.value})}>
-                    <option value="diario">ECA-D — Pago por Día</option>
                     <option value="fijo">ECA-F — Salario Fijo</option>
+                    <option value="iguala">ECA-I — Salario por Iguala</option>
+                    <option value="contratista">ECA-C — Salario Contratista</option>
                   </select>
                 </div>
               )}
