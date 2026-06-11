@@ -51,11 +51,14 @@ export default function Nomina() {
   };
 
   const getGross = (empId, salary, emp) => {
-    if (emp && emp.pay_type === 'resultado') return Number(emp.bonus || 0);
-    // ECA (Controlado por Asistencia):
-    // ECA-F (Fijo), ECA-I (Iguala), ECA-C (Contratista):
-    // Todos pagan salario completo — no depende de días trabajados
-    return Number(emp.salary || 0);
+    if (emp && emp.pay_type === 'resultado') {
+      // ECR: monto acordado (bono, iguala o contratista)
+      return Number(emp.salary || 0);
+    }
+    // ECA: ECA-D paga por día, ECA-F salario fijo
+    if (emp && emp.eca_type === 'fijo') return Number(emp.salary || 0);
+    // ECA-D: pago por día trabajado
+    return getDaysWorked(empId) * Number(salary);
   };
 
   const totalNomina = filtered.reduce((sum, emp) => {
@@ -347,13 +350,11 @@ export default function Nomina() {
                       <strong>{emp.name}</strong>
                       {emp.status === 'baja' && <span className="badge" style={{ background: '#ffeaa7', color: '#d68910', fontSize: 9 }}>Baja</span>}
                       {emp.pay_type === 'resultado' ? (
-                        <span className="badge" style={{ background: '#d5f5e3', color: '#1e8449', fontSize: 9 }}>ECR</span>
+                        <span className="badge" style={{ background: '#d5f5e3', color: '#1e8449', fontSize: 9 }}>
+                          {emp.eca_type === 'iguala' ? 'ECR-I' : emp.eca_type === 'contratista' ? 'ECR-C' : 'ECR-B'}
+                        </span>
                       ) : emp.eca_type === 'fijo' ? (
                         <span className="badge" style={{ background: '#e8f0fe', color: '#1a73e8', fontSize: 9 }}>ECA-F</span>
-                      ) : emp.eca_type === 'iguala' ? (
-                        <span className="badge" style={{ background: '#f0e6ff', color: '#7b2ff7', fontSize: 9 }}>ECA-I</span>
-                      ) : emp.eca_type === 'contratista' ? (
-                        <span className="badge" style={{ background: '#fce4ec', color: '#c62828', fontSize: 9 }}>ECA-C</span>
                       ) : (
                         <span className="badge" style={{ background: '#fef3e2', color: '#e67e22', fontSize: 9 }}>ECA-D</span>
                       )}
@@ -596,8 +597,7 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                 <label>Tipo de Pago</label>
                 <select value={form.pay_type} onChange={e => {
                   const pt = e.target.value;
-                  // Al cambiar a ECA, default a Salario Fijo
-                  const et = pt === 'asistencia' ? 'fijo' : 'diario';
+                  const et = pt === 'asistencia' ? 'diario' : 'bono';
                   setForm({...form, pay_type: pt, eca_type: et});
                 }}>
                   <option value="asistencia">ECA — Controlado por Asistencia</option>
@@ -608,17 +608,26 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                 <div className="form-group">
                   <label>Modalidad ECA</label>
                   <select value={form.eca_type} onChange={e => setForm({...form, eca_type: e.target.value})}>
+                    <option value="diario">ECA-D — Pago por Día</option>
                     <option value="fijo">ECA-F — Salario Fijo</option>
-                    <option value="iguala">ECA-I — Salario por Iguala</option>
-                    <option value="contratista">ECA-C — Salario Contratista</option>
                   </select>
                 </div>
               )}
               {form.pay_type === 'resultado' && (
-                <div className="form-group">
-                  <label>Bono por Quincena (RD$)</label>
-                  <input type="number" value={form.bonus} onChange={e => setForm({...form, bonus: Number(e.target.value)})} min={0} />
-                </div>
+                <>
+                  <div className="form-group">
+                    <label>Modalidad ECR</label>
+                    <select value={form.eca_type} onChange={e => setForm({...form, eca_type: e.target.value})}>
+                      <option value="bono">ECR-B — Bono por Resultado</option>
+                      <option value="iguala">ECR-I — Iguala</option>
+                      <option value="contratista">ECR-C — Contratista</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Monto Acordado (RD$)</label>
+                    <input type="number" value={form.salary} onChange={e => setForm({...form, salary: Number(e.target.value)})} min={0} />
+                  </div>
+                </>
               )}
             </div>
             <div className="modal-footer">
