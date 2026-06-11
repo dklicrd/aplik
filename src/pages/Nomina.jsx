@@ -573,12 +573,14 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                 <label>{form.contract_type === 'indefinido' || form.contract_type === 'iguala' ? 'Salario Mensual (RD$)' : 'Salario Diario (RD$)'}</label>
                 <input type="number" value={form.salary} onChange={e => setForm({...form, salary: Number(e.target.value)})} min={0} />
               </div>
-              <div className="form-group">
-                <label>Tipo</label>
-                <select value={form.type} onChange={e => handleTypeChange(e.target.value)}>
-                  {TYPES.map(t => <option key={t.value} value={t.value}>{t.value} — {t.label}</option>)}
-                </select>
-              </div>
+              {form.pay_type === 'asistencia' && form.eca_type === 'diario' && (
+                <div className="form-group">
+                  <label>Tipo</label>
+                  <select value={form.type} onChange={e => handleTypeChange(e.target.value)}>
+                    {TYPES.map(t => <option key={t.value} value={t.value}>{t.value} — {t.label}</option>)}
+                  </select>
+                </div>
+              )}
               <div className="form-group">
                 <label>Proyecto</label>
                 <select value={form.project} onChange={e => setForm({...form, project: e.target.value})}>

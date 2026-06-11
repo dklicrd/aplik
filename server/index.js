@@ -114,52 +114,40 @@ async function start() {
     }
   }
 
-  // === Auto-migrate: employee columns ===
+  // === Auto-migrate: employee columns (revision 3) ===
   try {
-    const empColCheck = await db.query('SELECT identity_doc FROM employees LIMIT 1');
-    console.log('✅ Employee columns exist, checking additional columns...');
+    // Check if pay_type exists — if not, run full migration
+    await db.query('SELECT pay_type FROM employees LIMIT 1');
+    console.log('✅ pay_type column exists');
   } catch (e) {
-    console.log('🔧 Migrating: adding employee columns...');
+    console.log('🔧 Migrating employees: adding pay_type, eca_type, bonus, status, exit fields...');
     try {
       if (isPostgres) {
-        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS identity_doc TEXT DEFAULT \'\'');
-        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS identity_image TEXT DEFAULT \'\'');
-        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS start_date TEXT DEFAULT \'\'');
-        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS position TEXT DEFAULT \'\'');
-        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS contract_type TEXT DEFAULT \'obra\'');
-        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS salary_type TEXT DEFAULT \'diario\'');
+        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS pay_type TEXT DEFAULT \'asistencia\'');
+        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS bonus REAL DEFAULT 0');
+        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS eca_type TEXT DEFAULT \'diario\'');
         await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS status TEXT DEFAULT \'activo\'');
         await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS exit_type TEXT DEFAULT \'\'');
         await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS exit_reason TEXT DEFAULT \'\'');
         await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS exit_date TEXT DEFAULT \'\'');
-        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS pay_type TEXT DEFAULT \'asistencia\'');
-        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS bonus REAL DEFAULT 0');
-        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS eca_type TEXT DEFAULT \'diario\'');
-        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS identity_doc_type TEXT DEFAULT \'\'');
-        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS identity_doc_number TEXT DEFAULT \'\'');
-        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS last_name TEXT DEFAULT \'\'');
-        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS other_doc_type TEXT DEFAULT \'\'');
       } else {
-        const cols = ['identity_doc', 'identity_image', 'start_date', 'position', 'contract_type', 'salary_type', 'status', 'exit_type', 'exit_reason', 'exit_date', 'pay_type', 'bonus', 'eca_type', 'identity_doc_type', 'identity_doc_number', 'last_name', 'other_doc_type'];
+        const cols = ['pay_type', 'bonus', 'eca_type', 'status', 'exit_type', 'exit_reason', 'exit_date'];
         for (const col of cols) {
-          try {
-            await db.query(`ALTER TABLE employees ADD COLUMN ${col} TEXT DEFAULT ''`);
-          } catch (ce) { /* column may already exist */ }
+          try { await db.query(`ALTER TABLE employees ADD COLUMN ${col} TEXT DEFAULT ''`); } catch(ce){}
         }
       }
-      console.log('✅ Employee migration complete');
+      console.log('✅ Employees migration (pay_type etc) complete');
     } catch (migErr) {
-      console.log('⚠️ Employee migration note:', migErr.message);
+      console.log('⚠️ Employees migration note:', migErr.message);
     }
   }
 
-  // === Auto-migrate v2: additional columns for existing tables ===
+  // === Auto-migrate: employee identity columns (v2) ===
   try {
-    // Check for identity_doc_type column
     await db.query('SELECT identity_doc_type FROM employees LIMIT 1');
-    console.log('✅ V2 employee columns already exist');
+    console.log('✅ identity_doc_type column exists');
   } catch (e2) {
-    console.log('🔧 Migrating v2: adding identity_doc_type, last_name, other_doc_type, zona...');
+    console.log('🔧 Migrating employees: adding identity_doc_type, last_name, zona...');
     try {
       if (isPostgres) {
         await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS identity_doc_type TEXT DEFAULT \'\'');
@@ -173,7 +161,7 @@ async function start() {
           try { await db.query(`ALTER TABLE employees ADD COLUMN ${col} TEXT DEFAULT ''`); } catch(ce){}
         }
       }
-      console.log('✅ V2 migration complete');
+      console.log('✅ Employees v2 migration complete');
     } catch(e) {
       console.log('⚠️ V2 migration note:', e.message);
     }
@@ -674,15 +662,18 @@ async function start() {
   app.put('/api/employees/:id', async (req, res) => {
     try {
       const { name, last_name, type, type_label, project, salary, discounts, identity_doc_type, identity_doc_number, identity_doc, identity_image, other_doc_type, start_date, position, contract_type, salary_type, pay_type, bonus, eca_type, zona } = req.body;
-      await db.query('UPDATE employees SET name=$1, last_name=$2, type=$3, type_label=$4, project=$5, salary=$6, discounts=$7, identity_doc=$8, identity_image=$9, identity_doc_type=$10, identity_doc_number=$11, other_doc_type=$12, start_date=$13, position=$14, contract_type=$15, salary_type=$16, zona=$17 WHERE id=$18',
-        [name, last_name || '', type, type_label, project, salary, discounts || 0, identity_doc || identity_doc_number || '', identity_image || '', identity_doc_type || '', identity_doc_number || '', other_doc_type || '', start_date || '', position || '', contract_type || 'obra', salary_type || 'diario', zona || 'Santo Domingo', req.params.id]);
+      await db.query('UPDATE employees SET name=$1, last_name=$2, type=$3, type_label=$4, project=$5, salary=$6, discounts=$7, identity_doc=$8, identity_image=$9, identity_doc_type=$10, identity_doc_number=$11, other_doc_type=$12, start_date=$13, position=$14, contract_type=$15, salary_type=$16 WHERE id=$17',
+        [name, last_name || '', type, type_label, project, salary, discounts || 0, identity_doc || identity_doc_number || '', identity_image || '', identity_doc_type || '', identity_doc_number || '', other_doc_type || '', start_date || '', position || '', contract_type || 'obra', salary_type || 'diario', req.params.id]);
 
-      // Intentar actualizar nuevos campos si las columnas existen
-      try {
-        await db.query('UPDATE employees SET pay_type=$1 WHERE id=$2', [pay_type || 'asistencia', req.params.id]);
-        await db.query('UPDATE employees SET eca_type=$1 WHERE id=$2', [eca_type || 'fijo', req.params.id]);
-        await db.query('UPDATE employees SET bonus=$1 WHERE id=$2', [bonus || 0, req.params.id]);
-      } catch(e) { /* columnas aún no existen */ }
+      // Intentar actualizar nuevos campos si las columnas no existen
+      for (const { col, val } of [
+        { col: 'pay_type', val: pay_type || 'asistencia' },
+        { col: 'eca_type', val: eca_type || 'fijo' },
+        { col: 'bonus', val: bonus || 0 },
+        { col: 'zona', val: zona || 'Santo Domingo' },
+      ]) {
+        try { await db.query(`UPDATE employees SET ${col}=$1 WHERE id=$2`, [val, req.params.id]); } catch(e){}
+      }
 
       res.json({ id: parseInt(req.params.id), name, type, type_label, project, salary, discounts, identity_doc: identity_doc || identity_doc_number || '', identity_image, start_date, position, contract_type, salary_type });
       logAudit(req, 'editar', 'empleado', parseInt(req.params.id), 'Nombre: ' + name);
