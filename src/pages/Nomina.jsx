@@ -26,6 +26,8 @@ export default function Nomina() {
   const [showExitModal, setShowExitModal] = useState(false);
   const [exitEmp, setExitEmp] = useState(null);
   const [exitForm, setExitForm] = useState({ exit_type: 'renuncia', exit_reason: '', exit_date: new Date().toISOString().slice(0,10) });
+  const [showPersonal, setShowPersonal] = useState(true);
+  const [showContract, setShowContract] = useState(true);
 
   const getToken = () => localStorage.getItem('token');
 
@@ -452,186 +454,191 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
               <button className="btn btn-sm" onClick={() => setShowModal(false)}><X size={16} /></button>
             </div>
             <div className="modal-body">
-              <h4 style={{ fontSize: 13, fontWeight: 700, color: '#2c3e50', marginBottom: 12, paddingBottom: 6, borderBottom: '2px solid #3498db' }}>📋 Datos Personales</h4>
-              <div className="form-group">
-                <label>Nombres *</label>
-                <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Nombres" required />
-              </div>
-              <div className="form-group">
-                <label>Apellidos</label>
-                <input type="text" value={form.last_name} onChange={e => setForm({...form, last_name: e.target.value})} placeholder="Apellidos" />
-              </div>
-              <div className="form-group">
-                <label>Documento de Identidad</label>
-                <select value={form.identity_doc_type} onChange={e => {
-                  const t = e.target.value;
-                  setForm({...form, identity_doc_type: t, identity_doc_number: '', other_doc_type: ''});
-                }} style={{ marginBottom: 8 }}>
-                  <option value="">— Seleccionar tipo —</option>
-                  <option value="cedula">Cédula</option>
-                  <option value="pasaporte">Pasaporte</option>
-                  <option value="otro">Otro</option>
-                </select>
-                {form.identity_doc_type === 'cedula' && (
-                  <input type="text" value={form.identity_doc_number} onChange={e => {
-                    let v = e.target.value.replace(/[^0-9-]/g, '');
-                    if (v.length > 13) v = v.slice(0, 13);
-                    if (v.length === 3 && !v.includes('-')) v = v + '-';
-                    if (v.length === 11) { const p = v.replace(/-/g,''); if(p.length === 11) v = p.slice(0,3)+'-'+p.slice(3,10)+'-'+p.slice(10); }
-                    setForm({...form, identity_doc_number: v, identity_doc: v});
-                  }} placeholder="000-0000000-0" maxLength={13} />
-                )}
-                {form.identity_doc_type === 'pasaporte' && (
-                  <input type="text" value={form.identity_doc_number} onChange={e => {
-                    setForm({...form, identity_doc_number: e.target.value.toUpperCase(), identity_doc: e.target.value.toUpperCase()});
-                  }} placeholder="Número de pasaporte" />
-                )}
-                {form.identity_doc_type === 'otro' && (
-                  <>
-                    <input type="text" value={form.other_doc_type} onChange={e => setForm({...form, other_doc_type: e.target.value})} placeholder="Especificar tipo de documento" style={{ marginBottom: 8 }} />
-                    <input type="text" value={form.identity_doc_number} onChange={e => {
-                      setForm({...form, identity_doc_number: e.target.value, identity_doc: e.target.value});
-                    }} placeholder="Número de documento" />
-                  </>
-                )}
-                {form.identity_doc_number && (
-                  <div style={{ fontSize: 12, color: '#7f8c8d', marginTop: 4 }}>
-                    {form.identity_doc_type === 'cedula' && '✓ Cédula: '}
-                    {form.identity_doc_type === 'pasaporte' && '✓ Pasaporte: '}
-                    {form.identity_doc_type === 'otro' && '✓ ' + form.other_doc_type + ': '}
-                    {form.identity_doc_number}
+              {/* ── Datos Personales ── */}
+              <div style={{ marginBottom: 12, border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+                <div onClick={() => setShowPersonal(!showPersonal)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f8f9fa', cursor: 'pointer', borderBottom: showPersonal ? '1px solid var(--border)' : 'none', userSelect: 'none' }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#2c3e50' }}>📋 Datos Personales</span>
+                  <span style={{ fontSize: 12, color: '#7f8c8d', transform: showPersonal ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
+                </div>
+                {showPersonal && (
+                  <div style={{ padding: '12px 14px' }}>
+                    <div className="form-group">
+                      <label>Nombres *</label>
+                      <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Nombres" required />
+                    </div>
+                    <div className="form-group">
+                      <label>Apellidos</label>
+                      <input type="text" value={form.last_name} onChange={e => setForm({...form, last_name: e.target.value})} placeholder="Apellidos" />
+                    </div>
+                    <div className="form-group">
+                      <label>Documento de Identidad</label>
+                      <select value={form.identity_doc_type} onChange={e => {
+                        const t = e.target.value;
+                        setForm({...form, identity_doc_type: t, identity_doc_number: '', other_doc_type: ''});
+                      }} style={{ marginBottom: 8 }}>
+                        <option value="">— Seleccionar tipo —</option>
+                        <option value="cedula">Cédula</option>
+                        <option value="pasaporte">Pasaporte</option>
+                        <option value="otro">Otro</option>
+                      </select>
+                      {form.identity_doc_type === 'cedula' && (
+                        <input type="text" value={form.identity_doc_number} onChange={e => {
+                          let v = e.target.value.replace(/[^0-9-]/g, '');
+                          if (v.length > 13) v = v.slice(0, 13);
+                          if (v.length === 3 && !v.includes('-')) v = v + '-';
+                          if (v.length === 11) { const p = v.replace(/-/g,''); if(p.length === 11) v = p.slice(0,3)+'-'+p.slice(3,10)+'-'+p.slice(10); }
+                          setForm({...form, identity_doc_number: v, identity_doc: v});
+                        }} placeholder="000-0000000-0" maxLength={13} />
+                      )}
+                      {form.identity_doc_type === 'pasaporte' && (
+                        <input type="text" value={form.identity_doc_number} onChange={e => {
+                          setForm({...form, identity_doc_number: e.target.value.toUpperCase(), identity_doc: e.target.value.toUpperCase()});
+                        }} placeholder="Número de pasaporte" />
+                      )}
+                      {form.identity_doc_type === 'otro' && (
+                        <>
+                          <input type="text" value={form.other_doc_type} onChange={e => setForm({...form, other_doc_type: e.target.value})} placeholder="Especificar tipo de documento" style={{ marginBottom: 8 }} />
+                          <input type="text" value={form.identity_doc_number} onChange={e => {
+                            setForm({...form, identity_doc_number: e.target.value, identity_doc: e.target.value});
+                          }} placeholder="Número de documento" />
+                        </>
+                      )}
+                      {form.identity_doc_number && (
+                        <div style={{ fontSize: 12, color: '#7f8c8d', marginTop: 4 }}>
+                          {form.identity_doc_type === 'cedula' && '✓ Cédula: '}
+                          {form.identity_doc_type === 'pasaporte' && '✓ Pasaporte: '}
+                          {form.identity_doc_type === 'otro' && '✓ ' + form.other_doc_type + ': '}
+                          {form.identity_doc_number}
+                        </div>
+                      )}
+                    </div>
+                    <div className="form-group">
+                      <label>📸 Imagen del Documento</label>
+                      <input type="file" accept="image/*" onChange={async e => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        const fd = new FormData();
+                        fd.append('image', file);
+                        try {
+                          const token = getToken();
+                          const res = await fetch('/api/upload/identity', {
+                            method: 'POST',
+                            headers: { Authorization: `Bearer ${token}` },
+                            body: fd
+                          });
+                          const data = await res.json();
+                          if (data.url) setForm({...form, identity_image: data.url});
+                        } catch (err) {
+                          alert('Error al subir imagen: ' + err.message);
+                        }
+                      }} />
+                      {form.identity_image && (
+                        <div style={{ marginTop: 8 }}>
+                          <img src={form.identity_image} alt="Documento" style={{ maxWidth: 200, maxHeight: 120, borderRadius: 6, border: '1px solid #ddd' }} />
+                          <button className="btn btn-sm" style={{ marginLeft: 8, color: '#e74c3c' }} onClick={() => setForm({...form, identity_image: ''})}>✕</button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="form-group">
+                      <label>Fecha de Ingreso</label>
+                      <input type="date" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} />
+                    </div>
                   </div>
                 )}
-              </div>
-              <div className="form-group">
-                <label>📸 Imagen del Documento</label>
-                <input type="file" accept="image/*" onChange={async e => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-                  const fd = new FormData();
-                  fd.append('image', file);
-                  try {
-                    const token = getToken();
-                    const res = await fetch('/api/upload/identity', {
-                      method: 'POST',
-                      headers: { Authorization: `Bearer ${token}` },
-                      body: fd
-                    });
-                    const data = await res.json();
-                    if (data.url) setForm({...form, identity_image: data.url});
-                  } catch (err) {
-                    alert('Error al subir imagen: ' + err.message);
-                  }
-                }} />
-                {form.identity_image && (
-                  <div style={{ marginTop: 8 }}>
-                    <img src={form.identity_image} alt="Documento" style={{ maxWidth: 200, maxHeight: 120, borderRadius: 6, border: '1px solid #ddd' }} />
-                    <button className="btn btn-sm" style={{ marginLeft: 8, color: '#e74c3c' }} onClick={() => setForm({...form, identity_image: ''})}>✕</button>
-                  </div>
-                )}
-              </div>
-              <div className="form-group">
-                <label>Fecha de Ingreso</label>
-                <input type="date" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} />
               </div>
 
-              <h4 style={{ fontSize: 13, fontWeight: 700, color: '#2c3e50', marginTop: 20, marginBottom: 12, paddingBottom: 6, borderBottom: '2px solid #27ae60' }}>📄 Datos del Contrato</h4>
-              <div className="form-group">
-                <label>Zona</label>
-                <select value={form.zona} onChange={e => setForm({...form, zona: e.target.value})}>
-                  <option value="Santo Domingo">Santo Domingo</option>
-                  <option value="Este">Este (Bávaro / Punta Cana)</option>
-                  <option value="Interno">Interno</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Proyecto</label>
-                <select value={form.project} onChange={e => setForm({...form, project: e.target.value})}>
-                  {uniqueProjects.map(p => <option key={p} value={p}>{p}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Tipo de Contrato</label>
-                <select value={form.contract_type} onChange={e => {
-                  const ct = e.target.value;
-                  const st = ct === 'indefinido' ? 'mensual' : ct === 'iguala' ? 'mensual' : ct === 'contratista' ? 'diario' : 'diario';
-                  setForm({...form, contract_type: ct, salary_type: st});
-                }}>
-                  <option value="obra">Por obra o servicio determinado</option>
-                  <option value="indefinido">Indefinido</option>
-                  <option value="iguala">Iguala</option>
-                  <option value="contratista">Contratista</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Posición / Cargo</label>
-                <input type="text" value={form.position} onChange={e => {
-                  setForm({...form, position: e.target.value});
-                }} placeholder="Ej: Obrero, Pintor, Supervisor, Encargado, Chofer" />
-              </div>
-              {form.pay_type === 'asistencia' && form.eca_type === 'diario' && (
-                <div className="form-group">
-                  <label>Tipo</label>
-                  <select value={form.type} onChange={e => handleTypeChange(e.target.value)}>
-                    {TYPES.map(t => <option key={t.value} value={t.value}>{t.value} — {t.label}</option>)}
-                  </select>
+              {/* ── Datos del Contrato ── */}
+              <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+                <div onClick={() => setShowContract(!showContract)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f8f9fa', cursor: 'pointer', borderBottom: showContract ? '1px solid var(--border)' : 'none', userSelect: 'none' }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#2c3e50' }}>📄 Datos del Contrato</span>
+                  <span style={{ fontSize: 12, color: '#7f8c8d', transform: showContract ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
                 </div>
-              )}
-              {form.position && (form.position.toLowerCase().startsWith('pintor') || form.position.toLowerCase().startsWith('masillero')) && (
-                <div className="form-group">
-                  <label>Tipo de {form.position.toLowerCase().startsWith('pintor') ? 'Pintor' : 'Masillero'}</label>
-                  <select value={form.type} onChange={e => {
-                    const t = e.target.value;
-                    const lbl = TYPES.find(tp => tp.value === t)?.label || 'Aprendiz';
-                    setForm({...form, type: t, type_label: lbl});
-                  }}>
-                    {form.position.toLowerCase().startsWith('pintor')
-                      ? TYPES.map(t => <option key={t.value} value={t.value}>{t.label} ({t.value})</option>)
-                      : <option value="M">Masillero (M)</option>
-                    }
-                  </select>
-                </div>
-              )}
-              <div className="form-group">
-                <label>{form.contract_type === 'indefinido' || form.contract_type === 'iguala' ? 'Salario Mensual (RD$)' : 'Salario Diario (RD$)'}</label>
-                <input type="number" value={form.salary} onChange={e => setForm({...form, salary: Number(e.target.value)})} min={0} />
-              </div>
-              <div className="form-group">
-                <label>Tipo de Pago</label>
-                <select value={form.pay_type} onChange={e => {
-                  const pt = e.target.value;
-                  const et = pt === 'asistencia' ? 'diario' : 'bono';
-                  setForm({...form, pay_type: pt, eca_type: et});
-                }}>
-                  <option value="asistencia">ECA — Controlado por Asistencia</option>
-                  <option value="resultado">ECR — Controlado por Resultado</option>
-                </select>
-              </div>
-              {form.pay_type === 'asistencia' && (
-                <div className="form-group">
-                  <label>Modalidad ECA</label>
-                  <select value={form.eca_type} onChange={e => setForm({...form, eca_type: e.target.value})}>
-                    <option value="diario">ECA-D — Pago por Día</option>
-                    <option value="fijo">ECA-F — Salario Fijo</option>
-                  </select>
-                </div>
-              )}
-              {form.pay_type === 'resultado' && (
-                <>
-                  <div className="form-group">
-                    <label>Modalidad ECR</label>
-                    <select value={form.eca_type} onChange={e => setForm({...form, eca_type: e.target.value})}>
-                      <option value="bono">ECR-F — Fijo</option>
-                      <option value="iguala">ECR-I — Iguala</option>
-                      <option value="contratista">ECR-C — Contratista</option>
-                    </select>
+                {showContract && (
+                  <div style={{ padding: '12px 14px' }}>
+                    <div className="form-group">
+                      <label>Zona</label>
+                      <select value={form.zona} onChange={e => setForm({...form, zona: e.target.value})}>
+                        <option value="Santo Domingo">Santo Domingo</option>
+                        <option value="Este">Este (Bávaro / Punta Cana)</option>
+                        <option value="Interno">Interno</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Proyecto</label>
+                      <select value={form.project} onChange={e => setForm({...form, project: e.target.value})}>
+                        {uniqueProjects.map(p => <option key={p} value={p}>{p}</option>)}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Tipo de Contrato</label>
+                      <select value={form.contract_type} onChange={e => {
+                        const ct = e.target.value;
+                        const st = ct === 'indefinido' ? 'mensual' : ct === 'iguala' ? 'mensual' : ct === 'contratista' ? 'diario' : 'diario';
+                        setForm({...form, contract_type: ct, salary_type: st});
+                      }}>
+                        <option value="obra">Por obra o servicio determinado</option>
+                        <option value="indefinido">Indefinido</option>
+                        <option value="iguala">Iguala</option>
+                        <option value="contratista">Contratista</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Posición / Cargo</label>
+                      <input type="text" value={form.position} onChange={e => {
+                        setForm({...form, position: e.target.value});
+                      }} placeholder="Ej: Obrero, Pintor, Supervisor, Encargado, Chofer" />
+                    </div>
+                    {form.pay_type === 'asistencia' && form.eca_type === 'diario' && (
+                      <div className="form-group">
+                        <label>Tipo</label>
+                        <select value={form.type} onChange={e => handleTypeChange(e.target.value)}>
+                          {TYPES.map(t => <option key={t.value} value={t.value}>{t.value} — {t.label}</option>)}
+                        </select>
+                      </div>
+                    )}
+                    <div className="form-group">
+                      <label>{form.contract_type === 'indefinido' || form.contract_type === 'iguala' ? 'Salario Mensual (RD$)' : 'Salario Diario (RD$)'}</label>
+                      <input type="number" value={form.salary} onChange={e => setForm({...form, salary: Number(e.target.value)})} min={0} />
+                    </div>
+                    <div className="form-group">
+                      <label>Tipo de Pago</label>
+                      <select value={form.pay_type} onChange={e => {
+                        const pt = e.target.value;
+                        const et = pt === 'asistencia' ? 'diario' : 'bono';
+                        setForm({...form, pay_type: pt, eca_type: et});
+                      }}>
+                        <option value="asistencia">ECA — Controlado por Asistencia</option>
+                        <option value="resultado">ECR — Controlado por Resultado</option>
+                      </select>
+                    </div>
+                    {form.pay_type === 'asistencia' && (
+                      <div className="form-group">
+                        <label>Modalidad ECA</label>
+                        <select value={form.eca_type} onChange={e => setForm({...form, eca_type: e.target.value})}>
+                          <option value="diario">ECA-D — Pago por Día</option>
+                          <option value="fijo">ECA-F — Salario Fijo</option>
+                        </select>
+                      </div>
+                    )}
+                    {form.pay_type === 'resultado' && (
+                      <>
+                        <div className="form-group">
+                          <label>Modalidad ECR</label>
+                          <select value={form.eca_type} onChange={e => setForm({...form, eca_type: e.target.value})}>
+                            <option value="bono">ECR-F — Fijo</option>
+                            <option value="iguala">ECR-I — Iguala</option>
+                            <option value="contratista">ECR-C — Contratista</option>
+                          </select>
+                        </div>
+                        <div className="form-group">
+                          <label>Monto Acordado (RD$)</label>
+                          <input type="number" value={form.salary} onChange={e => setForm({...form, salary: Number(e.target.value)})} min={0} />
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <div className="form-group">
-                    <label>Monto Acordado (RD$)</label>
-                    <input type="number" value={form.salary} onChange={e => setForm({...form, salary: Number(e.target.value)})} min={0} />
-                  </div>
-                </>
-              )}
+                )}
+              </div>
             </div>
             <div className="modal-footer">
               <button className="btn" onClick={() => setShowModal(false)}>Cancelar</button>
