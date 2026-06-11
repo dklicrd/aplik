@@ -349,8 +349,6 @@ export default function Nomina() {
                 <tr key={emp.id} style={{ opacity: emp.status === 'baja' ? 0.6 : 1 }}>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <strong>{emp.name}</strong>
-                      {emp.status === 'baja' && <span className="badge" style={{ background: '#ffeaa7', color: '#d68910', fontSize: 9 }}>Baja</span>}
                       {emp.pay_type === 'resultado' ? (
                         <span className="badge" style={{ background: '#d5f5e3', color: '#1e8449', fontSize: 9 }}>
                           {emp.eca_type === 'iguala' ? 'ECR-I' : emp.eca_type === 'contratista' ? 'ECR-C' : 'ECR-F'}
@@ -360,6 +358,8 @@ export default function Nomina() {
                       ) : (
                         <span className="badge" style={{ background: '#fef3e2', color: '#e67e22', fontSize: 9 }}>ECA-D</span>
                       )}
+                      <strong>{emp.name}</strong>
+                      {emp.status === 'baja' && <span className="badge" style={{ background: '#ffeaa7', color: '#d68910', fontSize: 9 }}>Baja</span>}
                       {(emp.identity_doc || emp.position) && (
                         <span title={`
 ${emp.position ? 'Cargo: ' + emp.position : ''}
@@ -424,7 +424,20 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                 const net = getGross(emp.id, emp.salary) - Number(emp.discounts || 0);
                 return (
                   <tr key={emp.id}>
-                    <td>{emp.name}</td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {emp.pay_type === 'resultado' ? (
+                          <span className="badge" style={{ background: '#d5f5e3', color: '#1e8449', fontSize: 9 }}>
+                            {emp.eca_type === 'iguala' ? 'ECR-I' : emp.eca_type === 'contratista' ? 'ECR-C' : 'ECR-F'}
+                          </span>
+                        ) : emp.eca_type === 'fijo' ? (
+                          <span className="badge" style={{ background: '#e8f0fe', color: '#1a73e8', fontSize: 9 }}>ECA-F</span>
+                        ) : (
+                          <span className="badge" style={{ background: '#fef3e2', color: '#e67e22', fontSize: 9 }}>ECA-D</span>
+                        )}
+                        {emp.name}
+                      </div>
+                    </td>
                     <td>{emp.position || '—'}</td>
                     <td><span className="badge badge-info">{emp.type}</span></td>
                     <td>{days}</td>
