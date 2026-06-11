@@ -351,7 +351,7 @@ export default function Nomina() {
                       {emp.status === 'baja' && <span className="badge" style={{ background: '#ffeaa7', color: '#d68910', fontSize: 9 }}>Baja</span>}
                       {emp.pay_type === 'resultado' ? (
                         <span className="badge" style={{ background: '#d5f5e3', color: '#1e8449', fontSize: 9 }}>
-                          {emp.eca_type === 'iguala' ? 'ECR-I' : emp.eca_type === 'contratista' ? 'ECR-C' : 'ECR-B'}
+                          {emp.eca_type === 'iguala' ? 'ECR-I' : emp.eca_type === 'contratista' ? 'ECR-C' : 'ECR-F'}
                         </span>
                       ) : emp.eca_type === 'fijo' ? (
                         <span className="badge" style={{ background: '#e8f0fe', color: '#1a73e8', fontSize: 9 }}>ECA-F</span>
@@ -618,7 +618,7 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                   <div className="form-group">
                     <label>Modalidad ECR</label>
                     <select value={form.eca_type} onChange={e => setForm({...form, eca_type: e.target.value})}>
-                      <option value="bono">ECR-B — Bono por Resultado</option>
+                      <option value="bono">ECR-F — Fijo</option>
                       <option value="iguala">ECR-I — Iguala</option>
                       <option value="contratista">ECR-C — Contratista</option>
                     </select>
