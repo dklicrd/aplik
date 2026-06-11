@@ -52,14 +52,10 @@ export default function Nomina() {
 
   const getGross = (empId, salary, emp) => {
     if (emp && emp.pay_type === 'resultado') return Number(emp.bonus || 0);
-    // ECA-F: salario fijo mensual
-    if (emp && emp.eca_type === 'fijo') return Number(emp.salary || 0);
-    // ECA-I: iguala / salario fijo (paga completo sin importar días)
-    if (emp && emp.eca_type === 'iguala') return Number(emp.salary || 0);
-    // ECA-C: contratista — pago por día
-    if (emp && emp.eca_type === 'contratista') return getDaysWorked(empId) * Number(salary);
-    // Default: ECA-D (pago por día)
-    return getDaysWorked(empId) * Number(salary);
+    // ECA (Controlado por Asistencia):
+    // ECA-F (Fijo), ECA-I (Iguala), ECA-C (Contratista):
+    // Todos pagan salario completo — no depende de días trabajados
+    return Number(emp.salary || 0);
   };
 
   const totalNomina = filtered.reduce((sum, emp) => {
