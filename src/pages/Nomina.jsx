@@ -468,7 +468,7 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
             </div>
             <div className="modal-body">
               {/* ── Datos Personales ── */}
-              <div style={{ marginBottom: 12, border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+              <div style={{ marginBottom: 12, border: '1px solid #b8d4e8', borderRadius: 8, overflow: 'hidden' }}>
                 <div onClick={() => setShowPersonal(!showPersonal)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#e8f4fd', cursor: 'pointer', borderBottom: showPersonal ? '1px solid #b8d4e8' : 'none', userSelect: 'none' }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: '#1a5276' }}>📋 Datos Personales</span>
                   <span style={{ fontSize: 12, color: '#5a8db0', transform: showPersonal ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
@@ -561,7 +561,7 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
               </div>
 
               {/* ── Datos del Contrato ── */}
-              <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+              <div style={{ border: '1px solid #a9d6b5', borderRadius: 8, overflow: 'hidden' }}>
                 <div onClick={() => setShowContract(!showContract)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#eafaf1', cursor: 'pointer', borderBottom: showContract ? '1px solid #a9d6b5' : 'none', userSelect: 'none' }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: '#1e6b3b' }}>📄 Datos del Contrato</span>
                   <span style={{ fontSize: 12, color: '#5a9e6f', transform: showContract ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
