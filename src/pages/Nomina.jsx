@@ -463,7 +463,7 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>{editEmp ? 'Editar Trabajador' : 'Agregar Trabajador'}</h3>
+              <h3>{editEmp ? `Editar a: ${editEmp.name}${editEmp.last_name ? ' ' + editEmp.last_name : ''}` : 'Agregar Trabajador'}</h3>
               <button className="btn btn-sm" onClick={() => setShowModal(false)}><X size={16} /></button>
             </div>
             <div className="modal-body">
