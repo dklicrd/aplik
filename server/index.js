@@ -134,8 +134,9 @@ async function start() {
         await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS exit_date TEXT DEFAULT \'\'');
         await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS pay_type TEXT DEFAULT \'asistencia\'');
         await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS bonus REAL DEFAULT 0');
+        await db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS eca_type TEXT DEFAULT \'diario\'');
       } else {
-        const cols = ['identity_doc', 'identity_image', 'start_date', 'position', 'contract_type', 'salary_type', 'status', 'exit_type', 'exit_reason', 'exit_date', 'pay_type', 'bonus'];
+        const cols = ['identity_doc', 'identity_image', 'start_date', 'position', 'contract_type', 'salary_type', 'status', 'exit_type', 'exit_reason', 'exit_date', 'pay_type', 'bonus', 'eca_type'];
         for (const col of cols) {
           try {
             await db.query(`ALTER TABLE employees ADD COLUMN ${col} TEXT DEFAULT ''`);
@@ -481,13 +482,13 @@ async function start() {
   // === EMPLOYEES CRUD ===
   app.post('/api/employees', authMiddleware, async (req, res) => {
     try {
-      const { name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type, bonus } = req.body;
+      const { name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type, bonus, eca_type } = req.body;
       if (!name) return res.status(400).json({ error: 'Nombre requerido' });
-      const q = pgParams('INSERT INTO employees (name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type, bonus) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-        [name, type || 'C', type_label || 'Aprendiz', project || 'PYG', salary || 1100, discounts || 0, identity_doc || '', identity_image || '', start_date || '', position || '', contract_type || 'obra', salary_type || 'diario', pay_type || 'asistencia', bonus || 0]);
+      const q = pgParams('INSERT INTO employees (name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type, bonus, eca_type) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        [name, type || 'C', type_label || 'Aprendiz', project || 'PYG', salary || 1100, discounts || 0, identity_doc || '', identity_image || '', start_date || '', position || '', contract_type || 'obra', salary_type || 'diario', pay_type || 'asistencia', bonus || 0, eca_type || 'diario']);
       const result = await db.query(q.text, q.params);
       const id = result.rowCount || result.changes;
-      res.status(201).json({ id, name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type, bonus });
+      res.status(201).json({ id, name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type, bonus, eca_type });
       logAudit(req, 'crear', 'empleado', id, 'Nombre: ' + name);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });
@@ -630,10 +631,10 @@ async function start() {
 
   app.put('/api/employees/:id', async (req, res) => {
     try {
-      const { name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type, bonus } = req.body;
-      await db.query('UPDATE employees SET name=?, type=?, type_label=?, project=?, salary=?, discounts=?, identity_doc=?, identity_image=?, start_date=?, position=?, contract_type=?, salary_type=?, pay_type=?, bonus=? WHERE id=?',
-        [name, type, type_label, project, salary, discounts || 0, identity_doc || '', identity_image || '', start_date || '', position || '', contract_type || 'obra', salary_type || 'diario', pay_type || 'asistencia', bonus || 0, req.params.id]);
-      res.json({ id: parseInt(req.params.id), name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type, bonus });
+      const { name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type, bonus, eca_type } = req.body;
+      await db.query('UPDATE employees SET name=?, type=?, type_label=?, project=?, salary=?, discounts=?, identity_doc=?, identity_image=?, start_date=?, position=?, contract_type=?, salary_type=?, pay_type=?, bonus=?, eca_type=? WHERE id=?',
+        [name, type, type_label, project, salary, discounts || 0, identity_doc || '', identity_image || '', start_date || '', position || '', contract_type || 'obra', salary_type || 'diario', pay_type || 'asistencia', bonus || 0, eca_type || 'diario', req.params.id]);
+      res.json({ id: parseInt(req.params.id), name, type, type_label, project, salary, discounts, identity_doc, identity_image, start_date, position, contract_type, salary_type, pay_type, bonus, eca_type });
       logAudit(req, 'editar', 'empleado', parseInt(req.params.id), 'Nombre: ' + name);
     } catch (err) {
       res.status(500).json({ error: err.message || String(err) });

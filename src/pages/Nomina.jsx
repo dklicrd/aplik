@@ -20,7 +20,7 @@ export default function Nomina() {
   const [showInactive, setShowInactive] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editEmp, setEditEmp] = useState(null);
-  const [form, setForm] = useState({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc: '', identity_image: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario', pay_type: 'asistencia', bonus: 0 });
+  const [form, setForm] = useState({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc: '', identity_image: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario', pay_type: 'asistencia', bonus: 0, eca_type: 'diario' });
   const uniqueProjects = [...new Set(employees.map(e => e.project))].filter(Boolean);
   const [saving, setSaving] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
@@ -52,6 +52,7 @@ export default function Nomina() {
 
   const getGross = (empId, salary, emp) => {
     if (emp && emp.pay_type === 'resultado') return Number(emp.bonus || 0);
+    if (emp && emp.eca_type === 'fijo') return Number(emp.salary || 0);
     return getDaysWorked(empId) * Number(salary);
   };
 
@@ -62,13 +63,13 @@ export default function Nomina() {
 
   const openNew = () => {
     setEditEmp(null);
-    setForm({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc: '', identity_image: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario', pay_type: 'asistencia', bonus: 0 });
+    setForm({ name: '', type: 'C', type_label: 'Aprendiz', project: 'PYG', salary: 1100, discounts: 0, identity_doc: '', identity_image: '', start_date: '', position: '', contract_type: 'obra', salary_type: 'diario', pay_type: 'asistencia', bonus: 0, eca_type: 'diario' });
     setShowModal(true);
   };
 
   const openEdit = (emp) => {
     setEditEmp(emp);
-    setForm({ name: emp.name, type: emp.type, type_label: emp.type_label, project: emp.project, salary: emp.salary, discounts: emp.discounts, identity_doc: emp.identity_doc || '', identity_image: emp.identity_image || '', start_date: emp.start_date || '', position: emp.position || '', contract_type: emp.contract_type || 'obra', salary_type: emp.salary_type || 'diario', pay_type: emp.pay_type || 'asistencia', bonus: emp.bonus || 0 });
+    setForm({ name: emp.name, type: emp.type, type_label: emp.type_label, project: emp.project, salary: emp.salary, discounts: emp.discounts, identity_doc: emp.identity_doc || '', identity_image: emp.identity_image || '', start_date: emp.start_date || '', position: emp.position || '', contract_type: emp.contract_type || 'obra', salary_type: emp.salary_type || 'diario', pay_type: emp.pay_type || 'asistencia', bonus: emp.bonus || 0, eca_type: emp.eca_type || 'diario' });
     setShowModal(true);
   };
 
@@ -332,7 +333,8 @@ export default function Nomina() {
           <tbody>
             {filtered.map(emp => {
               const isEcr = emp.pay_type === 'resultado';
-              const days = isEcr ? '-' : getDaysWorked(emp.id);
+              const isEcaF = emp.eca_type === 'fijo';
+              const days = isEcr || isEcaF ? '-' : getDaysWorked(emp.id);
               const gross = getGross(emp.id, emp.salary, emp);
               const net = gross - Number(emp.discounts || 0);
               return (
@@ -341,7 +343,13 @@ export default function Nomina() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <strong>{emp.name}</strong>
                       {emp.status === 'baja' && <span className="badge" style={{ background: '#ffeaa7', color: '#d68910', fontSize: 9 }}>Baja</span>}
-                      {emp.pay_type === 'resultado' && <span className="badge" style={{ background: '#d5f5e3', color: '#1e8449', fontSize: 9 }}>ECR</span>}
+                      {emp.pay_type === 'resultado' ? (
+                        <span className="badge" style={{ background: '#d5f5e3', color: '#1e8449', fontSize: 9 }}>ECR</span>
+                      ) : emp.eca_type === 'fijo' ? (
+                        <span className="badge" style={{ background: '#e8f0fe', color: '#1a73e8', fontSize: 9 }}>ECA-F</span>
+                      ) : (
+                        <span className="badge" style={{ background: '#fef3e2', color: '#e67e22', fontSize: 9 }}>ECA-D</span>
+                      )}
                       {(emp.identity_doc || emp.position) && (
                         <span title={`
 ${emp.position ? 'Cargo: ' + emp.position : ''}
@@ -511,6 +519,15 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                   <option value="resultado">ECR — Controlado por Resultado</option>
                 </select>
               </div>
+              {form.pay_type === 'asistencia' && (
+                <div className="form-group">
+                  <label>Modalidad ECA</label>
+                  <select value={form.eca_type} onChange={e => setForm({...form, eca_type: e.target.value})}>
+                    <option value="diario">ECA-D — Pago por Día</option>
+                    <option value="fijo">ECA-F — Salario Fijo</option>
+                  </select>
+                </div>
+              )}
               {form.pay_type === 'resultado' && (
                 <div className="form-group">
                   <label>Bono por Quincena (RD$)</label>
