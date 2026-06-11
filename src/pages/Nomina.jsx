@@ -537,11 +537,46 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
 
               <h4 style={{ fontSize: 13, fontWeight: 700, color: '#2c3e50', marginTop: 20, marginBottom: 12, paddingBottom: 6, borderBottom: '2px solid #27ae60' }}>📄 Datos del Contrato</h4>
               <div className="form-group">
+                <label>Zona</label>
+                <select value={form.zona} onChange={e => setForm({...form, zona: e.target.value})}>
+                  <option value="Santo Domingo">Santo Domingo</option>
+                  <option value="Este">Este (Bávaro / Punta Cana)</option>
+                  <option value="Interno">Interno</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Proyecto</label>
+                <select value={form.project} onChange={e => setForm({...form, project: e.target.value})}>
+                  {uniqueProjects.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Tipo de Contrato</label>
+                <select value={form.contract_type} onChange={e => {
+                  const ct = e.target.value;
+                  const st = ct === 'indefinido' ? 'mensual' : ct === 'iguala' ? 'mensual' : ct === 'contratista' ? 'diario' : 'diario';
+                  setForm({...form, contract_type: ct, salary_type: st});
+                }}>
+                  <option value="obra">Por obra o servicio determinado</option>
+                  <option value="indefinido">Indefinido</option>
+                  <option value="iguala">Iguala</option>
+                  <option value="contratista">Contratista</option>
+                </select>
+              </div>
+              <div className="form-group">
                 <label>Posición / Cargo</label>
                 <input type="text" value={form.position} onChange={e => {
                   setForm({...form, position: e.target.value});
                 }} placeholder="Ej: Obrero, Pintor, Supervisor, Encargado, Chofer" />
               </div>
+              {form.pay_type === 'asistencia' && form.eca_type === 'diario' && (
+                <div className="form-group">
+                  <label>Tipo</label>
+                  <select value={form.type} onChange={e => handleTypeChange(e.target.value)}>
+                    {TYPES.map(t => <option key={t.value} value={t.value}>{t.value} — {t.label}</option>)}
+                  </select>
+                </div>
+              )}
               {form.position && (form.position.toLowerCase().startsWith('pintor') || form.position.toLowerCase().startsWith('masillero')) && (
                 <div className="form-group">
                   <label>Tipo de {form.position.toLowerCase().startsWith('pintor') ? 'Pintor' : 'Masillero'}</label>
@@ -558,43 +593,8 @@ ${emp.start_date ? 'Ingreso: ' + emp.start_date : ''}
                 </div>
               )}
               <div className="form-group">
-                <label>Tipo de Contrato</label>
-                <select value={form.contract_type} onChange={e => {
-                  const ct = e.target.value;
-                  const st = ct === 'indefinido' ? 'mensual' : ct === 'iguala' ? 'mensual' : ct === 'contratista' ? 'diario' : 'diario';
-                  setForm({...form, contract_type: ct, salary_type: st});
-                }}>
-                  <option value="obra">Por obra o servicio determinado</option>
-                  <option value="indefinido">Indefinido</option>
-                  <option value="iguala">Iguala</option>
-                  <option value="contratista">Contratista</option>
-                </select>
-              </div>
-              <div className="form-group">
                 <label>{form.contract_type === 'indefinido' || form.contract_type === 'iguala' ? 'Salario Mensual (RD$)' : 'Salario Diario (RD$)'}</label>
                 <input type="number" value={form.salary} onChange={e => setForm({...form, salary: Number(e.target.value)})} min={0} />
-              </div>
-              {form.pay_type === 'asistencia' && form.eca_type === 'diario' && (
-                <div className="form-group">
-                  <label>Tipo</label>
-                  <select value={form.type} onChange={e => handleTypeChange(e.target.value)}>
-                    {TYPES.map(t => <option key={t.value} value={t.value}>{t.value} — {t.label}</option>)}
-                  </select>
-                </div>
-              )}
-              <div className="form-group">
-                <label>Proyecto</label>
-                <select value={form.project} onChange={e => setForm({...form, project: e.target.value})}>
-                  {uniqueProjects.map(p => <option key={p} value={p}>{p}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Zona</label>
-                <select value={form.zona} onChange={e => setForm({...form, zona: e.target.value})}>
-                  <option value="Santo Domingo">Santo Domingo</option>
-                  <option value="Este">Este (Bávaro / Punta Cana)</option>
-                  <option value="Interno">Interno</option>
-                </select>
               </div>
               <div className="form-group">
                 <label>Tipo de Pago</label>
