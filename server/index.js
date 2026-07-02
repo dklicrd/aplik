@@ -916,8 +916,10 @@ async function start() {
   app.use(express.static(path.join(__dirname, '../dist')));
   app.get('/api/export-bd', async (req, res) => {
     try {
-      const tables = ['usuarios', 'clientes', 'proyectos', 'presupuestos', 'presupuesto_productos', 'productos', 'inventario', 'nomina', 'asistencia', 'movimientos', 'almacenes', 'configuracion'];
-      const data = {};
+      // Primero listar tablas
+      const tableList = await db.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name");
+      const tables = tableList.rows.map(r => r.table_name);
+      const data = { _tables: tables };
       for (const table of tables) {
         try {
           const rows = await db.query(`SELECT * FROM ${table}`);
