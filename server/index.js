@@ -914,6 +914,22 @@ async function start() {
 
   // Serve frontend
   app.use(express.static(path.join(__dirname, '../dist')));
+  app.get('/api/export-bd', async (req, res) => {
+    try {
+      const tables = ['usuarios', 'clientes', 'proyectos', 'presupuestos', 'presupuesto_productos', 'productos', 'inventario', 'nomina', 'asistencia', 'movimientos', 'almacenes', 'configuracion'];
+      const data = {};
+      for (const table of tables) {
+        try {
+          const rows = await db.query(`SELECT * FROM ${table}`);
+          data[table] = rows.rows || [];
+        } catch(e) { data[table] = []; }
+      }
+      res.json({ success: true, data });
+    } catch(e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../dist/index.html'));
   });
