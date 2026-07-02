@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { AlertTriangle, Package, Users, DollarSign, TrendingUp, RefreshCw, FolderKanban, ClipboardList } from 'lucide-react';
 import { getProducts, getEmployees, getMovements, getCategories } from '../utils/api';
 
-const API = 'https://aplik-dashboard.onrender.com';
+const API = '';
 const COLORS = ['#3498db', '#e67e22', '#2ecc71', '#e74c3c', '#9b59b6', '#1abc9c', '#f39c12', '#2980b9'];
 
 function LowStockTable({ products }) {

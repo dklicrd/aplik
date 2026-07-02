@@ -3,7 +3,7 @@ import ModuleNav from '../components/ModuleNav';
 import { Plus, Edit2, Trash2, X, Save, RefreshCw, Warehouse, ArrowRightLeft, ArrowRight } from 'lucide-react';
 import { getToken } from '../utils/api';
 
-const API = 'https://aplik-dashboard.onrender.com';
+const API = '';
 
 export default function Almacenes() {
   const [tab, setTab] = useState('almacenes'); // almacenes | transferencias

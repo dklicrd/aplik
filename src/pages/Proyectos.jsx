@@ -3,7 +3,7 @@ import ModuleNav from '../components/ModuleNav';
 import { Plus, Edit2, Trash2, X, Save, RefreshCw } from 'lucide-react';
 import { getToken } from '../utils/api';
 
-const API = 'https://aplik-dashboard.onrender.com';
+const API = '';
 
 export default function Proyectos() {
   const [projects, setProjects] = useState([]);
