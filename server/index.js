@@ -916,9 +916,9 @@ async function start() {
   app.use(express.static(path.join(__dirname, '../dist')));
   app.get('/api/export-bd', async (req, res) => {
     try {
-      // Primero listar tablas
-      const tableList = await db.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name");
-      const tables = tableList.rows.map(r => r.table_name);
+      // Listar tablas via pg_catalog
+      const tableList = await db.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema') ORDER BY tablename");
+      const tables = tableList.rows.map(r => r.tablename);
       const data = { _tables: tables };
       for (const table of tables) {
         try {
